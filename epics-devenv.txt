@@ -1,4 +1,9 @@
 
+/////////
+Compile with asciidoc
+http://www.methods.co.nz/asciidoc/
+/////////
+
 Creating an EPICS Development Environment
 =========================================
 :Author:    Michael Davidsaver
@@ -22,7 +27,8 @@ The intended audience of this document is anyone with an interested
 in setting up a standalone EPICS system for development, testing,
 or just to try something new.  Some familiarity with a Bourne shell
 and experience with building software in a Unix(like) environment
-is assumed.
+is assumed.  I does not assume any knowledge of programming or
+the C/C++ languages as none is required.
 
 Environment
 -----------
@@ -60,11 +66,6 @@ EPICS_HOST_ARCH::
   The identifier for the build host.
   Unix users can run the 'EpicsHostArch' script found in '$EPICS_BASE/startup'
 
-CPATH::
-  $CPATH:$EPICS_BASE/include:$EPICS_EXTENSIONS}/include
-
-  GCC specific.  Some packages (EDM) do not correctly set the header search path.
-
 EDMOBJECTS::
   $EPICS_EXTENSIONS/etc
 
@@ -98,7 +99,7 @@ Getting the Source
 
 The source for most EPICS software can be found at or through the
 http://www.aps.anl.gov/epics/[EPICS Home Page].
-The specific version used in this document are only examples.
+The specific versions used in this document are only examples.
 
 .EPICS Components
 [grid="all"]
@@ -124,12 +125,12 @@ Base
 
 We begin be setting up the environment to build the Base package.
 
-----------------------------------------------------------
+--------------------------------------------------------------------------------
 export EPICS_BASE="${HOME}/myepics/base"
 export EPICS_HOST_ARCH=`${EPICS_BASE}/startup/EpicsHostArch`
 export PATH="${PATH}:${EPICS_BASE}/bin/${EPICS_HOST_ARCH}"
 export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${EPICS_BASE}/lib/${EPICS_HOST_ARCH}"
-----------------------------------------------------------
+--------------------------------------------------------------------------------
 
 Before we start the compile it is worth mentioning that there are
 several files which contain user options which effect the build
@@ -145,30 +146,33 @@ cd $EPICS_BASE
 make
 --------------
 
+More infomation on compiling EPICS Base can be found in the 'documentation/README.html'
+or online at http://www.aps.anl.gov/epics/base/R3-14/10-docs/README.html[http://www.aps.anl.gov/epics/base/R3-14/10-docs/README.html].
+
 ALH
 ~~~
 
 ALH requires the presence of a Motif installation (LessTif or OpenMotif).
 Linux users check to see if your distribution provides one or more of these.
-Also install the headers (-dev or -devel as appropriate).
+Also install the development headers (-dev or -devel as appropriate).
 Others should consult available documentation
 http://www.motifzone.net/[http://www.motifzone.net/].
 
 Now build the Alarm Handler.
 
 -----------------------------------
-export EPICS_BASE="${HOME}/myepics/extensions"
+export EPICS_EXTENSIONS="${HOME}/myepics/extensions"
 cd ${EPICS_EXTENSIONS}/src/alh1_2_24
 make
 ------------------------------------
 
 Include the resulting executable in the system path.
 
-----------------------------------------------------------------
+--------------------------------------------------------------------------------------
 export PATH="${PATH}:${EPICS_EXTENSIONS}/bin/${EPICS_HOST_ARCH}"
 export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${EPICS_EXTENSIONS}/lib/${EPICS_HOST_ARCH}"
 alh
-----------------------------------------------------------------
+--------------------------------------------------------------------------------------
 
 ALH will not actually do anything useful without a configuration file.
 We will be writing one shortly.
@@ -184,19 +188,20 @@ check that they are.
 If a compile or link fails look for messages indicating missing
 headers or libraries and install the appropriate package.
 
-------------------------------------------------------------------
-export CPATH=$CPATH:$EPICS_BASE/include:$EPICS_EXTENSIONS}/include
+------------------------------
 cd ${EPICS_EXTENSIONS}/src/edm
 make
-------------------------------------------------------------------
+------------------------------
 
-The GIF plugin tries to link against the ungif library which is not
-include some newer OSs.  It is not clear that it is actually needed by EDM.
-If you have problems linking with ungif try the following.
+The GIF plugin needs to link against the ungif library which may not
+be availible.
+In this case the solution is not to build the gif plugin.
+A plugin for png images is availible.
 
-------------------------------------------------------------------
-sed -i -e 's|ungif||g' ${EPICS_EXTENSIONS}/src/edm/giflib/Makefile
-------------------------------------------------------------------
+-------------------------------------------------------------------
+sed -i -e 's|giflib||g' Makefile
+make
+-------------------------------------------------------------------
 
 Generate Plugin Config Files
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -209,20 +214,18 @@ of the fact that EDM can recognize if a library is a valid plugin
 and which type it is.
 It will only add valid plugins to the list files.
 
-TODO: ensure that EPICS is the first entry in edmPvObjects
-
---------------------------------------------------------
+---------------------------------------------------------------
 cd ${EPICS_EXTENSIONS}/lib/${EPICS_HOST_ARCH}
-touch edmObjects edmPvObjects
 export EDMOBJECTS=$PWD
 export EDMPVOBJECTS=$PWD
 export EDM=${EPICS_EXTENSIONS}/bin/${EPICS_HOST_ARCH}/edm
-for ff in lib*.so;do ${EDM} -add $PWD/$ff; ${EDM} -addpv $PWD/$ff; done
+for pv in Epics Calc Log Loc;do $EDM -addpv $PWD/lib$pv.so;done
+for ff in lib*.so;do ${EDM} -add $PWD/$ff; done
 sed -i -e "s|$PWD|"'$(EDMLIBS)|' edmObjects edmPvObjects
 rm edmObjects~ edmPvObjects~
 unset EDMOBJECTS EDMPVOBJECTS EDM
 mv edmObjects edmPvObjects ${EPICS_EXTENSIONS}/etc/
---------------------------------------------------------
+---------------------------------------------------------------
 
 The additional step of replacing the absolute paths with '$(EDMLIBS)' is
 taken to allow the built tree to be relocated without requiring modifications
@@ -233,19 +236,19 @@ Additional Environment
 
 Several more environment variables are required to run EDM.
 
-------------------------------------------------------
+-------------------------------------------------------
 export EDMOBJECTS=$EPICS_EXTENSIONS/etc
 export EDMPVOBJECTS=$EPICS_EXTENSIONS/etc
 export EDMFILES=$EPICS_EXTENSIONS/src/edm/edmMain
 export EDMHELPFILES=$EPICS_EXTENSIONS/src/edm/helpFiles
 export EDMLIBS=$EPICS_EXTENSIONS/lib/$EPICS_HOST_ARCH
-------------------------------------------------------
+-------------------------------------------------------
 
 EDM can now be executed, but it can't show anything interesting, yet.
 
-------------------------------------------
+------
 edm
-------------------------------------------
+------
 
 Testing
 -------
@@ -276,7 +279,7 @@ interface only.
 
 So in summary the expected environment for the following examples is:
 
--------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------
 export EPICS_BASE="${HOME}/myepics/base"
 export EPICS_EXTENSIONS="${HOME}/myepics/extensions"
 export EPICS_HOST_ARCH=`${EPICS_BASE}/startup/EpicsHostArch`
@@ -292,7 +295,7 @@ export EDMLIBS=$EPICS_EXTENSIONS/lib/$EPICS_HOST_ARCH
 export EPICS_CA_AUTO_ADDR_LIST=NO
 export EPICS_CA_ADDR_LIST=localhost
 export EPICS_CAS_INTF_ADDR_LIST=localhost
--------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------
 
 SoftIOC
 -------
@@ -310,18 +313,14 @@ We must create two short files: sum.db and sum-start.cmd.
 Then start the IOC in the directory containing them.
 
 ---------------------
+mkdir $HOME/myepics/myioc
+cd $HOME/myepics/myioc
+ ... Create file, see below ...
 softIOC sum-start.cmd
 ---------------------
 
 sum.db
 ~~~~~~
-
-This file will be used to create several process variables
-in the softIOC database.
-It consists of to Soft Analog Input records and a Calculated
-record.
-The '$(INST)' will be replaced with the actual prefix string
-when data records are loaded at runtime.
 
 ----------------------------
 record(ao,"$(INST):a"){
@@ -343,17 +342,15 @@ record(calc,"$(INST):sum"){
 }
 ----------------------------
 
+This file will be used to create several process variables
+in the softIOC database.
+It consists of to Soft Analog Input records and a Calculated
+record.
+The '$(INST)' will be replaced with the actual prefix string
+when data records are loaded at runtime.
+
 sum-start.cmd
 ~~~~~~~~~~~~~
-
-Here we have a start script containing commands to be
-given to the IOC shell.
-It simply sets several environment variables, loads the
-records previously defined with the given prefix,
-and starts running.
-
-The same db file could be loaded again with a different
-prefix.
 
 -----------------------------------
 epicsEnvSet("ARCH","linux-x86_64")
@@ -361,6 +358,15 @@ epicsEnvSet("IOC","mytestioc")
 dbLoadRecords("sum.db","INST=calc")
 iocInit
 -----------------------------------
+
+Here we have a start script containing commands to be
+given to the IOC shell.
+It simply sets several environment variables, loads the
+records previously defined, with the given prefix,
+and starts running.
+
+The same db file could be loaded again with a different
+prefix.
 
 PV Access from a Shell
 ----------------------
@@ -471,7 +477,15 @@ alh sum.alhConfig
 
 Now cause an alarm by making the sum exceed 15.
 
+Have Fun
+--------
+
+For more information of record types see the 'Record Reference Manual'
+in the EPICS wiki http://www.aps.anl.gov/epics/wiki/index.php/RRM_3-14[http://www.aps.anl.gov/epics/wiki/index.php/RRM_3-14].
+Infomation on writing more functionality for IOCs can be found in the Developer's guide <<AppDev>>.
+
 References
 ----------
 
-+ [[[CAref]]] Jeffrey O. Hill & Ralph Lange. 'Channel Access Reference Manual'
++ [[[CAref]]] Jeffrey O. Hill & Ralph Lange. 'Channel Access Reference Manual'. http://www.aps.anl.gov/epics/base/R3-14/10-docs/CAref.html[http://www.aps.anl.gov/epics/base/R3-14/10-docs/CAref.html]
++ [[[AppDev]]] Marty Kraimer et al.  'EPICS Application Developer's Guide '. http://www.aps.anl.gov/epics/base/R3-14/10-docs/AppDevGuide.pdf[http://www.aps.anl.gov/epics/base/R3-14/10-docs/AppDevGuide.pdf]

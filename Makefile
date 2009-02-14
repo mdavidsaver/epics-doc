@@ -47,6 +47,7 @@ $(TEX): %.tex: %.xml
 
 $(PDF): %.pdf: %.tex
 	$(PDFJADETEX) $<
+	$(PDFJADETEX) $<
 
 clean:
 	rm -f $(HTML) $(DOCBOOK) $(TEX) $(PDF)
