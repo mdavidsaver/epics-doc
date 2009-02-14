@@ -1,0 +1,156 @@
+
+Creating an EPICS Development Environment
+=========================================
+Michael Davidsaver <mdavidsaver@gmail.com>
+v0, Febuary 2009
+
+Introduction
+------------
+
+This document attempts to explain how to prepare an environment
+in which the various components of an EPICS system can be
+compiled and used.
+It will specifically describe how to build the base EPICS
+distribution and the EDM client to give the reader a
+system on which to develop and run (soft) IOCs on the host system.
+
+Environment
+-----------
+
+The EPICS build system carries some assumption about the layout of
+its source code tree.
+We will be building the EPICS Base package along with several
+extension packages (EDM and ALM).
+For the remainder of this document it is assumed that the following
+directory structure is present under a base directory '$HOME/myepics'.
+This name can be replaced this an arbitrary directory.
+No privlaged operations are used.
+
+- myepics
+  * base
+  * extensions
+     . src
+       .. alh
+       .. edm
+
+Several environment variables must also be set when building and using
+EPICS.  They will be set when appropriate in the following sections,
+but are listed here in summary.
+
+*EPICS_BASE*::  $HOME/myepics/base
+
+*EPICS_EXTENSIONS*::  $HOME/myepics/extenstions
+
+*EPICS_HOST_ARCH*::  (eg) linux-x86 solaris-sparc win32-x86-mingw
+
+  The identifer for the build host.
+  Unix users can run the 'EpicsHostArch' script found in '$EPICS_BASE/startup'
+
+*PATH*::  $PATH:$EPICS_BASE/bin/$EPICS_HOST_ARCH:$EPICS_EXTENSIONS/bin/$EPICS_HOST_ARCH
+
+  Allow EPICS executables to be found.  This is needed during the build phase.
+
+*LD_LIBRARY_PATH*::  $LD_LIBRARY_PATH:$EPICS_BASE/lib/$EPICS_HOST_ARCH:$EPICS_EXTENSIONS/lib/$EPICS_HOST_ARCH
+
+  Allow library to be found
+
+*CPATH*::  $CPATH:$EPICS_BASE/include:$EPICS_EXTENSIONS}/include
+
+  GCC specific.  Some packages (EDM) do not correctly set the header search path.
+
+*EDMOBJECTS*::  $EPICS_EXTENSIONS/etc
+
+*EDMPVOBJECTS*::  $EPICS_EXTENSIONS/etc
+
+*EDMFILES*::  $EPICS_EXTENSIONS/src/edm/edmMain
+
+*EDMHELPFILE*::  $EPICS_EXTENSIONS/src/edm/helpFiles
+
+*EDMLIBS*::  $EPICS_EXTENSIONS/lib/$EPICS_HOST_ARCH
+
+The following are used to unsure that this example remain self-contained even
+if run on a machine attached to a network with Channel Access traffic.
+Their meaning is discussed in the 'Channel Access Reference Manual' <<CAref>>.
+
+*EPICS_CAS_INTF_ADDR_LIST*::  localhost
+
+*EPICS_CA_ADDR_LIST*::  localhost
+
+*EPICS_CA_AUTO_ADDR_LIST*::  NO
+
+Getting the Source
+------------------
+
+The source for most EPICS software can be found at or through the
+http://www.aps.anl.gov/epics/[EPICS Home Page].
+The specific version used in this document are only examples.
+
+.EPICS Components
+[grid="all"]
+`5`10`20~~~~~~~~~~~~~~~~~~~~~~~~~
+Name,File,Download
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Base,BaseR3.14.10.tar.gz,http://www.aps.anl.gov/epics/base/R3-14/index.php[http://www.aps.anl.gov/epics/base/R3-14/index.php]
+Extensions,extensionsTop_20070703.tar.gz, http://www.aps.anl.gov/epics/extensions/configure/index.php[http://www.aps.anl.gov/epics/extensions/configure/index.php]
+ALH,alh1_2_24.tar.gz,http://www.aps.anl.gov/epics/extensions/alh/index.php[http://www.aps.anl.gov/epics/extensions/alh/index.php]
+EDM,edm-1-11-1zg.tgz,http://ics-web.sns.ornl.gov/edm/[http://ics-web.sns.ornl.gov/edm/]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Download all the files listed in components table into '$HOME/myepics'.
+First unpack Base and Extensions.  Either rename or symlink 'base-3.14.10' to 'base'.
+Now unpack ALH and EDM in the 'extensions/src' directory.
+
+Building
+--------
+
+Base
+~~~~
+
+We begin be setting up the environment to build the Base package.
+
+----------------------------------------------------------
+export EPICS_BASE="${HOME}/myepics/base"
+export EPICS_HOST_ARCH=`${EPICS_BASE}/startup/EpicsHostArch`
+export PATH="${PATH}:${EPICS_BASE}/bin/${EPICS_HOST_ARCH}"
+----------------------------------------------------------
+
+Before we start the compile it is worth mentioning that there are
+several files which contain user options which effect the build
+proccess.
+'CONFIG_SITE' and 'RELEASE' in '$EPICS_BASE/configure'.
+In particular 'CONFIG_SITE' is where the cross-build
+targets would be specified.
+
+Now simply switch the base directory and issue the `make` command.
+
+--------------
+cd $EPICS_BASE
+make
+--------------
+
+ALH
+~~~
+
+Now build the Alarm Handler
+
+-----------------------------------
+cd ${EPICS_EXTENSIONS}/src/alh1_2_24
+make
+------------------------------------
+
+Now include the resulting executable in the system path.
+
+----------------------------------------------------------------
+export PATH="${PATH}:${EPICS_EXTENSIONS}/bin/${EPICS_HOST_ARCH}"
+----------------------------------------------------------------
+
+EDM
+~~~
+
+EDM
+
+References
+----------
+
+[References]
+ - [[[CAref]]] Jeffrey O. Hill & Ralph Lange. 'Channel Access Reference Manual'
