@@ -1,0 +1,38 @@
+
+Dependencies
+
+GNUWin32 - http://gnuwin32.sourceforge.net/packages.html
+
+CoreUtils
+  FileUtils
+  Sh-Utils
+  TextUtils
+TextInfo
+Grep
+Tar
+Gzip
+Bzip2
+Tree
+
+export EPICS_HOST_ARCH=win32-x86-mingw
+make
+
+Build static libs only in configure/CONFIG_SITE
+
+Add cross compiler name prefix (i586-mingw32msvc-) to
+configure/os/CONFIG.win32-x86-mingw.win32-x86-mingw
+
+Fix include file case 'Winver.h' to 'winver.h'
+
+find . -type f | xargs grep 'Winver\.h'| \
+cut -f 1 -d ':' | xargs sed -i -e '/#\W*include/ s|Winver|winver|'
+
+Fix seperator in includes 'sys\stat.h' to 'sys/stat.h'
+
+##find . -type f | xargs sed -i -e '/#\W*include/ s|\\|/|g'
+
+Fix config for run generated executables with wine
+
+antelope
+e_flex
+makeBpt

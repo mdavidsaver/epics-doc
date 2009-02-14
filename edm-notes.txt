@@ -1,0 +1,21 @@
+
+make MOTIF_LIBS=/usr/lib X11_LIBS=/usr/lib
+
+
+set EDMPVOBJECTS and EDMOBJECTS
+to the directories containing edmPvObjects and edmObjects
+
+edm -addpv $EPICS_BASE/lib/$EPICS_HOST_ARCH/libEpics.so
+edm -addpv $EPICS_BASE/lib/$EPICS_HOST_ARCH/libLoc.so
+edm -addpv $EPICS_BASE/lib/$EPICS_HOST_ARCH/libCalc.so
+edm -addpv $EPICS_BASE/lib/$EPICS_HOST_ARCH/libLog.so
+edm -addpv $EPICS_BASE/lib/$EPICS_HOST_ARCH/libPV.so
+edm -addpv $EPICS_BASE/lib/$EPICS_HOST_ARCH/libTwoDProfileMonitor.so
+edm -addpv $EPICS_BASE/lib/$EPICS_HOST_ARCH/libIndicator.so
+
+edm -add $EPICS_BASE/lib/$EPICS_HOST_ARCH/libEdmBase.so
+edm -add $EPICS_BASE/lib/$EPICS_HOST_ARCH/lib114135a4-6f6c-11d3-95bc-00104b8742df.so
+edm -add $EPICS_BASE/lib/$EPICS_HOST_ARCH/libcfcaa62e-8199-11d3-a77f-00104b8742df.so
+edm -add $EPICS_BASE/lib/$EPICS_HOST_ARCH/libcf322683-513e-4570-a44b-7cdd7cae0de5.so
+edm -add $EPICS_BASE/lib/$EPICS_HOST_ARCH/lib57d79238-2924-420b-ba67-dfbecdf03fcd.so
+edm -add $EPICS_BASE/lib/$EPICS_HOST_ARCH/lib7e1b4e6f-239d-4650-95e6-a040d41ba633.so

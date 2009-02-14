@@ -1,0 +1,17 @@
+
+Base
+
+
+Extensions
+
+ get extensionsTop_20070703.tar.gz
+
+ unpack
+
+
+EDM
+
+ unpack in extensions/src
+ make
+
+  ungif ??
