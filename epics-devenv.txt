@@ -1,8 +1,12 @@
 
 Creating an EPICS Development Environment
 =========================================
-Michael Davidsaver <mdavidsaver@gmail.com>
-v0, Febuary 2009
+:Author:    Michael Davidsaver
+:Email:     mdavidsaver@gmail.com
+:Date:      February 2009
+:Revision:  1
+:Key words: epics, edm, alh, process variable
+:Revision history:
 
 Introduction
 ------------
@@ -12,7 +16,13 @@ in which the various components of an EPICS system can be
 compiled and used.
 It will specifically describe how to build the base EPICS
 distribution and the EDM client to give the reader a
-system on which to develop and run (soft) IOCs on the host system.
+system on which to develop and run (soft) IOCs.
+
+The intended audience of this document is anyone with an interested
+in setting up a standalone EPICS system for development, testing,
+or just to try something new.  Some familiarity with a Bourne shell
+and experience with building software in a Unix(like) environment
+is assumed.
 
 Environment
 -----------
@@ -24,7 +34,7 @@ extension packages (EDM and ALM).
 For the remainder of this document it is assumed that the following
 directory structure is present under a base directory '$HOME/myepics'.
 This name can be replaced this an arbitrary directory.
-No privlaged operations are used.
+No privileged operations are used.
 
 - myepics
   * base
@@ -38,46 +48,50 @@ Several environment variables must also be set when building and using
 EPICS.  They will be set when appropriate in the following sections,
 but are listed here in summary.
 
-*EPICS_BASE*::  $HOME/myepics/base
+EPICS_BASE::
+  $HOME/myepics/base
 
-*EPICS_EXTENSIONS*::  $HOME/myepics/extenstions
+EPICS_EXTENSIONS::
+  $HOME/myepics/extensions
 
-*EPICS_HOST_ARCH*::  (eg) linux-x86 solaris-sparc win32-x86-mingw
+EPICS_HOST_ARCH::
+  linux-x86, solaris-sparc, win32-x86-mingw, etc.
 
-  The identifer for the build host.
+  The identifier for the build host.
   Unix users can run the 'EpicsHostArch' script found in '$EPICS_BASE/startup'
 
-*PATH*::  $PATH:$EPICS_BASE/bin/$EPICS_HOST_ARCH:$EPICS_EXTENSIONS/bin/$EPICS_HOST_ARCH
-
-  Allow EPICS executables to be found.  This is needed during the build phase.
-
-*LD_LIBRARY_PATH*::  $LD_LIBRARY_PATH:$EPICS_BASE/lib/$EPICS_HOST_ARCH:$EPICS_EXTENSIONS/lib/$EPICS_HOST_ARCH
-
-  Allow library to be found
-
-*CPATH*::  $CPATH:$EPICS_BASE/include:$EPICS_EXTENSIONS}/include
+CPATH::
+  $CPATH:$EPICS_BASE/include:$EPICS_EXTENSIONS}/include
 
   GCC specific.  Some packages (EDM) do not correctly set the header search path.
 
-*EDMOBJECTS*::  $EPICS_EXTENSIONS/etc
+EDMOBJECTS::
+  $EPICS_EXTENSIONS/etc
 
-*EDMPVOBJECTS*::  $EPICS_EXTENSIONS/etc
+EDMPVOBJECTS::
+  $EPICS_EXTENSIONS/etc
 
-*EDMFILES*::  $EPICS_EXTENSIONS/src/edm/edmMain
+EDMFILES::
+  $EPICS_EXTENSIONS/src/edm/edmMain
 
-*EDMHELPFILES*::  $EPICS_EXTENSIONS/src/edm/helpFiles
+EDMHELPFILES::
+  $EPICS_EXTENSIONS/src/edm/helpFiles
 
-*EDMLIBS*::  $EPICS_EXTENSIONS/lib/$EPICS_HOST_ARCH
+EDMLIBS::
+  $EPICS_EXTENSIONS/lib/$EPICS_HOST_ARCH
 
 The following are used to unsure that this example remain self-contained even
 if run on a machine attached to a network with Channel Access traffic.
 Their meaning is discussed in the 'Channel Access Reference Manual' <<CAref>>.
 
-*EPICS_CAS_INTF_ADDR_LIST*::  localhost
+EPICS_CAS_INTF_ADDR_LIST::
+  localhost
 
-*EPICS_CA_ADDR_LIST*::  localhost
+EPICS_CA_ADDR_LIST::
+  localhost
 
-*EPICS_CA_AUTO_ADDR_LIST*::  NO
+EPICS_CA_AUTO_ADDR_LIST::
+  NO
 
 Getting the Source
 ------------------
@@ -88,7 +102,7 @@ The specific version used in this document are only examples.
 
 .EPICS Components
 [grid="all"]
-`5`10`20~~~~~~~~~~~~~~~~~~~~~~~~~
+`4`10`28~~~~~~~~~~~~~~~~~~~~~~~~~
 Name,File,Download
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Base,BaseR3.14.10.tar.gz,http://www.aps.anl.gov/epics/base/R3-14/index.php[http://www.aps.anl.gov/epics/base/R3-14/index.php]
@@ -119,7 +133,7 @@ export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${EPICS_BASE}/lib/${EPICS_HOST_ARCH}"
 
 Before we start the compile it is worth mentioning that there are
 several files which contain user options which effect the build
-proccess.
+process.
 'CONFIG_SITE' and 'RELEASE' in '$EPICS_BASE/configure'.
 In particular 'CONFIG_SITE' is where the cross-build
 targets would be specified.
@@ -136,8 +150,8 @@ ALH
 
 ALH requires the presence of a Motif installation (LessTif or OpenMotif).
 Linux users check to see if your distribution provides one or more of these.
-Also install the headers (dev or -devel as appropriate).
-Others should consult availible documentation
+Also install the headers (-dev or -devel as appropriate).
+Others should consult available documentation
 http://www.motifzone.net/[http://www.motifzone.net/].
 
 Now build the Alarm Handler.
@@ -148,20 +162,23 @@ cd ${EPICS_EXTENSIONS}/src/alh1_2_24
 make
 ------------------------------------
 
-Now include the resulting executable in the system path.
+Include the resulting executable in the system path.
 
 ----------------------------------------------------------------
 export PATH="${PATH}:${EPICS_EXTENSIONS}/bin/${EPICS_HOST_ARCH}"
 export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${EPICS_EXTENSIONS}/lib/${EPICS_HOST_ARCH}"
-alm
+alh
 ----------------------------------------------------------------
+
+ALH will not actually do anything useful without a configuration file.
+We will be writing one shortly.
 
 EDM
 ~~~
 
 Building the EDM display manager can be complicated.
-It has many dependencies including libgif, libpng, and many X11
-libraries (X11, Xm, Xau, etc.).
+It has many dependencies in addition to Motif including
+libgif, libpng, and many X11 libraries (X11, Xm, Xau, etc.).
 These are assumed to be present and the build system does not
 check that they are.
 If a compile or link fails look for messages indicating missing
@@ -281,7 +298,7 @@ SoftIOC
 -------
 
 Now we will construct a IOC which will run on the host machine.
-This will be done compileing any additional code with the help
+This will be done compiling any additional code with the help
 of the softIOC executable.
 
 The IOC will have only tree Process Variables (PVs).
@@ -307,13 +324,13 @@ The '$(INST)' will be replaced with the actual prefix string
 when data records are loaded at runtime.
 
 ----------------------------
-record(ai,"$(INST):a"){
+record(ao,"$(INST):a"){
   field(DTYP,"Soft Channel")
   field(VAL,0)
   field(UDF,1)
   field(FLNK,"$(INST):sum")
 }
-record(ai,"$(INST):b"){
+record(ao,"$(INST):b"){
   field(DTYP,"Soft Channel")
   field(VAL,0)
   field(UDF,1)
@@ -431,7 +448,7 @@ Also set 'Null Condition' to 'Disabled' and check 'Editable',
 
 Execute the display and try setting the three fields.
 Try setting A and B so that the sum exceeds 15.
-Also try using a slider control for A and B.
+Also try using slider controls for A and B.
 
 Alarm Handling
 --------------
@@ -452,10 +469,9 @@ Run ALH.
 alh sum.alhConfig
 -----------------
 
-Now cause an alarm be making the sum exceed 15.
+Now cause an alarm by making the sum exceed 15.
 
 References
 ----------
 
-[References]
- - [[[CAref]]] Jeffrey O. Hill & Ralph Lange. 'Channel Access Reference Manual'
++ [[[CAref]]] Jeffrey O. Hill & Ralph Lange. 'Channel Access Reference Manual'

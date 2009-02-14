@@ -33,8 +33,11 @@ html: $(HTML)
 
 pdf: $(PDF)
 
+epics-devenv.html: epics-devenv-revhistory.xml
+epics-devenv.xml: epics-devenv-revhistory.xml
+
 $(HTML): %.html: %.txt
-	$(ASCIIDOC) $(HTMLOPTS) $<
+	$(ASCIIDOC) $(HTMLOPTS) $(filter %.txt,$^)
 
 $(DOCBOOK): %.xml: %.txt
 	$(ASCIIDOC) $(DOCBOOKOPTS) $<
