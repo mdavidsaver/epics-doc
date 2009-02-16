@@ -5,7 +5,7 @@ DOC2TEX=docbook2tex
 
 PDFJADETEX=pdfjadetex
 
-DOCSRC=epics-devenv.txt
+DOCSRC=epics-starting.txt
 
 HTML=$(patsubst %.txt,%.html,$(DOCSRC))
 DOCBOOK=$(patsubst %.txt,%.xml,$(DOCSRC))
@@ -33,8 +33,8 @@ html: $(HTML)
 
 pdf: $(PDF)
 
-epics-devenv.html: epics-devenv-revhistory.xml
-epics-devenv.xml: epics-devenv-revhistory.xml
+epics-starting.html: epics-starting-revhistory.xml
+epics-starting.xml: epics-starting-revhistory.xml
 
 $(HTML): %.html: %.txt
 	$(ASCIIDOC) $(HTMLOPTS) $(filter %.txt,$^)
