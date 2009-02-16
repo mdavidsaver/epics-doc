@@ -17,16 +17,16 @@ Introduction
 ------------
 
 This article describes how to build and run a simple software IOC
-and the EDM display manager.  The goal is to provide the reader with
+and the EDM display manager.  The goal is to provide the reader
 a basic functional system with which to further explore the EPICS
 control system.
 
-The intended audience of this document is anyone with an interested
+The intended audience is anyone with an interest
 in setting up a standalone EPICS system for development, testing,
 or just to try something new.  Some familiarity with a Bourne shell
-and experience with building software in a Unix(like) environment
-is assumed.  No assumption of knowledge of programming or
-the C/C++ languages is made as none is required to understand
+and with building software in a Unix(like) environment
+is assumed.  No knowledge of programming or
+the C/C++ languages is assumed as none is required to understand
 the examples presented here.
 
 Environment
@@ -41,13 +41,15 @@ directory structure is present under a base directory '$HOME/myepics'.
 This name can be replaced with an arbitrary directory.
 No privileged operations are used.
 
+--------------
 - myepics
-  * base
-  * extensions
-     . src
-       .. alh
-       .. edm
-     . etc
+  - base
+  - extensions
+     - src
+       - alh
+       - edm
+     - etc
+--------------
 
 Several environment variables must also be set when building and using
 EPICS.  They will be set when appropriate in the following sections.
@@ -62,10 +64,10 @@ EPICS_EXTENSIONS::
   $HOME/myepics/extensions
 
   Home of the various addons to the Base package including EDM.
-  Also contains seperate build infrastruture with potentially different settings.
+  Also contains separate build infrastructure with potentially different settings.
 
 EPICS_HOST_ARCH::
-  linux-x86, solaris-sparc, win32-x86-mingw, etc.
+  linux-x86, solaris-sparc-gnu, win32-x86-mingw, etc.
 
   The identifier for the build host.
   Unix users can run the 'EpicsHostArch' script found in '$EPICS_BASE/startup'
@@ -167,11 +169,12 @@ or online at http://www.aps.anl.gov/epics/base/R3-14/10-docs/README.html[http://
 ALH
 ~~~
 
-ALH requires the presence of a Motif installation (LessTif or OpenMotif).
+ALH requires the presence of a Motif installation (OpenMotif or LessTif).
 Linux users check to see if your distribution provides one or more of these.
 Also install the development headers (-dev or -devel as appropriate).
 Others should consult available documentation
 http://www.motifzone.net/[http://www.motifzone.net/].
+Also see the ALH user guide <<ALHman>>.
 
 Now build the Alarm Handler.
 
@@ -202,6 +205,7 @@ These are assumed to be present and the build system does not
 check that they are.
 If a compile or link fails look for messages indicating missing
 headers or libraries and install the appropriate package.
+More infomation of building EDM can be found in the EDM User Manual <<EDMman>>.
 
 ------------------------------
 cd ${EPICS_EXTENSIONS}/src/edm
@@ -209,9 +213,9 @@ make
 ------------------------------
 
 The GIF plugin needs to link against the ungif library which may not
-be availible.
+be available.
 In this case the solution is not to build the gif plugin.
-A plugin for png images is availible.
+A plugin for png images is available.
 
 --------------------------------
 sed -i -e 's|giflib||g' Makefile
@@ -239,6 +243,7 @@ for ff in lib*.so;do ${EDM} -add $PWD/$ff; done
 sed -i -e "s|$PWD|"'$(EDMLIBS)|' edmObjects edmPvObjects
 rm edmObjects~ edmPvObjects~
 unset EDMOBJECTS EDMPVOBJECTS EDM
+install -d ${EPICS_EXTENSIONS}/etc
 mv edmObjects edmPvObjects ${EPICS_EXTENSIONS}/etc/
 ---------------------------------------------------------------
 
@@ -513,3 +518,6 @@ References
 
 + [[[CAref]]] Jeffrey O. Hill & Ralph Lange. 'Channel Access Reference Manual'. http://www.aps.anl.gov/epics/base/R3-14/10-docs/CAref.html[http://www.aps.anl.gov/epics/base/R3-14/10-docs/CAref.html]
 + [[[AppDev]]] Marty Kraimer et al.  'EPICS Application Developer's Guide '. http://www.aps.anl.gov/epics/base/R3-14/10-docs/AppDevGuide.pdf[http://www.aps.anl.gov/epics/base/R3-14/10-docs/AppDevGuide.pdf]
++ [[[EpicsRTEMS]]] W. Eric Norum. 'Getting started with EPICS on RTEMS'. http://www.aps.anl.gov/epics/base/RTEMS/tutorial/[http://www.aps.anl.gov/epics/base/RTEMS/tutorial/]
++ [[[EDMman]]] John  Sinclair. 'Extensible Display Manager'.  http://ics-web.sns.ornl.gov/edm/edmUserManual/index.html[http://ics-web.sns.ornl.gov/edm/edmUserManual/index.html]
++ [[[ALHman]]] Janet Anderson. 'Alarm Handler User's Guide'  http://www.aps.anl.gov/epics/EpicsDocumentation/ExtensionsManuals/AlarmHandler/alhUserGuide-1.2.16/ALHUserGuide.html[http://www.aps.anl.gov/epics/EpicsDocumentation/ExtensionsManuals/AlarmHandler/alhUserGuide-1.2.16/ALHUserGuide.html]
