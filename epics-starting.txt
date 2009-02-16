@@ -50,8 +50,7 @@ No privileged operations are used.
      . etc
 
 Several environment variables must also be set when building and using
-EPICS.  They will be set when appropriate in the following sections,
-but are listed here in summary.
+EPICS.  They will be set when appropriate in the following sections.
 
 EPICS_BASE::
   $HOME/myepics/base
