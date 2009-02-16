@@ -4,42 +4,41 @@ Compile with asciidoc
 http://www.methods.co.nz/asciidoc/
 /////////
 
-Creating an EPICS Development Environment
-=========================================
+Getting Started with EPICS
+==========================
 :Author:    Michael Davidsaver
 :Email:     mdavidsaver@gmail.com
 :Date:      February 2009
 :Revision:  1
-:Key words: epics, edm, alh, process variable
+:Key words: epics, edm, alh, ioc
 :Revision history:
 
 Introduction
 ------------
 
-This document attempts to explain how to prepare an environment
-in which the various components of an EPICS system can be
-compiled and used.
-It will specifically describe how to build the base EPICS
-distribution and the EDM client to give the reader a
-system on which to develop and run (soft) IOCs.
+This article describes how to build and run a simple software IOC
+and the EDM display manager.  The goal is to provide the reader with
+a basic functional system with which to further explore the EPICS
+control system.
 
 The intended audience of this document is anyone with an interested
 in setting up a standalone EPICS system for development, testing,
 or just to try something new.  Some familiarity with a Bourne shell
 and experience with building software in a Unix(like) environment
-is assumed.  I does not assume any knowledge of programming or
-the C/C++ languages as none is required.
+is assumed.  No assumption of knowledge of programming or
+the C/C++ languages is made as none is required to understand
+the examples presented here.
 
 Environment
 -----------
 
-The EPICS build system carries some assumption about the layout of
+The EPICS build system carries some assumptions about the layout of
 its source code tree.
 We will be building the EPICS Base package along with several
 extension packages (EDM and ALM).
 For the remainder of this document it is assumed that the following
 directory structure is present under a base directory '$HOME/myepics'.
-This name can be replaced this an arbitrary directory.
+This name can be replaced with an arbitrary directory.
 No privileged operations are used.
 
 - myepics
@@ -57,8 +56,14 @@ but are listed here in summary.
 EPICS_BASE::
   $HOME/myepics/base
 
+  By convention the location of the EPICS Base tree.
+  Used to reference executables, headers, libraries, and other built files.
+
 EPICS_EXTENSIONS::
   $HOME/myepics/extensions
+
+  Home of the various addons to the Base package including EDM.
+  Also contains seperate build infrastruture with potentially different settings.
 
 EPICS_HOST_ARCH::
   linux-x86, solaris-sparc, win32-x86-mingw, etc.
@@ -69,21 +74,32 @@ EPICS_HOST_ARCH::
 EDMOBJECTS::
   $EPICS_EXTENSIONS/etc
 
+  Directory containing edmObjects
+
 EDMPVOBJECTS::
   $EPICS_EXTENSIONS/etc
+
+  Directory containing edmPvObjects
 
 EDMFILES::
   $EPICS_EXTENSIONS/src/edm/edmMain
 
+  Directory containing misc EDM configuration.
+
 EDMHELPFILES::
   $EPICS_EXTENSIONS/src/edm/helpFiles
+
+  Location of EDM online help data.
 
 EDMLIBS::
   $EPICS_EXTENSIONS/lib/$EPICS_HOST_ARCH
 
+  Location of EDM plugin libraries.
+
 The following are used to unsure that this example remain self-contained even
 if run on a machine attached to a network with Channel Access traffic.
-Their meaning is discussed in the 'Channel Access Reference Manual' <<CAref>>.
+Their meaning is discussed below, and explained fully in the
+'Channel Access Reference Manual' <<CAref>>.
 
 EPICS_CAS_INTF_ADDR_LIST::
   localhost
@@ -103,7 +119,7 @@ The specific versions used in this document are only examples.
 
 .EPICS Components
 [grid="all"]
-`4`10`28~~~~~~~~~~~~~~~~~~~~~~~~~
+`4`10`28~~~~~~~~~~~~~~~~~~~~
 Name,File,Download
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Base,BaseR3.14.10.tar.gz,http://www.aps.anl.gov/epics/base/R3-14/index.php[http://www.aps.anl.gov/epics/base/R3-14/index.php]
@@ -132,21 +148,21 @@ export PATH="${PATH}:${EPICS_BASE}/bin/${EPICS_HOST_ARCH}"
 export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${EPICS_BASE}/lib/${EPICS_HOST_ARCH}"
 --------------------------------------------------------------------------------
 
-Before we start the compile it is worth mentioning that there are
+Before starting the compile it is worth mentioning that there are
 several files which contain user options which effect the build
 process.
 'CONFIG_SITE' and 'RELEASE' in '$EPICS_BASE/configure'.
 In particular 'CONFIG_SITE' is where the cross-build
 targets would be specified.
 
-Now simply switch the base directory and issue the `make` command.
+Now simply switch to the base directory and issue the `make` command.
 
 --------------
 cd $EPICS_BASE
 make
 --------------
 
-More infomation on compiling EPICS Base can be found in the 'documentation/README.html'
+More infomation on compiling EPICS Base can be found in 'base/documentation/README.html'
 or online at http://www.aps.anl.gov/epics/base/R3-14/10-docs/README.html[http://www.aps.anl.gov/epics/base/R3-14/10-docs/README.html].
 
 ALH
@@ -175,7 +191,7 @@ alh
 --------------------------------------------------------------------------------------
 
 ALH will not actually do anything useful without a configuration file.
-We will be writing one shortly.
+This will be described later.
 
 EDM
 ~~~
@@ -198,10 +214,10 @@ be availible.
 In this case the solution is not to build the gif plugin.
 A plugin for png images is availible.
 
--------------------------------------------------------------------
+--------------------------------
 sed -i -e 's|giflib||g' Makefile
 make
--------------------------------------------------------------------
+--------------------------------
 
 Generate Plugin Config Files
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -272,12 +288,12 @@ export EPICS_CA_ADDR_LIST=localhost
 export EPICS_CAS_INTF_ADDR_LIST=localhost
 -----------------------------------------
 
-The first two act on clients and limits them to interacting
+The first two acts on clients and limits them to interacting
 with Channel Access Servers bound to the localhost interface.
-The third forces all such servers to bind to the localhost
-interface only.
+The third forces all such servers to bind only to the localhost
+interface.
 
-So in summary the expected environment for the following examples is:
+So in summary, the environment constructed for the following examples is:
 
 --------------------------------------------------------------------------------------
 export EPICS_BASE="${HOME}/myepics/base"
@@ -301,22 +317,20 @@ SoftIOC
 -------
 
 Now we will construct a IOC which will run on the host machine.
-This will be done compiling any additional code with the help
-of the softIOC executable.
+This will be done without compiling any additional code through
+the use of the softIOC executable.
 
 The IOC will have only tree Process Variables (PVs).
 One will be automatically fill with the sum of the other two.
 That is if PV A is 1 and PV B is set to 2 then PV SUM will be
 set to 3.
 
-We must create two short files: sum.db and sum-start.cmd.
+Create the two short files: sum.db and sum-start.cmd.
 Then start the IOC in the directory containing them.
 
 ---------------------
 mkdir $HOME/myepics/myioc
 cd $HOME/myepics/myioc
- ... Create file, see below ...
-softIOC sum-start.cmd
 ---------------------
 
 sum.db
@@ -343,11 +357,11 @@ record(calc,"$(INST):sum"){
 ----------------------------
 
 This file will be used to create several process variables
-in the softIOC database.
-It consists of to Soft Analog Input records and a Calculated
+in the database of the softIOC instance.
+They consists of two Soft Analog Output records and a Calculated
 record.
-The '$(INST)' will be replaced with the actual prefix string
-when data records are loaded at runtime.
+The '$(INST)' will be replaced with an actual prefix string
+when loaded at runtime.
 
 sum-start.cmd
 ~~~~~~~~~~~~~
@@ -367,6 +381,17 @@ and starts running.
 
 The same db file could be loaded again with a different
 prefix.
+
+Running
+~~~~~~~
+
+Now start the IOC.
+
+---------------------
+softIOC sum-start.cmd
+---------------------
+
+When running it provides three PVs: calc:a, calc:b, calc:sum.
 
 PV Access from a Shell
 ----------------------
@@ -439,11 +464,11 @@ record(calc,"$(INST):sum"){
   field(HIGH,15)
   field(LOW,-15)
   field(LOLO,-18)
+  field(LOPR,-20)
   field(HHSV,"MAJOR")
   field(HSV,"MINOR")
   field(LSV,"MINOR")
   field(LLSV,"MAJOR")
-  field(LOPR,-20)
 }
 ----------------------------
 
