@@ -97,9 +97,9 @@ EDMLIBS::
 
   Location of EDM plugin libraries.
 
-The following are used to unsure that this example remain self-contained even
+The following are used to ensure that this example remain self-contained even
 if run on a machine attached to a network with Channel Access traffic.
-Their meaning is discussed below, and explained fully in the
+Their meanings are discussed below, and explained fully in the
 'Channel Access Reference Manual' <<CAref>>.
 
 EPICS_CAS_INTF_ADDR_LIST::
