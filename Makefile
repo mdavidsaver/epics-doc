@@ -5,7 +5,7 @@ DOC2TEX=docbook2tex
 
 PDFJADETEX=pdfjadetex
 
-DOCSRC=epics-starting.txt
+DOCSRC=epics-starting.txt epics-devsup.txt
 
 HTML=$(patsubst %.txt,%.html,$(DOCSRC))
 DOCBOOK=$(patsubst %.txt,%.xml,$(DOCSRC))

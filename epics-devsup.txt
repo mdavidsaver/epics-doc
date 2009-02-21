@@ -1,0 +1,442 @@
+
+/////////
+Compile with asciidoc
+http://www.methods.co.nz/asciidoc/
+/////////
+
+Basic EPICS Device Support
+==========================
+:Author:    Michael Davidsaver
+:Email:     mdavidsaver@gmail.com
+:Date:      February 2009
+:Revision:  1
+:Key words: epics, ioc, device support
+:Revision history:
+
+Introduction
+------------
+
+Device support is the means of tying record proccessing to hardware access.
+Unlike the 'soft' devices creating new device support means writing new code.
+The following examples will be given in C.
+
+Prepare IOC environment
+-----------------------
+
+It is assumed that EPICS Base is already built, that EPICS_BASE is set,
+and that the EPICS executables are in the system search PATH.
+
+All paths given in this example are assumed to be relative to the 'devsumexample'
+directory.
+
+$ mkdir devsupexample
+$ cd devsupexample
+
+PRNG Example
+------------
+
+Let us begin with an example.
+The Analog input record is intended to represent a value read from hardware
+and interpreted as a floating point number.
+This does not assume that the underlying hardware understands floating point numbers.
+The AI record support provides a facility for conversion between a raw integer value
+and a floating point number.
+
+In this example the 'hardware' device to be read is the system peudo random number
+generator.
+Whenever the record is processed a new number is read into the process varaible (PV) database.
+
+$ makeBaseApp.pl -t ioc prng
+
+This creates the makefiles needed to compile the code.
+The files we are about to create will be placed in 'prngApp/src'.
+Later when '.db' files are created we will place them in 'prngApp/Db'.
+
+Take a moment to examine the files in 'prngApp/src'.
+The file 'prngMain.cpp' will be the point of entry for our IOC.
+It is not very interesting through since all it does is invoke the IOC shell.
+
+The Makefile does contain several interesting entries.
+Removing comments and blank lines leaves the following.
+
+------------------------------------------------
+TOP=../..
+include $(TOP)/configure/CONFIG
+PROD_IOC = prng
+DBD += prng.dbd
+prng_DBD += base.dbd
+prng_SRCS += prng_registerRecordDeviceDriver.cpp
+prng_SRCS_DEFAULT += prngMain.cpp
+prng_SRCS_vxWorks += -nil-
+prng_LIBS += $(EPICS_BASE_IOC_LIBS)
+include $(TOP)/configure/RULES
+------------------------------------------------
+
+It is important to note that the EPICS build system attaches special significance to
+file names, not just extensions.
+
+This Makefile will build the 'prng' IOC from the two given C++ files and the database definition.
+Of these three only 'prngMain.cpp' exists yet.
+The file 'prng_registerRecordDeviceDriver.cpp' is automatically generated from the database definition.
+The database definition file 'prng.dbd' is also a generated file.
+At this point is effectively just a copy of 'base.dbd', which is part of the EPICS Base package
+and specifies, among other things, the basic record types (see '$EPICS_BASE/dbd/base.dbd').
+
+At this point the 'prng' IOC can now be compiled, and the resulting executable can be run.
+However, it will not be capable of doing anything more then the 'softIOC' executable.
+If fact they are functionally identical.
+
+Device Definition
+~~~~~~~~~~~~~~~~~
+
+Our first task is to make an addition to the IOC database for our prng device.
+Create the file 'prngdev.dbd':
+
+--------------------------------------
+device(ai,CONSTANT,devAiPrng,"Random")
+--------------------------------------
+
+This defines the device 'devAiPrng' as support for an AI record with a CONSTANT input link
+named "Random".
+The name 'devAiPrng' must be unique in the IOC.
+The combination of record type and name string must also be unique.
+It is convention that names of device support definitions should take the form 'devXxYyyy'
+where 'Xx' is the record type and 'Yyyy' identifies the hardware to be supported.
+
+Writing Support
+~~~~~~~~~~~~~~~
+
+Now create the file 'devprng.c'
+
+------------------------
+#include <stdlib.h>
+#include <epicsExport.h>
+#include <dbAccess.h>
+#include <devSup.h>
+#include <recGbl.h>
+
+#include <aiRecord.h>
+
+static long init_record(aiRecord *pao);
+static long read_ai(aiRecord *pao);
+
+struct prngState {
+  unsigned int seed;
+};
+------------------------
+
+Our device support code will be contained in the 'init_record' and 'read_ai' functions.
+Custom state information will be held in an instance of the 'prngState' structure.
+
+---------------------------------------
+struct {
+  long num;
+  DEVSUPFUN  report;
+  DEVSUPFUN  init;
+  DEVSUPFUN  init_record;
+  DEVSUPFUN  get_ioint_info;
+  DEVSUPFUN  read_ai;
+  DEVSUPFUN  special_linconv;
+} devAiPrng = {
+  6, /* space for 6 functions */
+  NULL,
+  NULL,
+  init_record,
+  NULL,
+  read_ai,
+  NULL
+};
+epicsExportAddress(dset,devAiPrng);
+---------------------------------------
+
+Now connect the name 'devAiPrng' with the support code we are about to write.
+This mechanism is way of providing a set of functions which the record support
+will use in to perform certain functions.
+
+It should be noted that AI record support requires 'read_ai' to be specified, but
+'init_record' is optional.
+
+From the prospective of object oriented programming the record support can be
+regarded as a base class.
+This device support inherits from the AI record support and provides definitions for
+two virtual methods.
+Additionally 'read_ai' functions as a pure virtual method.
+
+The number of function record support will look for and the meaning of these functions
+is determined by record support.
+For information on a specific record types see the 'Record Reference Manual' (TODO: ref)
+and the source (ie '$EPICS_BASE/src/rec/aiRecord.c').
+
+--------------------------------------------------------
+static long init_record(aiRecord *pao)
+{
+  struct prngState* priv;
+  unsigned long start;
+
+  priv=malloc(sizeof(struct prngState));
+  if(!priv){
+    recGblRecordError(S_db_noMemory, (void*)pao,
+      "devAoTimebase failed to allocate private struct");
+    return S_db_noMemory;
+  }
+
+  recGblInitConstantLink(&pao->inp,DBF_ULONG,&start);
+
+  priv->seed=start;
+  pao->dpvt=priv;
+
+  return 0;
+}
+--------------------------------------------------------
+
+This 'init_record' function is called one for each 'devAiPrng' instance in the IOC
+database.
+It allocates space for the structure used to keep internal state.
+It then parses the input link to get the initial seed value.
+
+The input link can only by a CONSTANT link so there is no need to verify this.
+
+-----------------------------------
+static long read_ai(aiRecord *pao)
+{
+  struct prngState* priv=pao->dpvt;
+
+  pao->rval=rand_r(&priv->seed);
+
+  return 0;
+}
+-----------------------------------
+
+Whenever a 'devAiPrng' instance is processed 'read_ai' is called.
+It simply invokes the thread-safe version of the 'rand' function
+to update the raw value.
+
+Building
+--------
+
+Now modify the makefile to include the prng database and support code.
+Then go to the 'devsupexample' directory and run 'make'
+
+------------------------------------------------
+TOP=../..
+include $(TOP)/configure/CONFIG
+PROD_IOC = prng
+DBD += prng.dbd
+prng_DBD += base.dbd
+prng_DBD += prngdev.dbd
+prng_SRCS += prng_registerRecordDeviceDriver.cpp
+prng_SRCS += devprng.c
+prng_SRCS_DEFAULT += prngMain.cpp
+prng_SRCS_vxWorks += -nil-
+prng_LIBS += $(EPICS_BASE_IOC_LIBS)
+include $(TOP)/configure/RULES
+------------------------------------------------
+
+Database Configuration
+----------------------
+
+The next task is to create a IOC database which uses the device support we have just
+created.
+Place the following in 'prngApp/Db/prng.db' and add it to the makefile 'prngApp/Db/Makefile'.
+
+------------------------------
+record(ai,"$(N)"){
+  field(DTYP,"Random")
+  field(DESC,"Random numbers")
+  field(SCAN,"1 second")
+  field(INP,"$(S)")
+  field(LINR,"LINEAR")
+  field(ESLO,1e-9)
+  field(EOFF,-1)
+}
+------------------------------
+
+This will allow us to create several PV generating random numbers.
+The combination of record type 'ai' and the 'DTYP' field are used to locate the
+correct device support.
+When instanciated 'N' and 'S' will be replaced with the PV name and initial seed value.
+
+The fields 'ESLO' and 'EOFF' serve to define a linear scale to use when converting (integer) raw
+values to (floating point) engineering units.
+
+Note: when changing 'prngApp/Db/prng.db' remember to run 'make' to update 'db/prng.db'.
+
+Running
+-------
+
+In 'devsupexample' create the IOC boot infrastruture to run the first example.
+
+--------------------------------------
+makeBaseApp.pl -i -t ioc -p prng prng1
+--------------------------------------
+
+In 'iocBoot/iocprng1/st.cmd':
+
+--------------------------------------------------
+< envPaths
+cd ${TOP}
+dbLoadDatabase "dbd/prng.dbd"
+prng_registerRecordDeviceDriver pdbbase
+dbLoadRecords("db/prng.db","N=test:prng,S=324235")
+cd ${TOP}/iocBoot/${IOC}
+iocInit
+--------------------------------------------------
+
+Now run the IOC.
+
+------------------------
+make
+cd iocBoost/iocprng1
+../../bin/linux-x86/prng
+------------------------
+
+Then watch the value of the PV 'test:prng'
+
+-------------------
+$ camonitor test:prng
+test:prng                      2009-02-21 15:29:15.364549 0.155918                                     
+test:prng                      2009-02-21 15:29:16.364611 -0.681225                                    
+ ...
+-------------------
+
+
+Asynchronous Device Support
+-------------------------
+
+The preceeding example assumes that calls to 'read_ai' will return quickly.
+This is true of 'rand_r' which does only a simple computation,
+but not true of many operations which access hardware.
+It these cases it is desirable to start an operation,
+spend time doing other things,
+and when the result becomes availible to update the database.
+
+Support for this mode of operation is provided via the 'PACT' flag.
+The following example creates another device support which demonstrates
+asynchronous processing.
+
+Add the following line to 'prngdev.dbd'
+
+--------------------------------------
+device(ai,CONSTANT,devAiPrngAsync,"Random Async")
+--------------------------------------
+
+Now create the file 'devprngasync.c'
+
+------------------------
+#include <stdlib.h>
+#include <epicsExport.h>
+#include <dbAccess.h>
+#include <devSup.h>
+#include <recGbl.h>
+#include <callback.h>
+
+#include <aiRecord.h>
+
+static long init_record(aiRecord *pao);
+static long read_ai(aiRecord *pao);
+
+struct prngState {
+  unsigned int seed;
+  CALLBACK cb;
+};
+
+struct {
+  long num;
+  DEVSUPFUN  report;
+  DEVSUPFUN  init;
+  DEVSUPFUN  init_record;
+  DEVSUPFUN  get_ioint_info;
+  DEVSUPFUN  read_ai;
+  DEVSUPFUN  special_linconv;
+} devAiPrngAsync = {
+  6, /* space for 6 functions */
+  NULL,
+  NULL,
+  init_record,
+  NULL,
+  read_ai,
+  NULL
+};
+epicsExportAddress(dset,devAiPrngAsync);
+
+void prng_cb(CALLBACK* cb);
+---------------------------------------
+
+Note the addition to the 'prngState' struct of a CALLBACK.
+
+--------------------------------------------------------
+static long init_record(aiRecord *pao)
+{
+  struct prngState* priv;
+  unsigned long start;
+
+  priv=malloc(sizeof(struct prngState));
+  if(!priv){
+    recGblRecordError(S_db_noMemory, (void*)pao,
+      "devAoTimebase failed to allocate private struct");
+    return S_db_noMemory;
+  }
+
+  callbackSetCallback(prng_cb,priv->cb);
+  callbackSetPriority(priorityLow,priv->cb);
+  callbackSetUser(pao,priv->cb);
+
+  recGblInitConstantLink(&pao->inp,DBF_ULONG,&start);
+
+  priv->seed=start;
+  pao->dpvt=priv;
+
+  return 0;
+}
+--------------------------------------------------------
+
+The callback function and priority are set.
+
+-----------------------------------
+static long read_ai(aiRecord *pao)
+{
+  struct prngState* priv=pao->dpvt;
+
+  if( ! pao->pact ){
+    /* start async operation */
+    pao->pact=TRUE;
+    callbackSetUser(pao,priv->cb);
+    callbackRequestDelayed(priv->cb,0.1);
+    return 0;
+  }else{
+    /* complete operation */
+    pao->rval=rand_r(&priv->seed);
+    pao->pact=FALSE;
+    return 0;
+  }
+}
+-----------------------------------
+
+The operation of 'read_ai' changes substantially.
+As control passes into 'read_ai' when the record is processed the 'PACT'
+field is false.
+To start an asynchronous operation this field is set to TRUE,
+and a delayed action is scheduled.
+While 'PACT' is set the IOC will not try to process it again.
+
+When the callback has completed it will manually process the record
+which will complete the operation and allow 'PACT' to be cleared.
+
+----------------------------
+void prng_cb(CALLBACK* cb)
+{
+  struct dbCommon* prec;
+  struct rset* prset;
+
+  callbackGetUser(prec,cb);
+  prset=(struct rest*)prec->rset;
+  dbScanLock(prec);
+  (*prset->process)(prec);
+  dbScanUnLock(prec);
+}
+----------------------------
+
+This generic callback is taken from the 'EPICS Application Developer's Guide'.
+All it does is manually invoke record processing.
+It this way 'read_ai' is called while 'PACT' is set.
+
