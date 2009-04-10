@@ -6,3 +6,8 @@
 *.out
 *.tex
 *.pdf
+O.*
+bin
+db
+dbd
+envPaths
