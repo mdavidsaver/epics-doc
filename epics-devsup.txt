@@ -498,11 +498,11 @@ Now What
 --------
 
 Notice that the two seed values are the same and observe the values
-of the two PV at run time.
+of the two PVs at run time.
 Now change the delay on the asynchronous callback (ie 'callbackRequestDelayed()')
 from 0.1 to 1.1 and compare the results.
 
-This example demonstrates writing device support for a single AI record.
+These examples demonstrates writing device support for a single AI record.
 Support for other record types (BO, STRINGIN, EVENT, ...) differs only
 in which fields the 'read_*' function must update.
 Also interesting are some of the other fields which effect conversion of
@@ -512,5 +512,7 @@ conversion and specify value in engineering units directly.
 References
 ----------
 
-+ [[[RecRef]]] The Epics Collaboration  'EPICS 3.14 Record Reference Manual Wiki'  http://www.aps.anl.gov/epics/wiki/index.php/RRM_3-14[http://www.aps.anl.gov/epics/wiki/index.php/RRM_3-14]
-+ [[[AppDev]]] Marty Kraimer et al.  'EPICS Application Developer's Guide '. http://www.aps.anl.gov/epics/base/R3-14/10-docs/AppDevGuide.pdf[http://www.aps.anl.gov/epics/base/R3-14/10-docs/AppDevGuide.pdf]
++ [[[RecRef]]] The Epics Collaboration  'EPICS 3.14 Record Reference Manual Wiki' 
+http://www.aps.anl.gov/epics/wiki/index.php/RRM_3-14[http://www.aps.anl.gov/epics/wiki/index.php/RRM_3-14]
++ [[[AppDev]]] Marty Kraimer et al.  'EPICS Application Developer's Guide '.
+http://www.aps.anl.gov/epics/base/R3-14/10-docs/AppDevGuide.pdf[http://www.aps.anl.gov/epics/base/R3-14/10-docs/AppDevGuide.pdf]
