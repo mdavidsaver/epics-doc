@@ -8,7 +8,7 @@ Basic EPICS Device Support
 ==========================
 :Author:    Michael Davidsaver
 :Email:     mdavidsaver@bnl.gov
-:Date:      February 2009
+:Date:      April 2009
 :Revision:  1
 :Key words: epics, ioc, device support
 :Revision history:
