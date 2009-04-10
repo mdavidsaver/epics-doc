@@ -7,7 +7,7 @@ http://www.methods.co.nz/asciidoc/
 Getting Started with EPICS
 ==========================
 :Author:    Michael Davidsaver
-:Email:     mdavidsaver@gmail.com
+:Email:     mdavidsaver@bnl.gov
 :Date:      February 2009
 :Revision:  1
 :Key words: epics, edm, alh, ioc

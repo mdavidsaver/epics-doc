@@ -7,7 +7,7 @@ http://www.methods.co.nz/asciidoc/
 Basic EPICS Device Support
 ==========================
 :Author:    Michael Davidsaver
-:Email:     mdavidsaver@gmail.com
+:Email:     mdavidsaver@bnl.gov
 :Date:      February 2009
 :Revision:  1
 :Key words: epics, ioc, device support
