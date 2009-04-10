@@ -220,7 +220,7 @@ It simply invokes the thread-safe version of the 'rand' function
 to supply a raw (integer) value.
 
 Building
---------
+~~~~~~~~
 
 Now modify 'prngApp/src/Makefile' to include the prng database and support code.
 Then go to the 'devsupexample' directory and run 'make'
@@ -241,7 +241,7 @@ include $(TOP)/configure/RULES
 ------------------------------------------------
 
 Database Configuration
-----------------------
+~~~~~~~~~~~~~~~~~~~~~~
 
 The next task is to create a IOC database which uses the 'Random' device support.
 Place the following in 'prngApp/Db/prng.db' and add it to the makefile 'prngApp/Db/Makefile'.
@@ -270,7 +270,7 @@ values to (floating point) engineering units.
 Note: when changing 'prngApp/Db/prng.db' remember to run 'make' to update 'db/prng.db'.
 
 Running
--------
+~~~~~~~
 
 In 'devsupexample' create the IOC boot infrastructure to run the first example (prng1).
 
@@ -309,8 +309,8 @@ test:prng                      2009-02-21 15:29:16.364611 -0.681225
 -------------------
 
 
-Asynchronous Device Support
--------------------------
+Asynchronous Example
+--------------------
 
 The preceding example assumes that calls to 'read_ai' will return quickly.
 This is true of 'rand_r' which does only a simple computation,
@@ -463,8 +463,8 @@ PVs might require, for example, a mutex to guard 'priv->seed'.
 
 Remember to add 'devprngasync.c' to 'prngApp/src/Makefile'.
 
-Running Example 2
------------------
+Running
+~~~~~~~
 
 Create a second database file 'prngApp/Db/prngasync.db' and add it to the makefile 'prngApp/Db/Makefile'.
 
