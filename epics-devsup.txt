@@ -115,6 +115,7 @@ Writing Support
 
 Now create the file 'prngApp/src/devprng.c' with the following sections.
 
+[source,c]
 ------------------------
 #include <stdlib.h>
 #include <epicsExport.h>
@@ -135,6 +136,7 @@ struct prngState {
 Our device support code will be contained in the 'init_record' and 'read_ai' functions.
 Custom state information will be held in an instance of the 'prngState' structure.
 
+[source,c]
 ---------------------------------------
 struct {
   long num;
@@ -175,6 +177,7 @@ is determined by record support.
 For information on a specific record types see the 'Record Reference Manual'<<RecRef>>
 and the source (ie '$EPICS_BASE/src/rec/aiRecord.c').
 
+[source,c]
 --------------------------------------------------------
 static long init_record(aiRecord *pao)
 {
@@ -204,6 +207,7 @@ then parses the Constant input link string to get the initial seed value.
 
 The input link can only by a CONSTANT link so there is no need to verify this.
 
+[source,c]
 -----------------------------------
 static long read_ai(aiRecord *pao)
 {
@@ -331,6 +335,7 @@ device(ai,CONSTANT,devAiPrngAsync,"Random Async")
 
 Now create the file 'prngApp/src/devprngasync.c' and add the following sections.
 
+[source,c]
 ------------------------
 #include <stdlib.h>
 #include <epicsExport.h>
@@ -374,6 +379,7 @@ void prng_cb(CALLBACK* cb);
 
 Note the addition to the 'prngState' struct of a CALLBACK.
 
+[source,c]
 --------------------------------------------------------
 static long init_record(aiRecord *pao)
 {
@@ -403,6 +409,7 @@ static long init_record(aiRecord *pao)
 
 The callback function and priority are set.
 
+[source,c]
 -----------------------------------
 static long read_ai(aiRecord *pao)
 {
@@ -432,6 +439,7 @@ While 'PACT' is set the IOC will not try to process this record again.
 When the callback has completed it must manually process the record
 which will complete the operation and allow 'PACT' to be cleared.
 
+[source,c]
 ----------------------------
 void prng_cb(CALLBACK* cb)
 {

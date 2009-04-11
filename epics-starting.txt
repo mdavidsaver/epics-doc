@@ -120,7 +120,7 @@ The specific versions used in this document are only examples.
 
 .EPICS Components
 [grid="all"]
-`4`10`28~~~~~~~~~~~~~~~~~~~~
+`8`19`28~~~~~~~~~~~~~~~~~~~~
 Name,File,Download
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Base,BaseR3.14.10.tar.gz,http://www.aps.anl.gov/epics/base/R3-14/index.php[http://www.aps.anl.gov/epics/base/R3-14/index.php]
