@@ -19,6 +19,8 @@ DOCBOOKOPTS=-b docbook $(ASCIIOPTS)
 
 all: html
 
+doc: html pdf
+
 info:
 	@echo "DOCSRC=$(DOCSRC)"
 	@echo "HTML=$(HTML)"
