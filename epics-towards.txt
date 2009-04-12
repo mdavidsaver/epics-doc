@@ -1,0 +1,310 @@
+
+/////////
+Compile with asciidoc
+http://www.methods.co.nz/asciidoc/
+/////////
+
+Towards a Full IOC
+==================
+:Author:    Michael Davidsaver
+:Email:     mdavidsaver@bnl.gov
+:Date:      April 2009
+:Revision:  1
+:Key words: epics, ioc, libCom, osi
+:Revision history:
+
+Introduction
+------------
+
+This document presents a collection of methods and techniques commonly found in EPICS IOCs.
+Examples are presented in the C language.
+
+Must Succeed
+------------
+
+Runtime memory allocation in C most often involves a call to 'malloc'.
+This function could error out for a number of reason which the calling code can
+not predict.
+It is therefore absolutely necessary to test the returned pointer to detect such a case.
+This can be difficult because in many cases (eg initialization) such a failure is
+unrecoverable, and propogating the error requires code paths which will rarely be used.
+
+The alternative is to 'abort()' when such a condition occurs.
+This however will kill the entire process and can keep an error message from printing.
+
+To help with this and similar cases EPICS provides 'cantProceed()' and an replacement for
+'assert()' (epicsAssert.h) which will print a message and then suspend the calling thread.
+
+Additionally several wrapper function are provided which use this mechanism if the wrapped
+call fails.
+These wrappers provide the guarentee that they will not return if an error occurs.
+
+.MustSucceed Alternates
+[grid="all"]
+`-----------------`---------------------`------------
+Call              Alternate             Header
+-----------------------------------------------------
+malloc            mallocMustSucceed     cantProceed.h
+calloc            callocMustSucceed     cantProceed.h
+epicsMutexCreate  epicsMutexMustCreate  epicsMutex.h
+epicsMutexLock    epicsMutexMustLock    epicsMutex.h
+epicsEventCreate  epicsEventMustCreate  epicsEvent.h
+epicsEventWait    epicsEventMustWait    epicsEvent.h
+epicsThreadCreate epicsThreadMustCreate epicsThread.h
+-----------------------------------------------------
+
+
+Error Messaging
+---------------
+
+EPICS provides an error logging facility with alternative to printf and vprintf.
+This facility allows a message to be dispatched one of four priority levels:
+info, minor, major, and fault.
+
+[source,c]
+---------------------------------------------------
+#include <errlog.h>
+int main(){
+  errMessage("var1 was %d!!!\n",var);
+
+  errlogPrintf("Hello %s\n",world);
+
+  errlogSevPrintf(errlogInfo,"That was wierd!\n");
+
+  errlogSevPrintf(errlogMajor,"Oh %s!\n",failure);
+}
+---------------------------------------------------
+
+Linked Lists
+------------
+
+The doublely link list is one of the most frequently use data structures.
+EPICS provides ELLIB, an unsorted doublely linked list.
+
+Structures
+~~~~~~~~~~
+
+The Epics Linked List Library is based around two data structures 'ELLLIST'
+and 'ELLNODE'.
+'ELLLIST' holds pointers to the head and tail of the list as well as a
+count of the number of elements in it.
+The 'ELLNODE' represents a single element in a list.
+
+'ELLNODE' is defined thus:
+
+[source,c]
+-----------------------------------
+typedef struct ELLNODE {
+  struct ELLNODE  *next;
+  struct ELLNODE  *previous;
+}ELLNODE;
+-----------------------------------
+
+container_of
+~~~~~~~~~~~~
+
+Before going further it is important to understand ways of working with
+(nested) structures in C.
+
+It is apparent that the 'ELLNODE' structure, which contains of two member,
+is not by its self useful.
+To be useful it must be possible to associate arbitrary user data with an 'ELLNODE'.
+This is done by defining a structure which has a node in it.
+
+[source,c]
+----------------
+struct MyData {
+  int busnum;
+  ELLNODE node;
+  int pri;
+  int sec;
+};
+/* ... */
+struct MyData *md=/* alloc */;
+ellAdd(&myList,md->node);
+md=NULL;
+----------------
+
+In this example the member 'node' will be placed in the list 'myList'.
+Once this has been done the pointer 'md' could be reused.
+The only reference to the 'MyData' structure is through its 'ELLNODE' member.
+
+[source,c]
+--------------------------------
+ELLNODE *nptr;
+struct MyData *md;
+
+nptr = ellFirst(&myList);
+md = /* ??? */
+--------------------------------
+
+A node is extracted from the list as a 'ELLNODE*' pointer.
+The question now is how to turn it into the correct 'MyData*'.
+
+In C a structure is a collection of members where the offset of the first
+byte of the structure from the first byte of each of its members is fixed
+and known at compile time.
+This information is used by the '->' operator to access members.
+
+It is also possible to reverse this operation with some pointer arithmatic
+provided the offset is known.
+The macro 'offsetof' (from 'stddef.h') can be used to determine the number of
+bytes between the structure base and any given member.
+
+[source,c]
+-------------------------------------------
+ELLNODE *nptr;
+char *raw;
+struct MyData *md;
+
+nptr = (char*)ellFirst(&myList);
+raw = (char*)nptr;
+raw -= offsetof(struct MyData,node);
+md = (struct MyData*)raw;
+assert( (&md->node) == nptr );
+-------------------------------------------
+
+In this example the address of the list node is cast to 'char*' so that it
+can be treated as a pointer to a byte array.
+The 'offsetof' macro returns the number of bytes between 'md' and '&(md->node)'.
+Now subtract this number from the byte pointer to recover the address of the
+enclosing structure.
+
+This operation can be turned into a macro.
+
+[source,c]
+---------------------------------------------------------------------------------
+#include <stddef.h>
+#ifndef container_of
+#define container_of(ptr,type,mem) ( (type*)( (char*)ptr - offsetof(type,mem) ) )
+#endif
+---------------------------------------------------------------------------------
+
+The above example then becomes:
+
+[source,c]
+-------------------------------------------
+ELLNODE *nptr;
+struct MyData *md;
+
+nptr = (char*)ellFirst(&myList);
+md = container_of(nptr,struct MyData,node);
+assert( (&md->node) == nptr );
+-------------------------------------------
+
+It should be noted that 'container_of' has no way of knowing if the pointer
+being cast actually points to a member of the given structure.
+The user is responcible for assureing this.
+
+ELLLIB
+~~~~~~
+
+
+The following example demonstrates creating a list and appending elements.
+
+[source,c]
+------------------------------------------
+#include <elllib.h>
+#include <cantProceed.h>
+
+typedef struct {
+  int val;
+  ELLNODE node;
+  long otherval;
+} mydata;
+
+int main() {
+  ELLLIST mylist;
+  mydata *cur;
+
+  ellInit(&mylist);
+
+  cur=mallocMustSucceed(sizeof(mydata));
+  ellAdd(&mylist,cur->node);
+
+  cur=mallocMustSucceed(sizeof(mydata));
+  ellAdd(&mylist,cur->node);
+}
+------------------------------------------
+
+A node can be removed thus:
+
+[source,c]
+------------------------------------------
+  ELLLIST mylist;
+  ELLNODE *cur;
+  mydata *md;
+
+  /* fill mylist */
+  /* put node to be removed in cur */
+
+  ellDelete(&mylist,cur);
+  md=container_of(cur,mydata,node);
+  free(md);
+------------------------------------------
+
+A list can be traversed in the following manner:
+
+[source,c]
+------------------------------------------
+  ELLLIST mylist;
+  ELLNODE *cur;
+  mydata *md;
+
+  /* fill mylist */
+
+  for(cur = ellFirst(&mylist);
+      cur;
+      cur=ellNext(cur)
+  ){
+    md=container_of(cur,mydata,node);
+    /* operate on md */
+  }
+------------------------------------------
+
+In perceeding example 'cur' can not safely be removed.
+Some extra work is required to allow this.
+
+[source,c]
+------------------------------------------
+  ELLLIST mylist;
+  ELLNODE *cur, *next;
+  mydata *md;
+
+  /* fill mylist */
+
+#ifndef ellNextOrNull
+#define ellNextOrNull(elm) ( elm ? ellNext(elm) : NULL )
+#endif
+
+  for(cur = ellFirst(&mylist), next = ellNextOrNull(cur);
+      cur;
+      cur=next, next = ellNextOrNull(next)
+  ){
+    md=container_of(cur,mydata,node);
+    if( /* condition */ ){
+      ellDelete(&mylist,cur);
+      free(md);
+    }
+  }
+------------------------------------------
+
+A Reactor (fdmgr)
+-----------------
+
+Todo
+
+Shareing state between PVs
+--------------------------
+
+Todo
+
+IO scan lists
+-------------
+
+Todo
+
+IOC Shell Functions
+-------------------
+
+Todo

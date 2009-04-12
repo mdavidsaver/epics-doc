@@ -3,7 +3,9 @@ ASCIIOPTS=-d article -a toc -a numbered
 
 DBLATEX=dblatex
 
-DOCSRC=epics-starting.txt epics-devsup.txt
+DOCSRC=epics-starting.txt \
+epics-devsup.txt \
+epics-towards.txt
 
 HTML=$(patsubst %.txt,%.html,$(DOCSRC))
 DOCBOOK=$(patsubst %.txt,%.xml,$(DOCSRC))
