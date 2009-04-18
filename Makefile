@@ -31,7 +31,6 @@ info:
 	@echo "DOCSRC=$(DOCSRC)"
 	@echo "HTML=$(HTML)"
 	@echo "DOCBOOK=$(DOCBOOK)"
-	@echo "TEX=$(TEX)"
 	@echo "PDF=$(PDF)"
 
 help:
@@ -61,6 +60,9 @@ epics-devsup-listings.tar.gz:
 	cd code-listings && git archive --prefix=epics-devsup/ HEAD $(LISTINGSBASE) iocBoot/iocprng1 prngApp|gzip > ../$@
 
 clean:
-	rm -f $(HTML) $(DOCBOOK) $(TEX) $(PDF)
+	rm -f $(HTML) $(DOCBOOK) $(PDF)
 	rm -f $(LISTINGS)
 	rm -f *.aux *.out *.log
+
+publish-list: $(HTML) $(PDF) $(LISTINGS)
+	@echo "$(patsubst %,$(PP)/%,$^)" | tr ' ' '\n' >> $(PF)
