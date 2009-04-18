@@ -7,6 +7,8 @@ DOCSRC=epics-starting.txt \
 epics-devsup.txt \
 epics-towards.txt
 
+LISTINGS=epics-devsup-listings.tar.gz
+
 HTML=$(patsubst %.txt,%.html,$(DOCSRC))
 DOCBOOK=$(patsubst %.txt,%.xml,$(DOCSRC))
 PDF=$(patsubst %.xml,%.pdf,$(DOCBOOK))
@@ -23,12 +25,19 @@ all: html
 
 doc: html pdf
 
+listings: $(LISTINGS)
+
 info:
 	@echo "DOCSRC=$(DOCSRC)"
 	@echo "HTML=$(HTML)"
 	@echo "DOCBOOK=$(DOCBOOK)"
 	@echo "TEX=$(TEX)"
 	@echo "PDF=$(PDF)"
+
+help:
+	@echo "Targets:"
+	@echo "          all clean"
+	@echo "          html pdf listings"
 
 html: $(HTML)
 
@@ -46,6 +55,12 @@ $(DOCBOOK): %.xml: %.txt
 $(PDF): %.pdf: %.xml
 	$(DBLATEX) $<
 
+LISTINGSBASE=Makefile README.txt configure iocBoot/Makefile
+
+epics-devsup-listings.tar.gz:
+	cd code-listings && git archive --prefix=epics-devsup/ HEAD $(LISTINGSBASE) iocBoot/iocprng1 prngApp|gzip > ../$@
+
 clean:
 	rm -f $(HTML) $(DOCBOOK) $(TEX) $(PDF)
+	rm -f $(LISTINGS)
 	rm -f *.aux *.out *.log
