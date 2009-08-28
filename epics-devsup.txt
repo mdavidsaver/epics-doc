@@ -90,7 +90,7 @@ At this point is effectively just a copy of 'base.dbd', which is part of the EPI
 and specifies, among other things, the basic record types (see '$EPICS_BASE/dbd/base.dbd').
 
 At this point the 'prng' IOC can now be compiled, and the resulting executable can be run.
-However, it will not be capable of doing anything more then the 'softIOC' executable.
+However, it will not be capable of doing anything more then the 'softIoc' executable.
 If fact they are functionally identical.
 
 Device Definition

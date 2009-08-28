@@ -317,12 +317,12 @@ export EPICS_CA_ADDR_LIST=localhost
 export EPICS_CAS_INTF_ADDR_LIST=localhost
 --------------------------------------------------------------------------------------
 
-SoftIOC
+SoftIoc
 -------
 
 Now we will construct a IOC which will run on the host machine.
 This will be done without compiling any additional code through
-the use of the softIOC executable.
+the use of the softIoc executable.
 
 The IOC will have only tree Process Variables (PVs).
 One will be automatically fill with the sum of the other two.
@@ -361,7 +361,7 @@ record(calc,"$(INST):sum"){
 ----------------------------
 
 This file will be used to create several process variables
-in the database of the softIOC instance.
+in the database of the softIoc instance.
 They consists of two Soft Analog Output records and a Calculated
 record.
 The '$(INST)' will be replaced with an actual prefix string
@@ -392,7 +392,7 @@ Running
 Now start the IOC.
 
 ---------------------
-softIOC sum-start.cmd
+softIoc sum-start.cmd
 ---------------------
 
 When running it provides three PVs: calc:a, calc:b, calc:sum.
@@ -402,7 +402,7 @@ PV Access from a Shell
 
 EPICS Base provides several utilities for reading and modifying
 Process Variables from command shell.  Here 'caget' and 'caput' are
-demonstrated by accessing our softIOC.
+demonstrated by accessing our softIoc.
 
 --------------------------------
 $ caget calc:a calc:b calc:sum
