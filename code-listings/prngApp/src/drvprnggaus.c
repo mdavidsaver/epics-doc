@@ -34,11 +34,11 @@ int read(void* tok)
   return ret;
 }
 
-struct drvPrngDist drvPrngGauss = {
+struct drvPrngDist drvPrngGaussian = {
   4,
   NULL,
   NULL,
   (DRVSUPFUN)create,
   (DRVSUPFUN)read,
 };
-epicsExportAddress(drvet,drvPrngGauss);
+epicsExportAddress(drvet,drvPrngGaussian);
