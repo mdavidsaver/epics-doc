@@ -11,7 +11,6 @@ include $(TOP)/configure/CONFIG
 # Create and install (or just install) into <top>/db
 # databases, templates, substitutions like this
 DB += prng.db
-DB += prngasync.db
 
 #----------------------------------------------------
 # If <anyname>.db template is not named <anyname>*.template add

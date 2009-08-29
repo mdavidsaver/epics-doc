@@ -12,8 +12,8 @@ dbLoadDatabase "dbd/prng.dbd"
 prng_registerRecordDeviceDriver pdbbase
 
 ## Load record instances
-dbLoadRecords("db/prng.db","P=test:prng,S=324235")
-dbLoadRecords("db/prngasync.db","P=test:prngasync,S=324235")
+dbLoadRecords("db/prng.db","P=test:prng,D=Random,S=324235")
+dbLoadRecords("db/prng.db","P=test:prngasync,D=Random Async,S=324235")
 
 cd ${TOP}/iocBoot/${IOC}
 iocInit
