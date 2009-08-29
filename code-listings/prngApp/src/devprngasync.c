@@ -53,6 +53,7 @@ static long init_record(aiRecord *pao)
   callbackSetCallback(prng_cb,&priv->cb);
   callbackSetPriority(priorityLow,&priv->cb);
   callbackSetUser(pao,&priv->cb);
+  priv->cb.timer=NULL;
 
   recGblInitConstantLink(&pao->inp,DBF_ULONG,&start);
 
