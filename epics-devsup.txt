@@ -252,7 +252,7 @@ Place the following in 'prngApp/Db/prng.db' and add it to the makefile 'prngApp/
 
 ------------------------------
 record(ai,"$(P)"){
-  field(DTYP,"Random")
+  field(DTYP,"$(D)")
   field(DESC,"Random numbers")
   field(SCAN,"1 second")
   field(INP,"$(S)")
@@ -265,7 +265,7 @@ record(ai,"$(P)"){
 This will allow us to create several PVs generating random numbers.
 The combination of record type 'ai' and the 'DTYP' field are used to identify the
 correct device support.
-When instantiated '$(P)' and '$(S)' will be replaced with the PV name and initial seed value.
+When instantiated '$(P)', '$(D)', and '$(S)' will be replaced with the PV name, device support type ('Random'), and initial seed value.
 These will be specified later.
 
 The fields 'ESLO' and 'EOFF' serve to define a linear scale to use when converting (integer) raw
@@ -290,7 +290,7 @@ cd ${TOP}
 dbLoadDatabase "dbd/prng.dbd"
 prng_registerRecordDeviceDriver pdbbase
 # V Add this line V
-dbLoadRecords("db/prng.db","P=test:prng,S=324235")
+dbLoadRecords("db/prng.db","P=test:prng,D=Random,S=324235")
 cd ${TOP}/iocBoot/${IOC}
 iocInit
 --------------------------------------------------
@@ -474,19 +474,7 @@ Remember to add 'devprngasync.c' to 'prngApp/src/Makefile'.
 Running
 ~~~~~~~
 
-Create a second database file 'prngApp/Db/prngasync.db' and add it to the makefile 'prngApp/Db/Makefile'.
-
-------------------------------
-record(ai,"$(P)"){
-  field(DTYP,"Random Async")
-  field(DESC,"Random numbers")
-  field(SCAN,"1 second")
-  field(INP,"$(S)")
-  field(LINR,"LINEAR")
-  field(ESLO,1e-9)
-  field(EOFF,-1)
-}
-------------------------------
+The database file can be reused so only one change is necessary.
 
 In 'iocBoot/iocprng1/st.cmd' add a line:
 
@@ -495,9 +483,9 @@ In 'iocBoot/iocprng1/st.cmd' add a line:
 cd ${TOP}
 dbLoadDatabase "dbd/prng.dbd"
 prng_registerRecordDeviceDriver pdbbase
-dbLoadRecords("db/prng.db","P=test:prng,S=324235")
+dbLoadRecords("db/prng.db","P=test:prng,D=Random,S=324235")
 # V Add this line V
-dbLoadRecords("db/prngasync.db","P=test:prngasync,S=324235")
+dbLoadRecords("db/prng.db","P=test:prngasync,D=Random Async,S=324235")
 cd ${TOP}/iocBoot/${IOC}
 iocInit
 --------------------------------------------------
