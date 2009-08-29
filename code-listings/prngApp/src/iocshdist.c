@@ -9,10 +9,6 @@
 
 #include "drvprngdist.h"
 
-#ifndef CONTAINER
-#  define CONTAINER container_of
-#endif
-
 static ELLLIST devices={{NULL,NULL},0};
 
 static const char dpref[]="drvPrng";
@@ -71,7 +67,7 @@ struct instancePrng* lookupPrng(short N)
   struct instancePrng* ent;
   
   for(node=ellFirst(&devices); node; node=ellNext(node)){
-    ent=CONTAINER(node,struct instancePrng,node);
+    ent=(struct instancePrng*)node; /* Use CONTAINER() in 3.14.11 */
     if(ent->id==N)
       return ent;
   }

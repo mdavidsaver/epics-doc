@@ -29,10 +29,10 @@ typedef int (*read_prng)(void* tok);
 /* Everything about an instance of a PRNG
  */
 struct instancePrng {
+  ELLNODE node; /* must be first */
   struct drvPrngDist* table;
   void* token;
   int id;
-  ELLNODE node;
 };
 
 /* Find the PRNG instance which has been associated
