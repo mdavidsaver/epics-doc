@@ -2,10 +2,18 @@ ASCIIDOC=asciidoc
 ASCIIOPTS=-d article -a toc -a numbered
 
 DBLATEX=dblatex
+INKSCAPE=inkscape
 
 DOCSRC=epics-starting.txt \
 epics-devsup.txt \
-epics-towards.txt
+epics-towards.txt \
+epics-ioc.txt
+
+epics_ioc_PNG += ioc-db.png
+
+PNG=$(epics_ioc_PNG)
+
+ioc_db_png_FLAGS += -d 100
 
 LISTINGS=epics-devsup-listings.tar.gz
 
@@ -21,7 +29,11 @@ XHTML=$(XHTML_$(USE_XHTML))
 HTMLOPTS=$(XHTML) $(ASCIIOPTS)
 DOCBOOKOPTS=-b docbook $(ASCIIOPTS)
 
+PNGFLAGS += $($(subst -,_,$(subst .,_,$@))_FLAGS)
+
 all: html
+
+png: $(PNG)
 
 doc: html pdf
 
@@ -38,9 +50,9 @@ help:
 	@echo "          all clean"
 	@echo "          html pdf listings"
 
-html: $(HTML)
+html: png $(HTML)
 
-pdf: $(PDF)
+pdf: png $(PDF)
 
 epics-starting.xml: epics-starting-revhistory.xml
 epics-starting.xml: epics-starting-revhistory.xml
@@ -54,6 +66,10 @@ $(DOCBOOK): %.xml: %.txt
 $(PDF): %.pdf: %.xml
 	$(DBLATEX) $<
 
+%.png : %.svg
+	@echo "PNG $@"
+	$(INKSCAPE) -z $< $(ISFLAGS) $(PNGFLAGS) -e $@
+
 LISTINGSBASE=Makefile README.txt configure iocBoot/Makefile
 
 epics-devsup-listings.tar.gz:
@@ -61,6 +77,7 @@ epics-devsup-listings.tar.gz:
 
 clean:
 	rm -f $(HTML) $(DOCBOOK) $(PDF)
+	rm -f $(PNG)
 	rm -f $(LISTINGS)
 	rm -f *.aux *.out *.log
 

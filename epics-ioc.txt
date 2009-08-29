@@ -1,0 +1,325 @@
+
+/////////
+Compile with asciidoc
+http://www.methods.co.nz/asciidoc/
+/////////
+
+
+A Developers Prospective of an IOC
+==================================
+:Author:    Michael Davidsaver
+:Email:     mdavidsaver@bnl.gov
+:Date:      August 2009
+:Revision:  1
+:Key words: epics, ioc
+
+Introduction
+------------
+
+In an EPICS control system the Input Output Controller (IOC) is the name given to the piece of software
+which sites between the network stack and the hardware devices whos inputs and outputs are of interest.
+The larger control system sees it as a set of Channels which can be read or written to.
+Inside the IOC a Channel is revealed to be an entry in the Process Database, a Process Variable (PV).
+PVs can be associated with each other by creating Links.
+This allows information to flow between PVs when they are processed.
+
+This is the mile high view of an IOC and lacks several of the key details which enable one to take a new
+piece of hardware and create good EPICS support for it.
+In the following discussion we will start at the Process Database and towards the hardware.
+The items to be discussed include: linking to hardware, how to represent complex devices,
+and the Full Crate.
+
+[[ioc_db]]
+.An Example Process Database
+image::ioc-db.png[]
+
+In the database pictured above there are five PVs.
+Four of the PVs have device support.
+These four PVs are linked to two seperate but identical devices.
+The fifth PV might be of a record type which does not need device support, or it might use soft device support.
+
+Linking Records Together
+------------------------
+
+EPICS database links come in one of two kinds in three classes.
+The `kinds' are those which link together two records, and those which link a record to hardware.
+The three classes are: Input, Output, and Forward.
+Hardware links are either Input or Output links.
+
+More attention is given to the first kind because chaining records together for processing
+is one of the core EPICS concepts.
+It is the second however, which we will focus on.
+
+In figure <<ioc_db>> an example of linking two records together can be seen between the PVs 'A:1' and 'A:2'.
+This could be an input link by 'A:2' to pull the value of 'A:1',
+it could be an output link by 'A:1' to push a value into 'A:2',
+or it could be a forward link by 'A:1' to 'A:2'.
+
+Linking Records To Hardware
+---------------------------
+
+Hardware links serve to associate a record's device support with a particular (virtual) device.
+In the figure above PV 'A:2' has an hardware output link, and 'A:3' has a hardware input link.
+
+Unlike a link between two records a hardware link is inherently local.
+Its meaning is determined by which physical machine the IOC is run on,
+as well as what device support is used.
+
+The ten allowed hardware link types are listed in table <<hw_types>>.
+
+[[hw_types]]
+.Hardware Link Types
+[width="50%",cols="2,5",options="header"]
+|=======================================
+|      Type | Field format
+|    VME_IO |`#Cxx Syy @zzz'
+|  CAMAC_IO |`#Bxx Cyy Nzz Att Fuu @vvv'
+|     AB_IO |`#Lxx Ayy Czz Stt @uuu'
+|   GPIB_IO |`#Lxx Ayy @zzz'
+| BITBUS_IO |`#Lxx Nyy Pzz Stt @uuu'
+|   INST_IO |`@xxx'
+| BBGPIB_IO |`#Lxx Byy Gzz @ttt'
+|     RF_IO |`#Rxx Myy Dzz Ett'
+|    VXI_IO |`#Vxx Cyy Szz @ttt'
+|   CONSTANT|`xxxx'
+|=======================================
+
+The type name is just a label applied to one arm of a C union (defined in link.h).
+For example a VME_IO link might be written ``#C0x4000 S0x8 @signed''.
+This is parsed and placed in an arm of the union which is itself a C structure with
+three members: card, signal, and param.
+The first two are short integers and the last is a string.
+This is all that a hardware link is.
+
+VME cards do not have to use VME_IO type links and GPIB devices do not have to use GPIB_IO type links.
+Since VME_IO and GPIB_IO store the same data (two short ints and a string) they are functionally identical.
+They differ only by the names used in the two arms of the C union.
+
+Link types like VME_IO is so named because it is often convienent to think of addressing a vme card a by slot number and a function/channel code with the string acting as a catch all other information.
+
+Hardware links in EPICS exist only as a means of passing a small piece of information from
+the record directly to the device support.
+Each name refers to a pre-defined format for this information.
+
+The information in a hardware link is typically used by the device support to determine which physical device
+it will be associated with.
+For a memory mapped device it could be used to select an address.
+
+
+The CONSTANT link type differs in that no processing is done on it.
+The string defined in the database is passed without modification to device support.
+
+
+When a Hardware Link is Not Enough
+----------------------------------
+
+Hardware links are meant to pass small bits of information to device support.
+This breaks down when the information becomes large and when there is initialization to be performed.
+
+It is difficult to handle initialization tasks, which must happen once and only once, in a hardware
+link which is duplicated in many records.
+It is tempting to think of giving one record a `special' link which tells device support when to
+initialize, but there is a better way.
+
+Hardware initialization can be done easily and cleanly in the IOC Shell.
+
+Another common pattern is to use an IOC Shell function to store and/or preprocess complex
+hardware addressing and associate it with an integer key in a table or linked list.
+Device support hardware links are given only the integer key and must individually lookup
+the full addressing information.  An example of this is given below <<ex2>>.
+
+Device Support Private Data
+---------------------------
+
+The use of hardware links implies so sort of lookup to get from a set of short integers and a string
+to a pointer to a memory mapped device, or a system file descriptor.
+
+It would be inefficient to do this lookup every time the device must be accessed.
+For this reason the device support author is provided with the Device Support Private (dpvt)
+field, which is found in all record types.
+This field is a 'void *' which may be used to store any persistent state for individual records.
+
+It could be used to store the cpu address which corrasponds to the base address of a memory mapped device.
+Most commonly it will store a pointer to a structure defined by the device support author.
+
+Driver Support and the Virtual Device
+-------------------------------------
+
+EPICS Driver Support is not a well defined concept.
+I could be any of the following among others:
+
+* A set of functions shared between several device supports.
+* Involve IOC Shell functions for setup.
+* An interface to an Operating System driver.
+
+The `official' definition of Driver Support is in terms of the 'drvet' structure defined in 'drvSup.h'.
+It is a table of function pointers similar to the Device Support 'dset' table.
+
+It provides a way to define another layer of abstraction when it is needed.
+This can be used to abstract away the differences between varients of a card or
+event bus access method (VME vs. PCI).
+The abstract operations presented by this interface to Device Support are essentually a `Virtual Device'.
+
+Driver support is not required.
+In many cases the extra abstraction it provides will just add complexity with no real benifit.
+Knowing when to use it is a skill which will develop with time.
+
+The example <<ex4>> below extends the PRNG device support developed in a previous document to demonstrate
+a case where Driver Support can be useful.
+
+The Full Crate
+--------------
+
+EPICS is a distributed control system and must be able to scale well,
+both in number of IOCs as well as the size of these IOCS.
+
+The concepts of Linking and Device Support exist to enforce isolation between records and Device Supports.
+The intent is to allow an arbitrarily large number of record instances to exist.
+Hardware linking allows this isolation to be broken to the extent necessary to deal with complex devices.
+
+When writing Device Support the author considers one part of one device.
+It is important to consider that this Support will go into an IOC which many have many of these devices
+among others.
+
+Consider what will happen when someone puts 20 identical cards in one VME crate.
+How will resources be allocated?
+What base address should each card be assigned?
+How will 20 cards interrupt the CPU?
+These are the types of questions which must be answered before an IOC can scale.
+
+[[ex1]]
+Example 1
+---------
+
+Consider the following a concrete example of the 'A:*' PVs in the database illistrated in figure <<ioc_db>>.
+
+The hardware specific device support is defined in a database definition.
+
+-------------------------------------------
+device(ao, GPIB_IO, devAoMine, "My Device")
+device(ai, GPIB_IO, devAiMine, "My Device")
+-------------------------------------------
+
+The hardware itself is assumed to be a simple VME card with two registers '0x04' and '0x08'.
+Writing a value to '0x04' causes the value of '0x08' to change.
+Links of the type GPIB_IO are used to further illustrate that these names mean nothing.
+
+The device support 'devAoMine' is assumed to take the sum of the two integer parts of the
+hardware link and use this as the VME address of the register it should operate on.
+The param string is used to hold optional modifiers.
+
+The record 'A:1' exists to provide a seperate linear scaling for the setting.
+
+The forward link between 'A:2' and 'A:3' causes the '0x8' register to be read after
+the '0x4' register is written.
+
+-------------------------------------
+record(ao,"A:1") {
+  field(DTYP, "Soft Channel")
+  field(OUT, "A:2")
+  field(PINI, "Yes")
+  field(UDF, 0)
+  field(VAL, 4.2)
+  field(CONV, "Linear")
+  field(ESLO, -2.0)
+  field(EOFF, 1.0)
+  field(EGU, "mm")
+  field(FLNK, "A:2")
+}
+
+record(ao,"A:2") {
+  field(DTYP, "My Device")
+  field(OUT, "#L0x4000 A0x04 @signed")
+  field(FLNK, "A:3")
+}
+
+record(ai,"A:3") {
+  field(DTYP, "My Device")
+  field(OUT, "#L0x4000 A0x08 @signed")
+}
+-------------------------------------
+
+
+[[ex2]]
+Example 2
+---------
+
+Consider the same device seen above <<ex1>>.
+The device support writer makes the decision to create an IOC Shell function called 'initMyDev(int,int,string)'
+and adds it to the IOC start script.
+
+------------------------------------------------
+dbLoadDatabase("dbd/mydevioc.dbd")
+mydevioc_registerRecordDeviceDriver(pdbase)
+
+initMyDev(0,0x4000,"signed")
+
+dbLoadRecords("db/mydev.db","prefix=A:,card=0")
+
+iocInit()
+------------------------------------------------
+
+This associates the VME card with the A16 base address '0x4000' with the integer key '0',
+which is also passed as '$(card)' when the records are loaded.
+
+The database then becomes the following:
+
+-------------------------------------
+record(ao,"$(prefix)1") {
+  field(DTYP, "Soft Channel")
+  field(OUT, "A:2")
+  field(PINI, "Yes")
+  field(UDF, 0)
+  field(VAL, 4.2)
+  field(CONV, "Linear")
+  field(ESLO, -2.0)
+  field(EOFF, 1.0)
+  field(EGU, "mm")
+  field(FLNK, "A:2")
+}
+
+record(ao,"$(prefix)2") {
+  field(DTYP, "My Device")
+  field(OUT, "#L$(card) A0x04 @")
+  field(FLNK, "A:3")
+}
+
+record(ai,"$(prefix)3") {
+  field(DTYP, "My Device")
+  field(OUT, "#L$(card) A0x08 @")
+}
+-------------------------------------
+
+It this simple example we do not gain much for the trouble,
+but this approach is flexible in a way that hardware links alone are not.
+
+[[ex3]]
+Example 3
+---------
+
+Let us expand on the previous example by adding four more cards.
+The only change required is in the IOC start script.
+
+------------------------------------------------
+dbLoadDatabase("dbd/mydevioc.dbd")
+mydevioc_registerRecordDeviceDriver(pdbase)
+
+initMyDev(0,0x4000,"signed")
+initMyDev(1,0x5000,"signed")
+initMyDev(2,0x6000,"signed")
+initMyDev(3,0x7000,"signed")
+
+dbLoadRecords("db/mydev.db","prefix=A:,card=0")
+dbLoadRecords("db/mydev.db","prefix=B:,card=1")
+dbLoadRecords("db/mydev.db","prefix=C:,card=2")
+dbLoadRecords("db/mydev.db","prefix=D:,card=3")
+dbLoadRecords("db/mydev.db","prefix=E:,card=4")
+
+iocInit()
+------------------------------------------------
+
+This will create five copies of the PVs defined in 'db/mydev.db' with a different prefix
+and which communicate with different cards.
+The fact that this can be done without modifying (or even recompiling) any of the
+Device Support code is what allows an EPICS IOC to quickly and easily scale to large
+numbers of devices.
