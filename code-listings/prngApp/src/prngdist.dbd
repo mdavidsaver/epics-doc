@@ -1,0 +1,4 @@
+device(ai, VME_IO, devAiPrngDist, "Random Distribution")
+driver(drvPrngUniform)
+driver(drvPrngGauss)
+registrar(prngDist)

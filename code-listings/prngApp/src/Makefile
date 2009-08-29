@@ -15,8 +15,8 @@ DBD += prng.dbd
 # prng.dbd will be made up from these files:
 prng_DBD += base.dbd
 
-# Include dbd files from all support applications:
 prng_DBD += prngdev.dbd
+prng_DBD += prngdist.dbd
 
 # Add all the support libraries needed by this IOC
 #prng_LIBS += xxx
@@ -25,6 +25,11 @@ prng_DBD += prngdev.dbd
 prng_SRCS += prng_registerRecordDeviceDriver.cpp
 prng_SRCS += devprng.c
 prng_SRCS += devprngasync.c
+
+prng_SRCS += devprngdist.c
+prng_SRCS += iocshdist.c
+prng_SRCS += drvprngunif.c
+prng_SRCS += drvprnggaus.c
 
 # Build the main IOC entry point on workstation OSs.
 prng_SRCS_DEFAULT += prngMain.cpp
