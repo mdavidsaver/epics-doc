@@ -7,6 +7,7 @@ INKSCAPE=inkscape
 DOCSRC=epics-starting.txt \
 epics-devsup.txt \
 epics-towards.txt \
+epics-rtems.txt \
 epics-ioc.txt
 
 epics_ioc_PNG += ioc-db.png

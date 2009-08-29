@@ -1,0 +1,154 @@
+
+/////////
+Compile with asciidoc
+http://www.methods.co.nz/asciidoc/
+/////////
+
+Setting up an RTEMS Test Bench
+==============================
+:Author:    Darin_Chabot,_Michael_Davidsaver
+:Email:     dchabot@bnl.gov, mdavidsaver@bnl.gov
+:Date:      June 2009
+:Revision:  1
+:Key words: epics, ioc, rtems, rtos
+
+Introduction
+------------
+
+The EPICS distributed control system supports two real-time operating system:
+ VxWorks (proprietary, closed source) and RTEMS (free, open source).
+This guide is intended as quick introduction and reference for new developers
+ who will be working with the RTEMS OS.
+Examples use the MVME3100 a powerpc based single board computer and, aside from
+discussing MOTLoad, are broadly applicable.
+
+In addition to the MVME3100 a second computer is needed to compile code and
+ serve files.
+These two tasks do not have to be done on the same computer.
+We will call this machine the boot server.
+
+The MVME3100 has two front panel RJ45 connectors.
+One is an ethernet jack and the other is a RS232 serial port.
+A RJ45-DB9 adapter is required to use the serial port,
+which is required when first configuring a new board.
+
+The MVME3100 should be on the same sub-net as the boot server.
+
+Boot Server
+-----------
+
+The boot server must provide two services: TFTP and NFS.
+The TFTP server serves the OS image, and NFS is used for all
+other files.
+
+TFTP
+~~~~
+
+On most Unix systems the tftp daemon (in.tftpd) is run through
+the internet super-server (inetd or xinitd).
+After installation it may be necessary to enable the tftp server.
+Either uncommon the appropriate line in '/etc/inetd.conf' or
+change disable to enable in '/dev/xinetd.conf'.
+These files also specify the directory which will be served (ie '/srv/tftp').
+
+An example '/dev/inetd.conf' line might be:
+
+----------------------------------------------------------------------
+tftp dgram udp wait nobody /usr/sbin/tcpd /usr/sbin/in.tftpd /srv/tftp
+----------------------------------------------------------------------
+
+Also remember to set the appropriate permissions in tcpd
+('/etc/hosts.allow' and '/etc/hosts.deny') if appropriate.
+
+For example, if your boot server has two network interfaces
+(192.168.1.5/24 and 192.168.3.6/24) and the tftp service
+should only be available on one they add the following to
+'/etc/hosts.allow'.
+
+-----------------------------------
+in.tftpd: 192.168.3.0/255.255.255.0
+-----------------------------------
+
+and in '/etc/hosts.allow':
+
+-------------
+in.tftpd: ALL
+-------------
+
+NFS
+~~~
+
+An NFS (v3) server requires several components:
+The portmapper daemon and the nfs daemon.
+
+After they are installed and running edit '/etc/exports':
+
+--------------------------------------------------
+/srv/tftp 192.168.3.0/24(ro,sync,no_subtree_check)
+--------------------------------------------------
+
+When changing the exports file it is necessary to manually
+prod the NFS server to use the changes.
+
+-----------
+exportfs -a
+-----------
+
+Now set permissions for tcpd.
+In '/etc/hosts.allow'.
+
+----------------------------------
+portmap: 192.168.3.0/255.255.255.0
+mountd: 192.168.3.0/255.255.255.0
+----------------------------------
+
+and in '/etc/hosts.allow':
+
+------------
+portmap: ALL
+mountd: ALL
+------------
+
+To verify NFS is working:
+
+------------------------------
+/sbin/showmount -e 192.168.3.6
+Export list for 192.168.3.6:
+/srv/tftp 192.168.3.0/24
+------------------------------
+
+Compiling an IOC for RTEMS
+--------------------------
+
+  Assume system has been EPICS+RTEMS already
+  Reference Eric's guide
+  Quick guide (configure/RELEASE configure/CONFIG)
+
+Booting an IOC on RTEMS
+-----------------------
+
+When a MVME3100 is first booted the MOTLoad bootloader will
+present shell over the serial terminal.
+This shell is used to interactively write commands to NVRAM
+which will determine how future boots proceed.
+
+On a normal boot with a staticly assigned IP an OS image is
+downloaded from the TFTP server.
+This image is then executed.
+The MOTLoad shell also provides several 'environment variables'
+which can be queried at runtime to determine the location of
+the NFS server, and the IOC boot script to download and run.
+
+When the boot script is run it may cause other files to be downloaded as well.
+The last command in the boot script 'iocInit' begins PV database processing.
+
+Files and Locations
+~~~~~~~~~~~~~~~~~~~
+
+'/srv/tftp'
+
+MOTLoad
+~~~~~~~
+
+  variables
+  useful commands
