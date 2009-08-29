@@ -5,8 +5,8 @@ http://www.methods.co.nz/asciidoc/
 /////////
 
 
-A Developers Prospective of an IOC
-==================================
+Hardware Links and Driver Support
+=================================
 :Author:    Michael Davidsaver
 :Email:     mdavidsaver@bnl.gov
 :Date:      August 2009
@@ -323,3 +323,344 @@ and which communicate with different cards.
 The fact that this can be done without modifying (or even recompiling) any of the
 Device Support code is what allows an EPICS IOC to quickly and easily scale to large
 numbers of devices.
+
+[[ex4]]
+Example 4 (Full)
+----------------
+
+Now we will present a full example of the topics discussed in this document.
+The device support for the pseudo-random number generator developed in the
+'Basic EPICS Device Support' document can be extended to make use of
+Driver Support.
+The drivers in this case will be used to select between two possible random number
+distributions.
+
+Global Definitions
+~~~~~~~~~~~~~~~~~~
+
+We begin by defining the Driver Support interface.
+This is the `Virtual Device' that our Device Support will use.
+In this case we have only two operations: create and read.
+
+The 'void*' returned by the create function must be used when the read function is called.
+This pointer is effectively the 'this' pointer of C++.
+
+The following code should be placed in the file 'prngApp/src/drvprngdist.h'.
+
+[source,c]
+--------------------------------------------------
+typedef void* (*create_prng_fun)(unsigned int seed);
+
+typedef int (*read_prng_fun)(void* tok);
+
+struct drvPrngDist {
+  drvet base;
+  create_prng_fun create_prng;
+  read_prng_fun read_prng;
+};
+--------------------------------------------------
+
+This definition must be shared between the Driver Support code and the Device Support(s)
+which will use it.
+
+Now we define an additional structure which can be though of as the public data members
+of the 'drvPrngDist' class.
+
+[source,c]
+-----------------------------------
+struct instancePrng {
+  ELLNODE node; /* must be first */
+  struct drvPrngDist* table;
+  void* token;
+  int id;
+};
+-----------------------------------
+
+A 'ELLNODE' is also included as a convinience for the 'lookupPrng' function.
+This function will be used by Device Support to locate a specific instance of 'drvPrngDist'
+based on the 'id' number passed to it in a hardware link.
+
+[source,c]
+-----------------------------------------
+struct instancePrng* lookupPrng(short N);
+-----------------------------------------
+
+DBD
+~~~
+
+At this point we should create the database definition as 'prngApp/src/prngdist.dbd'.
+
+--------------------------------------------------------
+device(ai, VME_IO, devAiPrngDist, "Random Distribution")
+driver(drvPrngUniform)
+driver(drvPrngGaussian)
+registrar(prngDist)
+--------------------------------------------------------
+
+IOC Shell Functions
+~~~~~~~~~~~~~~~~~~~
+
+Creating instance of PRNG `Virtual Devices' will be accomplished with an IOC Shell function
+called 'createPrng' in the file 'prngApp/iocshdist.c'.
+
+[source,c]
+--------------------------------------------------------
+static ELLLIST devices={{NULL,NULL},0};
+
+static const char dpref[]="drvPrng";
+--------------------------------------------------------
+
+Here we define a list which will hold all created device instances and
+the prefix for Driver Support names (as seen in the dbd).
+
+[source,c]
+--------------------------------------------------------
+void
+createPrng(int id,int seed,const char* dist)
+{
+  unsigned int s=(unsigned int)seed;
+  char* dname=NULL;
+  size_t dlen;
+  struct instancePrng* inst=malloc(sizeof(struct instancePrng));
+
+  if(!inst){
+    epicsPrintf("Out of Memory\n");
+    goto error;
+  }
+
+  /* sizeof(dpreg)==strlen(dpref)+1 */
+  dlen=sizeof(dpref)+strlen(dist);
+  
+  dname=malloc(dlen);
+  if(!dname){
+    epicsPrintf("Out of Memory\n");
+    goto error;
+  }
+  
+  strcpy(dname,dpref);
+  strcat(dname,dist);
+--------------------------------------------------------
+
+Some boiler plate for allocation and construction of the Driver Support name string.
+
+[source,c]
+--------------------------------------------------------
+  inst->table=(struct drvPrngDist*)registryDriverSupportFind(dname);
+  if(!inst->table){
+    epicsPrintf("Unknown Distribution type\n");
+    goto error;
+  }
+--------------------------------------------------------
+
+When a Driver Support is registered with a running IOC its name is placed in a list
+which can be queried with the 'registryDriverSupportFind' function.
+In this way the 'dist' argument is used to select which Driver Support is to be used.
+
+Since the two Driver Supports are called 'drvPrngUniform' and 'drvPrngGaussian' the
+two valid values from 'dist' are `Uniform' and `Gaussian'.
+
+[source,c]
+--------------------------------------------------------
+  inst->token=inst->table->create_prng(s);
+  if(!inst->token){
+    epicsPrintf("Failed to create PRNG.\n");
+    goto error;
+  }
+--------------------------------------------------------
+
+The Driver Support create function is used to create a new instance token.
+
+[source,c]
+--------------------------------------------------------
+  inst->id=id;
+  ellAdd(&devices,&inst->node);
+
+  return;
+
+error:
+  free(dname);
+  free(inst);
+  return;
+}
+--------------------------------------------------------
+
+All that remains is to add the instance to the 'devices' list so the lookup
+function can find it.
+
+The lookup function is short and fairly simple.
+It iterates through the list of instances until it finds a match.
+
+[source,c]
+--------------------------------------------------------
+struct instancePrng* lookupPrng(short N)
+{
+  ELLNODE* node;
+  struct instancePrng* ent;
+  
+  for(node=ellFirst(&devices); node; node=ellNext(node)){
+    ent=(struct instancePrng*)node; /* Use CONTAINER() in 3.14.11 */
+    if(ent->id==N)
+      return ent;
+  }
+  
+  return NULL;
+}
+--------------------------------------------------------
+
+Device Support
+~~~~~~~~~~~~~~
+
+Now we turn to the Device Support functions for the AI record type ('prngApp/src/devprngdist.c').
+In this case the 'init_record' and 'read_ai' functions become thin wrappers for the
+Driver Support functions.
+Normally this would be a sign that the task is too simple to benifit from Driver Support
+and suggests that we instead create two different Device Supports.
+
+[source,c]
+---------------------------------------------------
+static long init_record(aiRecord *pao)
+{
+  struct instancePrng* priv;
+
+  priv=lookupPrng(pao->inp.value.vmeio.card);
+  if(!priv){
+    recGblRecordError(S_dev_noDevice, (void*)pao,
+      "Not a valid device id code");
+    return S_dev_noDevice;
+  }
+
+  pao->dpvt=priv;
+
+  return 0;
+}
+---------------------------------------------------
+
+Here we use the 'lookupPrng' function with (part of) the hardware link.
+Only the card value is used because nothing more is needed.
+
+If found the instance is stored in the Device Support Private field for future use.
+
+[source,c]
+---------------------------------------------------
+static long read_ai(aiRecord *pao)
+{
+  struct instancePrng* priv=pao->dpvt;
+
+  pao->rval=priv->table->read_prng(priv->token);
+
+  return 0;
+}
+---------------------------------------------------
+
+To read a random number we use the read function in the function table stored with the instance
+and pass it the instance 'token' which was created with the create function also in this table.
+
+Driver Support (Uniform)
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+We will define two seperate drivers.
+The first will generate random numbers in a uniform distribution ('prngApp/src/drvprngunif.c').
+
+[source,c]
+--------------------------------------------------------
+struct uniform {
+  unsigned int state;
+};
+--------------------------------------------------------
+
+First we define a structure which stores the state for the generator.
+This is effectively the private data of the 'drvPrngDist' class.
+A pointer to this structure will act as the instance `token'.
+
+[source,c]
+--------------------------------------------------------
+static
+void* create(unsigned int seed)
+{
+  struct uniform* priv=malloc(sizeof(struct uniform));
+  
+  if(!priv)
+    return NULL;
+  
+  priv->state=seed;
+  
+  return priv;
+}
+
+static
+int read(void* tok)
+{
+  struct uniform* priv=tok;
+  
+  return rand_r(&priv->state);
+}
+
+static
+struct drvPrngDist drvPrngUniform = {
+  { 4,
+    NULL,
+    NULL,
+  },
+  create,
+  read,
+};
+epicsExportAddress(drvet,drvPrngUniform);
+--------------------------------------------------------
+
+The actual definition of this Driver Support is straight forward.
+
+Driver Support (Gaussian)
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+While the difference between the Gaussian and Uniform generators is small they are
+placed in seperate files to demonstrate that two Driver Supports can be completely
+isolated from each other.
+
+[source,c]
+--------------------------------------------------------
+struct gaussian {
+  unsigned int state;
+};
+
+static
+void* create(unsigned int seed)
+{
+  struct gaussian* priv=malloc(sizeof(struct gaussian));
+  
+  if(!priv)
+    return NULL;
+  
+  priv->state=seed;
+  
+  return priv;
+}
+
+static
+int read(void* tok)
+{
+  struct gaussian* priv=tok;
+  int ret=0, i=8;
+  
+  while(i--)
+    ret+=rand_r(&priv->state)/8;
+
+  return ret;
+}
+--------------------------------------------------------
+
+To approximate a Gaussian distribution a set of uniform random numbers are summed
+in accordance with the Central Limit Theorem.
+
+[source,c]
+--------------------------------------------------------
+static
+struct drvPrngDist drvPrngGaussian = {
+  { 4,
+    NULL,
+    NULL,
+  },
+  create,
+  read,
+};
+epicsExportAddress(drvet,drvPrngGaussian);
+--------------------------------------------------------
