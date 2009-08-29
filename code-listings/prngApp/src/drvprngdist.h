@@ -9,22 +9,20 @@
  * Define the Driver Support interface.
  */
 
-struct drvPrngDist {
-  long number;
-  DRVSUPFUN report;
-  DRVSUPFUN init;
-  DRVSUPFUN create_prng;
-  DRVSUPFUN read_prng;
-};
-
 /* Create and seed a new PRNG and return a token
  * which will be used in future calls.
  */
-typedef void* (*create_prng)(unsigned int seed);
+typedef void* (*create_prng_fun)(unsigned int seed);
 
 /* Read a random number
  */
-typedef int (*read_prng)(void* tok);
+typedef int (*read_prng_fun)(void* tok);
+
+struct drvPrngDist {
+  drvet base;
+  create_prng_fun create_prng;
+  read_prng_fun read_prng;
+};
 
 /* Everything about an instance of a PRNG
  */

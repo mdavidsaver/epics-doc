@@ -53,7 +53,7 @@ static long read_ai(aiRecord *pao)
 {
   struct instancePrng* priv=pao->dpvt;
 
-  pao->rval=(*(read_prng)(priv->table->read_prng))(priv->token);
+  pao->rval=priv->table->read_prng(priv->token);
 
   return 0;
 }

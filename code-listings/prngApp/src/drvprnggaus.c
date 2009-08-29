@@ -34,11 +34,13 @@ int read(void* tok)
   return ret;
 }
 
+static
 struct drvPrngDist drvPrngGaussian = {
-  4,
-  NULL,
-  NULL,
-  (DRVSUPFUN)create,
-  (DRVSUPFUN)read,
+  { 4,
+    NULL,
+    NULL,
+  },
+  create,
+  read,
 };
 epicsExportAddress(drvet,drvPrngGaussian);

@@ -44,7 +44,7 @@ createPrng(int id,int seed,const char* dist)
     goto error;
   }
 
-  inst->token=( *(create_prng)inst->table->create_prng )(s);
+  inst->token=inst->table->create_prng(s);
   if(!inst->token){
     epicsPrintf("Failed to create PRNG.\n");
     goto error;

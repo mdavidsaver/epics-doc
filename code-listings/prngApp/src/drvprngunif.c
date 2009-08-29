@@ -30,11 +30,13 @@ int read(void* tok)
   return rand_r(&priv->state);
 }
 
+static
 struct drvPrngDist drvPrngUniform = {
-  4,
-  NULL,
-  NULL,
-  (DRVSUPFUN)create,
-  (DRVSUPFUN)read,
+  { 4,
+    NULL,
+    NULL,
+  },
+  create,
+  read,
 };
 epicsExportAddress(drvet,drvPrngUniform);
