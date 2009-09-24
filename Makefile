@@ -82,5 +82,5 @@ clean:
 	rm -f $(LISTINGS)
 	rm -f *.aux *.out *.log
 
-publish-list: $(HTML) $(PDF) $(LISTINGS)
+publish-list: $(HTML) $(PNG) $(PDF) $(LISTINGS)
 	@echo "$(patsubst %,$(PP)/%,$^)" | tr ' ' '\n' >> $(PF)
