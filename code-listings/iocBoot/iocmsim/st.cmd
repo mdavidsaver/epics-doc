@@ -11,6 +11,8 @@ cd("${TOP}")
 dbLoadDatabase("dbd/msim.dbd")
 msim_registerRecordDeviceDriver(pdbbase)
 
+addmsim(0, -1000, 1000, 2.0)
+
 dbLoadRecords("db/motor.db","P=test:,M=msim")
 
 cd(${TOP}/iocBoot/${IOC})

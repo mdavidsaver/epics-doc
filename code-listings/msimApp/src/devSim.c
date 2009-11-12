@@ -11,6 +11,8 @@
 #include <dbAccess.h>
 #include <epicsExport.h>
 #include <cantProceed.h>
+#include <devLib.h>
+#include <iocsh.h>
 
 #include <motorRecord.h>
 #include <motor.h>
@@ -18,7 +20,9 @@
 /* Simulated hardware state */
 struct hardware {
 	epicsInt32 pos; /* signed */
+	epicsInt32 lim_h_val;
 	int lim_h:1;
+	epicsInt32 lim_l_val;
 	int lim_l:1;
 };
 
@@ -52,7 +56,22 @@ struct devsim {
 };
 
 static
-ELLLIST devices; /* list of struct devsim */
+ELLLIST devices = {{NULL,NULL},0}; /* list of struct devsim */
+
+static
+struct devsim *getDev(int id)
+{
+	ELLNODE *node;
+	struct devsim *cur;
+
+	for(node=ellFirst(&devices); node; node=ellNext(node))
+	{
+		cur=(struct devsim*)node;
+		if(cur->id==id)
+			return cur;
+	}
+	return NULL;
+}
 
 static
 void timercb(CALLBACK* cb)
@@ -81,21 +100,16 @@ long init_record(motorRecord *pmr)
 	msta_field stat;
 	double val;
 	long ret=0;
-	/* allocate and zero */
-	struct devsim *priv=calloc(1,sizeof(struct devsim));
-
-	callbackSetCallback(timercb, &priv->updatecb);
-	callbackSetPriority(priorityHigh, &priv->updatecb);
-	callbackSetUser(pmr, &priv->updatecb);
+	struct devsim *priv=getDev(pmr->out.value.vmeio.card);
 
 	if(!priv){
-		printf("Allocation failed.\n");
-		ret=S_db_noMemory;
+		printf("Invalid id %d\n",pmr->out.value.vmeio.card);
+		ret=S_dev_noDevice;
 		goto error;
 	}
-
 	pmr->dpvt=priv;
-	priv->rate=1.0;
+
+	callbackSetUser(pmr, &priv->updatecb);
 
 	stat.Bits.RA_DONE=1;
 
@@ -108,8 +122,6 @@ long init_record(motorRecord *pmr)
 		(*dset->build_trans)(LOAD_POS, &val, pmr);
 		(*dset->end_trans)(pmr);
 	}
-
-	ellAdd(&devices, &priv->node);
 
 	return 0;
 error:
@@ -177,11 +189,29 @@ long start_trans(struct motorRecord *pmr)
 }
 
 static
+void check_limits(struct hardware *hw)
+{
+	if(hw->pos > hw->lim_h_val) {
+		hw->pos = hw->lim_h_val;
+		hw->lim_h=1;
+	}else
+		hw->lim_h=0;
+
+	if(hw->pos < hw->lim_l_val) {
+		hw->pos = hw->lim_l_val;
+		hw->lim_l=1;
+	}else
+		hw->lim_l=0;
+}
+
+static
 int move_abs(motorRecord *pmr, double newpos)
 {
 	struct devsim *priv=pmr->dpvt;
 
+	printf("Move abs %f\n",newpos);
 	priv->hw.pos = (epicsInt32)newpos;
+	check_limits(&priv->hw);
 
 	return 0;
 }
@@ -191,7 +221,9 @@ int move_rel(motorRecord *pmr, double rel)
 {
 	struct devsim *priv=pmr->dpvt;
 
+	printf("Move rel %d + %f\n",priv->hw.pos,rel);
 	priv->hw.pos += (epicsInt32)rel;
+	check_limits(&priv->hw);
 
 	return 0;
 }
@@ -201,7 +233,9 @@ int load_pos(motorRecord *pmr, double newpos)
 {
 	struct devsim *priv=pmr->dpvt;
 
+	printf("Load pos %f\n",newpos);
 	priv->hw.pos = (epicsInt32)newpos;
+	check_limits(&priv->hw);
 
 	return 0;
 }
@@ -217,18 +251,22 @@ RTN_STATUS build_trans(motor_cmnd cmd, double *val, struct motorRecord *pmr)
 		t->nargs=1;
 		t->args[0]=*val;
 		t->trans_proc=&move_abs;
+		printf("Add Move abs %f\n",t->args[0]);
 		break;
 	case MOVE_REL:
 		t->nargs=1;
 		t->args[0]=*val;
 		t->trans_proc=&move_rel;
+		printf("Add Move rel %f\n",t->args[0]);
 		break;
 	case LOAD_POS:
 		t->nargs=1;
 		t->args[0]=*val;
 		t->trans_proc=&load_pos;
+		printf("Add Load pos %f\n",t->args[0]);
 		break;
 	default:
+		printf("Unknown command %d\n",cmd);
 		free(t);
 		return OK;
 	}
@@ -278,6 +316,36 @@ RTN_STATUS end_trans(struct motorRecord *pmr)
 	return OK;
 }
 
+static
+void addmsim(int id, int llim, int hlim, double rate)
+{
+	struct devsim *priv=getDev(id);
+
+	if(!!priv){
+		printf("Id already in use\n");
+		return;
+	}
+
+	priv=calloc(1,sizeof(struct devsim));
+
+	if(!priv){
+		printf("Allocation failed\n");
+		return;
+	}
+
+	priv->id=id;
+
+	callbackSetCallback(timercb, &priv->updatecb);
+	callbackSetPriority(priorityHigh, &priv->updatecb);
+
+	priv->rate=rate;
+
+	priv->hw.lim_h_val=hlim;
+	priv->hw.lim_l_val=llim;
+
+	ellAdd(&devices, &priv->node);
+}
+
 struct motor_dset devMSIM = {
 	{
 	 8,
@@ -293,9 +361,23 @@ struct motor_dset devMSIM = {
 };
 epicsExportAddress(dset, devMSIM);
 
+static const iocshArg addmsimArg0 = { "id#", iocshArgInt };
+static const iocshArg addmsimArg1 = { "Low limit", iocshArgInt };
+static const iocshArg addmsimArg2 = { "High limit", iocshArgInt };
+static const iocshArg addmsimArg3 = { "Update Rate", iocshArgDouble };
+static const iocshArg * const addmsimArgs[4] = 
+{ &addmsimArg0, &addmsimArg1, &addmsimArg2, &addmsimArg3 };
+static const iocshFuncDef addmsimFuncDef =
+{ "addmsim", 4, addmsimArgs };
+static void addmsimCallFunc(const iocshArgBuf *args)
+{
+  addmsim(args[0].ival,args[1].ival,args[2].ival,args[3].dval);
+}
+
 static
 void msimreg(void)
 {
 	initHookRegister(&inithooks);
+	iocshRegister(&addmsimFuncDef, addmsimCallFunc);
 }
 epicsExportRegistrar(msimreg);
