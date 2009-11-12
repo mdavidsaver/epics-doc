@@ -74,26 +74,6 @@ struct devsim *getDev(int id)
 }
 
 static
-void timercb(CALLBACK* cb)
-{
-	motorRecord *pmr=NULL;
-	struct rset* rset=NULL;
-	struct devsim *priv=NULL;
-
-	callbackGetUser(pmr,cb);
-	priv=pmr->dpvt;
-	rset=(struct rset*)pmr->rset;
-
-	callbackRequestDelayed(&priv->updatecb, 1.0/priv->rate);
-
-	priv->updateReady=1;
-
-	dbScanLock((dbCommon*)pmr);
-	(*rset->process)(pmr);
-	dbScanUnlock((dbCommon*)pmr);
-}
-
-static
 long init_record(motorRecord *pmr)
 {
 	struct motor_dset *dset=(struct motor_dset*)(pmr->dset);
@@ -144,6 +124,26 @@ void inithooks(initHookState state)
 
 		callbackRequestDelayed(&cur->updatecb, 1.0/cur->rate);
 	}
+}
+
+static
+void timercb(CALLBACK* cb)
+{
+	motorRecord *pmr=NULL;
+	struct rset* rset=NULL;
+	struct devsim *priv=NULL;
+
+	callbackGetUser(pmr,cb);
+	priv=pmr->dpvt;
+	rset=(struct rset*)pmr->rset;
+
+	callbackRequestDelayed(&priv->updatecb, 1.0/priv->rate);
+
+	priv->updateReady=1;
+
+	dbScanLock((dbCommon*)pmr);
+	(*rset->process)(pmr);
+	dbScanUnlock((dbCommon*)pmr);
 }
 
 static
