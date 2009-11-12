@@ -37,7 +37,7 @@ struct hardware {
 
 enum {max_targs=2};
 
-typedef int (*trans_proc_t)();
+typedef void (*trans_proc_t)();
 
 /* List entry to hold transactions */
 struct trans {
@@ -111,7 +111,7 @@ struct devsim *getDev(int id)
 
 	for(node=ellFirst(&devices); node; node=ellNext(node))
 	{
-		cur=(struct devsim*)node;
+		cur=(struct devsim*)node; /* Use CONTAINER() in 3.14.11 */
 		if(cur->id==id)
 			return cur;
 	}
@@ -226,7 +226,7 @@ long start_trans(struct motorRecord *pmr)
 		node;
 		node=next, next=next ? ellNext(next) : NULL )
 	{
-		cur=(struct trans*)node; /* Use CONTAINER() in 3.14.11 */
+		cur=(struct trans*)node;
 
 		ellDelete(&priv->transaction,node);
 		free(cur);
@@ -236,78 +236,67 @@ long start_trans(struct motorRecord *pmr)
 }
 
 static
-int move_rel(motorRecord *pmr, double rel)
+void move_rel(motorRecord *pmr, double rel)
 {
 	struct devsim *priv=pmr->dpvt;
 
 	priv->hw.remaining = (epicsInt32)rel;
-
-
-	return 0;
 }
 
 static
-int move_abs(motorRecord *pmr, double newpos)
+void move_abs(motorRecord *pmr, double newpos)
 {
 	struct devsim *priv=pmr->dpvt;
 
 	newpos -= (double)priv->hw.pos;
 
-	return move_rel(pmr, newpos);
+	move_rel(pmr, newpos);
 }
 
 static
-int set_velocity(motorRecord *pmr, double vel)
+void set_velocity(motorRecord *pmr, double vel)
 {
 	struct devsim *priv=pmr->dpvt;
 
 	priv->hw.vel = vel;
-
-	return 0;
 }
 
 static
-int load_pos(motorRecord *pmr, double newpos)
+void load_pos(motorRecord *pmr, double newpos)
 {
 	struct devsim *priv=pmr->dpvt;
 
 	priv->hw.pos = (epicsInt32)newpos;
-
-	return 0;
 }
 
 static
-int go(motorRecord *pmr)
+void go(motorRecord *pmr)
 {
 	struct devsim *priv=pmr->dpvt;
 
 	if(!priv->hw.remaining)
-		return 0;
+		return;
 
 	if(!priv->hw.vel)
-		return 0;
+		return;
 
 	/* make the sign of the velocity match remaining */
 	priv->hw.vel = copysign(priv->hw.vel, priv->hw.remaining);
 
 	priv->hw.moving=1;
 	epicsTimeGetCurrent(&priv->hw.last);
-
-	return 0;
 }
 
 static
-int stop(motorRecord *pmr)
+void stop(motorRecord *pmr)
 {
 	struct devsim *priv=pmr->dpvt;
 
 	if(!priv->hw.moving)
-		return 0;
+		return;
 
 	priv->hw.moving=0;
 	priv->hw.remaining=0;
-
-	return 0;
 }
 
 static
@@ -366,7 +355,6 @@ RTN_STATUS build_trans(motor_cmnd cmd, double *val, struct motorRecord *pmr)
 static
 RTN_STATUS end_trans(struct motorRecord *pmr)
 {
-	int ret;
 	struct devsim *priv=pmr->dpvt;
 	ELLNODE *node, *next;
 	struct trans *cur;
@@ -379,22 +367,20 @@ RTN_STATUS end_trans(struct motorRecord *pmr)
 
 		switch(cur->nargs){
 		case 0:
-			ret = (*cur->trans_proc)(pmr);
+			(*cur->trans_proc)(pmr);
 			break;
 		case 1:
-			ret = (*cur->trans_proc)(pmr,
+			(*cur->trans_proc)(pmr,
 				cur->args[0]);
 			break;
 		case 2:
-			ret = (*cur->trans_proc)(pmr,
+			(*cur->trans_proc)(pmr,
 				cur->args[0],
 				cur->args[1]);
 		default:
 			printf("Internal Logic error: too many arguments\n");
 			return ERROR;
 		}
-		if(ret)
-			return ERROR;
 
 		ellDelete(&priv->transaction, node);
 		free(cur);
