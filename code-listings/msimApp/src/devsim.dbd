@@ -1,0 +1,2 @@
+device(motor, VME_IO, devMSIM, "Moter Simple Sim")
+registrar(msimreg)
