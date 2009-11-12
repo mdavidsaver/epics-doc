@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 
 #include <dbDefs.h>
 #include <ellLib.h>
@@ -13,6 +14,7 @@
 #include <cantProceed.h>
 #include <devLib.h>
 #include <iocsh.h>
+#include <epicsTime.h>
 
 #include <motorRecord.h>
 #include <motor.h>
@@ -20,10 +22,17 @@
 /* Simulated hardware state */
 struct hardware {
 	epicsInt32 pos; /* signed */
+	double vel;
+
 	epicsInt32 lim_h_val;
-	int lim_h:1;
 	epicsInt32 lim_l_val;
+	int lim_h:1;
 	int lim_l:1;
+
+	int moving:1;
+	epicsInt32 remaining;
+
+	epicsTimeStamp last;
 };
 
 enum {max_targs=2};
@@ -54,6 +63,42 @@ struct devsim {
 
 	ELLLIST transaction; /* list of struct trans */
 };
+
+static
+void update_motor(struct hardware *hw)
+{
+	epicsTimeStamp now;
+	double ellapsed, moved;
+
+	if(!hw->moving)
+		return;
+
+	epicsTimeGetCurrent(&now);
+
+	ellapsed = epicsTimeDiffInSeconds(&now, &hw->last);
+
+	moved = ellapsed * hw->vel;
+
+	if( fabs(moved) >= fabs(hw->remaining) ){
+		moved = hw->remaining;
+		hw->moving = 0;
+	}
+
+	hw->pos += (epicsInt32)moved;
+	hw->remaining -= (epicsInt32)moved;
+
+	if(hw->pos > hw->lim_h_val) {
+		hw->pos = hw->lim_h_val;
+		hw->lim_h=1;
+	}else
+		hw->lim_h=0;
+
+	if(hw->pos < hw->lim_l_val) {
+		hw->pos = hw->lim_l_val;
+		hw->lim_l=1;
+	}else
+		hw->lim_l=0;
+}
 
 static
 ELLLIST devices = {{NULL,NULL},0}; /* list of struct devsim */
@@ -152,6 +197,8 @@ CALLBACK_VALUE update_values(motorRecord *pmr)
 	struct devsim *priv=pmr->dpvt;
 	msta_field modsts;
 
+	update_motor(&priv->hw);
+
 	if(!priv->updateReady)
 		return NOTHING_DONE;
 	priv->updateReady=0;
@@ -189,19 +236,14 @@ long start_trans(struct motorRecord *pmr)
 }
 
 static
-void check_limits(struct hardware *hw)
+int move_rel(motorRecord *pmr, double rel)
 {
-	if(hw->pos > hw->lim_h_val) {
-		hw->pos = hw->lim_h_val;
-		hw->lim_h=1;
-	}else
-		hw->lim_h=0;
+	struct devsim *priv=pmr->dpvt;
 
-	if(hw->pos < hw->lim_l_val) {
-		hw->pos = hw->lim_l_val;
-		hw->lim_l=1;
-	}else
-		hw->lim_l=0;
+	priv->hw.remaining = (epicsInt32)rel;
+
+
+	return 0;
 }
 
 static
@@ -209,21 +251,17 @@ int move_abs(motorRecord *pmr, double newpos)
 {
 	struct devsim *priv=pmr->dpvt;
 
-	printf("Move abs %f\n",newpos);
-	priv->hw.pos = (epicsInt32)newpos;
-	check_limits(&priv->hw);
+	newpos -= (double)priv->hw.pos;
 
-	return 0;
+	return move_rel(pmr, newpos);
 }
 
 static
-int move_rel(motorRecord *pmr, double rel)
+int set_velocity(motorRecord *pmr, double vel)
 {
 	struct devsim *priv=pmr->dpvt;
 
-	printf("Move rel %d + %f\n",priv->hw.pos,rel);
-	priv->hw.pos += (epicsInt32)rel;
-	check_limits(&priv->hw);
+	priv->hw.vel = vel;
 
 	return 0;
 }
@@ -233,9 +271,41 @@ int load_pos(motorRecord *pmr, double newpos)
 {
 	struct devsim *priv=pmr->dpvt;
 
-	printf("Load pos %f\n",newpos);
 	priv->hw.pos = (epicsInt32)newpos;
-	check_limits(&priv->hw);
+
+	return 0;
+}
+
+static
+int go(motorRecord *pmr)
+{
+	struct devsim *priv=pmr->dpvt;
+
+	if(!priv->hw.remaining)
+		return 0;
+
+	if(!priv->hw.vel)
+		return 0;
+
+	/* make the sign of the velocity match remaining */
+	priv->hw.vel = copysign(priv->hw.vel, priv->hw.remaining);
+
+	priv->hw.moving=1;
+	epicsTimeGetCurrent(&priv->hw.last);
+
+	return 0;
+}
+
+static
+int stop(motorRecord *pmr)
+{
+	struct devsim *priv=pmr->dpvt;
+
+	if(!priv->hw.moving)
+		return 0;
+
+	priv->hw.moving=0;
+	priv->hw.remaining=0;
 
 	return 0;
 }
@@ -251,19 +321,29 @@ RTN_STATUS build_trans(motor_cmnd cmd, double *val, struct motorRecord *pmr)
 		t->nargs=1;
 		t->args[0]=*val;
 		t->trans_proc=&move_abs;
-		printf("Add Move abs %f\n",t->args[0]);
 		break;
 	case MOVE_REL:
 		t->nargs=1;
 		t->args[0]=*val;
 		t->trans_proc=&move_rel;
-		printf("Add Move rel %f\n",t->args[0]);
 		break;
 	case LOAD_POS:
 		t->nargs=1;
 		t->args[0]=*val;
 		t->trans_proc=&load_pos;
-		printf("Add Load pos %f\n",t->args[0]);
+		break;
+	case SET_VELOCITY:
+		t->nargs=1;
+		t->args[0]=*val;
+		t->trans_proc=&set_velocity;
+		break;
+	case GO:
+		t->nargs=0;
+		t->trans_proc=&go;
+		break;
+	case STOP_AXIS:
+		t->nargs=0;
+		t->trans_proc=&stop;
 		break;
 	default:
 		printf("Unknown command %d\n",cmd);
