@@ -87,13 +87,13 @@ void update_motor(struct hardware *hw)
 	hw->pos += (epicsInt32)moved;
 	hw->remaining -= (epicsInt32)moved;
 
-	if(hw->pos > hw->lim_h_val) {
+	if(hw->pos >= hw->lim_h_val) {
 		hw->pos = hw->lim_h_val;
 		hw->lim_h=1;
 	}else
 		hw->lim_h=0;
 
-	if(hw->pos < hw->lim_l_val) {
+	if(hw->pos <= hw->lim_l_val) {
 		hw->pos = hw->lim_l_val;
 		hw->lim_l=1;
 	}else
@@ -345,6 +345,13 @@ RTN_STATUS build_trans(motor_cmnd cmd, double *val, struct motorRecord *pmr)
 		t->nargs=0;
 		t->trans_proc=&stop;
 		break;
+	case SET_HIGH_LIMIT:
+	case SET_LOW_LIMIT:
+		/* TODO */
+	case SET_VEL_BASE:
+	case GET_INFO:
+		free(t);
+		return OK;
 	default:
 		printf("Unknown command %d\n",cmd);
 		free(t);
