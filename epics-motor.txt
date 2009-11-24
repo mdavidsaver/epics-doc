@@ -1,0 +1,750 @@
+
+/////////
+Compile with asciidoc
+http://www.methods.co.nz/asciidoc/
+/////////
+
+A Motor Record Example
+======================
+:Author:    Michael Davidsaver
+:Email:     mdavidsaver@bnl.gov
+:Date:      November 2009
+:Revision:  1
+:Key words: epics, ioc, motor
+
+== Introduction ==
+
+The EPICS motorRecord is the most commonly used of the special (application) record types.
+It is the most common interface for control of a single axis.
+The motorRecord is typically used in conjuction with the 'common device support',
+a library of functions intended to impliment the device support function in a reusable way.
+Howver, the author is of the opinion that this is an attempt to solve, with a large amount of
+code, what would be better accomplished with a little documentation.
+To that end this document will present a minimal complete example of device support using the
+motorRecord.
+
+== Prelude ==
+
+[source,c]
+------------------------
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+
+#include <dbDefs.h>
+#include <ellLib.h>
+#include <devSup.h>
+#include <recSup.h>
+#include <recGbl.h>
+#include <callback.h>
+#include <initHooks.h>
+#include <dbAccess.h>
+#include <epicsExport.h>
+#include <cantProceed.h>
+#include <devLib.h>
+#include <iocsh.h>
+#include <epicsTime.h>
+
+#include <motorRecord.h>
+#include <motor.h>
+------------------------
+
+== Data Structures ==
+
+This example will use a simulated motor.
+It is a linear stage which moves at a fixed rate with zero acceleration time.
+It has positive and negative limit switches, but no home switch, or encoder.
+
+=== Simulation State ===
+
+The 'hardware' structure is the state of this simulate.
+It must hold the motor's settings and its current state.
+State includes the motor's current position and the position of the limits.
+These are distinct from what is represented in the motorRecord itself.
+It also holds the number of steps to move (signed), and the velocity.
+
+In order to simplify this example the motor simulation will not run
+concurrently.  Its state will instead be updated when the motorRecord
+polls its state.
+
+[source,c]
+------------------------------
+struct hardware {
+  epicsInt32 pos; /* signed */
+  double vel;
+
+  epicsInt32 lim_h_val;
+  epicsInt32 lim_l_val;
+  int lim_h:1;
+  int lim_l:1;
+
+  int moving:1;
+  epicsInt32 remaining;
+
+  epicsTimeStamp last;
+};
+------------------------------
+
+Both counts remaining and velocity will have the same sign.
+
+=== Transactions ===
+
+The motorRecord sends commands to the axis as transactions.
+These are sets of primative commands assembled and committed (sent) in groups.
+Historically these were ascii strings (ie 'VEL4.2;ACC0.2;REL4000;GO').
+
+Since our simulated motor does not deal in ascii strings we will instead keep
+a list of actions to be performed when the transaction is committed.
+This will simply be a list of actions (function pointers) values for them.
+
+Currently the motorRecord does not use actions with more then two arguments.
+
+[source,c]
+-------------------------------------
+enum {max_targs=2};
+
+typedef void (*trans_proc_t)();
+
+/* List entry to hold transactions */
+struct trans {
+  ELLNODE node; /* Must be first */
+  size_t nargs;
+  double args[max_targs];
+
+  trans_proc_t trans_proc;
+};
+-------------------------------------
+
+=== Device Support Private ===
+
+Now we come to the device support private structure for motorRecord.
+
+[source,c]
+-------------------------------------------------
+struct devsim {
+  ELLNODE node;
+
+  struct hardware hw;
+-------------------------------------------------
+
+For reasons which will become apparent we must maintain a IOC global list of
+device support instances.  Also the "hidden" state for the simulation.
+
+[source,c]
+-------------------------------------------------
+  int id;
+-------------------------------------------------
+
+A IOC global unique identifier marking this instance of the device support.
+Used to match an instance created with a IOCsh function to a record.
+
+[source,c]
+-------------------------------------------------
+  double rate; /* poll rate */
+
+  int updateReady;
+  CALLBACK updatecb;
+-------------------------------------------------
+
+A callback used to impliment the internal polling of device state.
+This will be timer driven at a fixed rate.
+
+[source,c]
+-------------------------------------------------
+
+  ELLLIST transaction; /* list of struct trans */
+};
+-------------------------------------------------
+
+The list of uncommitted transaction for this motor.
+
+== Simulation ==
+
+When the simulation is running we will periodically advance the state.
+
+[source,c]
+------------------------------------------------------
+static
+void update_motor(struct hardware *hw)
+{
+  epicsTimeStamp now;
+  double ellapsed, moved;
+
+  if(!hw->moving)
+    return;
+
+  epicsTimeGetCurrent(&now);
+
+  ellapsed = epicsTimeDiffInSeconds(&now, &hw->last);
+
+  moved = ellapsed * hw->vel;
+------------------------------------------------------
+
+By looking at the time since the last update determine how far the motor
+has moved.
+
+[source,c]
+------------------------------------------------------
+
+  if( fabs(moved) >= fabs(hw->remaining) ){
+    moved = hw->remaining;
+    hw->moving = 0;
+  }
+------------------------------------------------------
+
+Since our simulated motor is well behaved it will stop after moving
+the requested number of steps.
+
+[source,c]
+------------------------------------------------------
+  hw->pos += (epicsInt32)moved;
+  hw->remaining -= (epicsInt32)moved;
+
+  if(hw->pos >= hw->lim_h_val) {
+    hw->pos = hw->lim_h_val;
+    hw->lim_h=1;
+  }else
+    hw->lim_h=0;
+
+  if(hw->pos <= hw->lim_l_val) {
+    hw->pos = hw->lim_l_val;
+    hw->lim_l=1;
+  }else
+    hw->lim_l=0;
+}
+------------------------------------------------------
+
+Update the internal position and limit state.
+
+== Convinence ==
+
+A helper function for searching for device support instances by global id number.
+
+[source,c]
+--------------------------------------------------------------
+static
+ELLLIST devices = {{NULL,NULL},0}; /* list of struct devsim */
+
+static
+struct devsim *getDev(int id)
+{
+  ELLNODE *node;
+  struct devsim *cur;
+
+  for(node=ellFirst(&devices); node; node=ellNext(node))
+  {
+    cur=(struct devsim*)node; /* Use CONTAINER() in 3.14.11 */
+    if(cur->id==id)
+      return cur;
+  }
+  return NULL;
+}
+--------------------------------------------------------------
+
+== Initialization ==
+
+Device support instances will be created from the IOCsh.
+Here we specify the real positions of the hard limit switches.
+
+In a real world example we would also give the hardware address
+of the controller.
+
+[source,c]
+--------------------------------------------------------------
+static
+void addmsim(int id, int llim, int hlim, double rate)
+{
+	struct devsim *priv=getDev(id);
+
+	if(!!priv){
+		printf("Id already in use\n");
+		return;
+	}
+
+	priv=calloc(1,sizeof(struct devsim));
+
+	if(!priv){
+		printf("Allocation failed\n");
+		return;
+	}
+
+	priv->id=id;
+
+	callbackSetCallback(timercb, &priv->updatecb);
+	callbackSetPriority(priorityHigh, &priv->updatecb);
+
+	priv->rate=rate;
+
+	priv->hw.lim_h_val=hlim;
+	priv->hw.lim_l_val=llim;
+
+	ellAdd(&devices, &priv->node);
+}
+--------------------------------------------------------------
+
+=== init_record ===
+
+Here we match the record and device support instances by matching
+the number given to the IOCsh function with the record OUT link.
+
+[source,c]
+--------------------------------------------------------------
+static
+long init_record(motorRecord *pmr)
+{
+  struct motor_dset *dset=(struct motor_dset*)(pmr->dset);
+  msta_field stat;
+  double val;
+  long ret=0;
+  struct devsim *priv=getDev(pmr->out.value.vmeio.card);
+
+  if(!priv){
+    printf("Invalid id %d\n",pmr->out.value.vmeio.card);
+    ret=S_dev_noDevice;
+    goto error;
+  }
+  pmr->dpvt=priv;
+
+  callbackSetUser(pmr, &priv->updatecb);
+--------------------------------------------------------------
+
+Here we come upon the first of several quirks of the motorRecord.
+
+If the RA_DONE flag is not initialized to 1 then the motor will immdiately go
+into a moving state which can only be exited by a stop command.
+
+[source,c]
+--------------------------------------------------------------
+  stat.Bits.RA_DONE=1;
+
+  pmr->msta=stat.All;
+--------------------------------------------------------------
+
+The motor position stored by the autosave module is the DVAL field.
+At start we must explicitly convert this to raw counts and set the controller.
+
+[source,c]
+--------------------------------------------------------------
+  if( pmr->mres !=0.0 ){
+    /* Restore position counter.  Needed for autosave */
+    val = pmr->dval / pmr->mres;
+    (*dset->start_trans)(pmr);
+    (*dset->build_trans)(LOAD_POS, &val, pmr);
+    (*dset->end_trans)(pmr);
+  }
+
+  return 0;
+error:
+  pmr->pact=TRUE;
+  return ret;
+}
+--------------------------------------------------------------
+
+=== Start Polling ===
+
+Notice that the periodic update time was not started in 'init_record'.
+Our callback can not be started before 'iocInit()' has completed because the
+record lock has not been created yet and attempting to call 'dbScanLock'
+would have undesireable results.
+
+To avoid this we use the IOC initialization hooks to start the timers
+as iocInit finishes.  Note that the 'initHookAtEnd' hooks is called after
+autosave has completed.
+
+[source,c]
+----------------------------------------------------------------------------------------------
+static
+void inithooks(initHookState state)
+{
+	ELLNODE *node;
+	struct devsim *cur;
+	/* as of 3.14.11 initHookAtEnd is deprecated and initHookAfterIocRunning is proper */
+	if(state!=initHookAtEnd)
+		return;
+
+	for(node=ellFirst(&devices); node; node=ellNext(node))
+	{
+		cur=(struct devsim*)node;
+
+		callbackRequestDelayed(&cur->updatecb, 1.0/cur->rate);
+	}
+}
+----------------------------------------------------------------------------------------------
+
+== Poll Motor State ==
+
+Polling the motor's state happens in several parts.
+It may be caused by the periodic timer, or by a hardware interrupts.
+In either case the result would the update callback being scheduled.
+
+=== Update Callback ===
+
+The period timer does three things.  First it rearms itself, second it sets the 'updateReady' flag,
+then it processes the record.
+
+The 'updateReady' flag exists to distinguish the two conditions which could cause the motorRecord to
+process.
+If it is not set then processing is the result of a user action.
+If it is set then processing is the result of a change in the hardware state.
+
+[source,c]
+----------------------------------------------------------------
+static
+void timercb(CALLBACK* cb)
+{
+	motorRecord *pmr=NULL;
+	struct rset* rset=NULL;
+	struct devsim *priv=NULL;
+
+	callbackGetUser(pmr,cb);
+	priv=pmr->dpvt;
+	rset=(struct rset*)pmr->rset;
+
+	dbScanLock((dbCommon*)pmr);
+
+	callbackRequestDelayed(&priv->updatecb, 1.0/priv->rate);
+
+	update_motor(&priv->hw);
+	priv->updateReady=1;
+
+	(*rset->process)(pmr);
+
+	dbScanUnlock((dbCommon*)pmr);
+}
+----------------------------------------------------------------
+
+Note that 'update_motor' is called here so that it can be guarded by the record lock.
+
+=== update_values ===
+
+When the motorRecord is processed the first thing which occurs is a call to
+the 'update_values' device support function.
+This is a test by the record to determine why it was processed.
+It also gives the record a change to save a copy of the fields
+which can be changed so that monitors can be posted if a change
+dows in fact occur.
+
+The only fields which can be updated are 'RMP', 'REP', and 'MSTA'.
+
+This function exists to transfer data from the hardware into the record.
+
+[source,c]
+-------------------------------------------------
+static
+CALLBACK_VALUE update_values(motorRecord *pmr)
+{
+	struct devsim *priv=pmr->dpvt;
+	msta_field modsts;
+
+	if(!priv->updateReady)
+		return NOTHING_DONE;
+	priv->updateReady=0;
+
+	modsts.All=pmr->msta;
+
+	modsts.Bits.RA_PLUS_LS = priv->hw.lim_h;
+	modsts.Bits.RA_MINUS_LS = priv->hw.lim_l;
+
+	pmr->msta=modsts.All;
+
+	pmr->rmp = (double)priv->hw.pos;
+
+	return CALLBACK_DATA;
+}
+-------------------------------------------------
+
+== Command Transactions ==
+
+Commands are build and sent to the device through three functions: start, build, and end transaction.
+
+=== start_trans ===
+
+This function begins a new transation by aborting any previous uncommited transaction.
+
+[source,c]
+----------------------------------------------------------------------------------
+static
+long start_trans(struct motorRecord *pmr)
+{
+	struct devsim *priv=pmr->dpvt;
+	ELLNODE *node, *next;
+	struct trans *cur;
+
+	for(node=ellFirst(&priv->transaction), next = node ? ellNext(node) : NULL;
+		node;
+		node=next, next=next ? ellNext(next) : NULL )
+	{
+		cur=(struct trans*)node;
+
+		ellDelete(&priv->transaction,node);
+		free(cur);
+	}
+
+	return 0;
+}
+----------------------------------------------------------------------------------
+
+=== Actions ===
+
+Now we will look at some of the primative actions which can go into a transaction.
+
+The best (only) way to gain and understanding of what groups of primatives are actually
+used is review the source for the motorRecord record support.
+
+==== Position ====
+
+A relative move is commanded if the axis has an encoder present.
+Otherwise absolute moves are used.
+It is usually wise (and easy) to impliment both move types.
+
+[source,c]
+---------------------------------------------
+static
+void move_rel(motorRecord *pmr, double rel)
+{
+	struct devsim *priv=pmr->dpvt;
+
+	priv->hw.remaining = (epicsInt32)rel;
+}
+---------------------------------------------
+
+We just impliment absolute moves in terms of the relative.
+
+[source,c]
+---------------------------------------------
+static
+void move_abs(motorRecord *pmr, double newpos)
+{
+	struct devsim *priv=pmr->dpvt;
+
+	newpos -= (double)priv->hw.pos;
+
+	move_rel(pmr, newpos);
+}
+---------------------------------------------
+
+Restore the internal position counter from an external source.
+
+[source,c]
+----------------------------------------------
+static
+void load_pos(motorRecord *pmr, double newpos)
+{
+	struct devsim *priv=pmr->dpvt;
+
+	priv->hw.pos = (epicsInt32)newpos;
+}
+----------------------------------------------
+
+==== Velocity ====
+
+Set to move velocity.
+The motion profile used by the motorRecord has two velocities,
+we need only one and chose to ignore the base velocity.
+
+[source,c]
+---------------------------------------------
+static
+void set_velocity(motorRecord *pmr, double vel)
+{
+	struct devsim *priv=pmr->dpvt;
+
+	priv->hw.vel = vel;
+}
+---------------------------------------------
+
+==== Immediate ====
+
+This both commands motion and notes the time for use by the simulation.
+
+[source,c]
+----------------------------------------------
+static
+void go(motorRecord *pmr)
+{
+	struct devsim *priv=pmr->dpvt;
+
+	if(!priv->hw.remaining)
+		return;
+
+	if(!priv->hw.vel)
+		return;
+
+	/* make the sign of the velocity match remaining */
+	priv->hw.vel = copysign(priv->hw.vel, priv->hw.remaining);
+
+	priv->hw.moving=1;
+	epicsTimeGetCurrent(&priv->hw.last);
+}
+----------------------------------------------
+
+Cause an immediate halt.
+
+[source,c]
+----------------------------------------------
+static
+void stop(motorRecord *pmr)
+{
+	struct devsim *priv=pmr->dpvt;
+
+	if(!priv->hw.moving)
+		return;
+
+	priv->hw.moving=0;
+	priv->hw.remaining=0;
+}
+----------------------------------------------
+
+==== build_trans ====
+
+Stores a transaction in the device support transaction list.
+
+[source,c]
+---------------------------------------------------------------------------------
+static
+RTN_STATUS build_trans(motor_cmnd cmd, double *val, struct motorRecord *pmr)
+{
+	struct devsim *priv=pmr->dpvt;
+	struct trans *t=callocMustSucceed(1,sizeof(struct trans), "build_trans");
+
+	switch(cmd){
+	case MOVE_ABS:
+		t->nargs=1;
+		t->args[0]=*val;
+		t->trans_proc=&move_abs;
+		break;
+	case MOVE_REL:
+		t->nargs=1;
+		t->args[0]=*val;
+		t->trans_proc=&move_rel;
+		break;
+	case LOAD_POS:
+		t->nargs=1;
+		t->args[0]=*val;
+		t->trans_proc=&load_pos;
+		break;
+	case SET_VELOCITY:
+		t->nargs=1;
+		t->args[0]=*val;
+		t->trans_proc=&set_velocity;
+		break;
+	case GO:
+		t->nargs=0;
+		t->trans_proc=&go;
+		break;
+	case STOP_AXIS:
+		t->nargs=0;
+		t->trans_proc=&stop;
+		break;
+	case SET_HIGH_LIMIT:
+	case SET_LOW_LIMIT:
+		/* TODO */
+	case SET_VEL_BASE:
+	case GET_INFO:
+		free(t);
+		return OK;
+	default:
+		printf("Unknown command %d\n",cmd);
+		free(t);
+		return OK;
+	}
+
+	ellAdd(&priv->transaction, &t->node);
+
+	return OK;
+}
+---------------------------------------------------------------------------------
+
+=== end_trans ===
+
+Here we simply iterate through the list of transaction and execute the actions.
+
+[source,c]
+----------------------------------------------------------------------------------
+static
+RTN_STATUS end_trans(struct motorRecord *pmr)
+{
+	struct devsim *priv=pmr->dpvt;
+	ELLNODE *node, *next;
+	struct trans *cur;
+
+	for(node=ellFirst(&priv->transaction), next = node ? ellNext(node) : NULL;
+		node;
+		node=next, next= next ? ellNext(next) : NULL )
+	{
+		cur=(struct trans*)node;
+
+		switch(cur->nargs){
+		case 0:
+			(*cur->trans_proc)(pmr);
+			break;
+		case 1:
+			(*cur->trans_proc)(pmr,
+				cur->args[0]);
+			break;
+		case 2:
+			(*cur->trans_proc)(pmr,
+				cur->args[0],
+				cur->args[1]);
+		default:
+			printf("Internal Logic error: too many arguments\n");
+			return ERROR;
+		}
+
+		ellDelete(&priv->transaction, node);
+		free(cur);
+	}
+
+	return OK;
+}
+----------------------------------------------------------------------------------
+
+== Boiler Plate ==
+
+Standard code export the IOC shell function and device support.
+
+[source,c]
+----------------------------------------------------------------------------------
+struct motor_dset devMSIM = {
+	{
+	 8,
+	 NULL, /* report */
+	 NULL, /* init */
+	 (DEVSUPFUN) init_record,
+	 NULL /* get_ioint_info */
+	},
+	update_values,
+	start_trans,
+	build_trans,
+	end_trans
+};
+epicsExportAddress(dset, devMSIM);
+
+static const iocshArg addmsimArg0 = { "id#", iocshArgInt };
+static const iocshArg addmsimArg1 = { "Low limit", iocshArgInt };
+static const iocshArg addmsimArg2 = { "High limit", iocshArgInt };
+static const iocshArg addmsimArg3 = { "Update Rate", iocshArgDouble };
+static const iocshArg * const addmsimArgs[4] = 
+{ &addmsimArg0, &addmsimArg1, &addmsimArg2, &addmsimArg3 };
+static const iocshFuncDef addmsimFuncDef =
+{ "addmsim", 4, addmsimArgs };
+static void addmsimCallFunc(const iocshArgBuf *args)
+{
+  addmsim(args[0].ival,args[1].ival,args[2].ival,args[3].dval);
+}
+
+static
+void msimreg(void)
+{
+	initHookRegister(&inithooks);
+	iocshRegister(&addmsimFuncDef, addmsimCallFunc);
+}
+epicsExportRegistrar(msimreg);
+----------------------------------------------------------------------------------
+
+Also the database definition.
+
+--------------------------------------------------
+device(motor, VME_IO, devMSIM, "Moter Simple Sim")
+registrar(msimreg)
+--------------------------------------------------

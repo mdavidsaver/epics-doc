@@ -52,11 +52,11 @@ struct trans {
 struct devsim {
 	ELLNODE node;
 
+	struct hardware hw;
+
 	int id;
 
 	double rate; /* poll rate */
-
-	struct hardware hw;
 
 	int updateReady;
 	CALLBACK updatecb;
@@ -116,6 +116,36 @@ struct devsim *getDev(int id)
 			return cur;
 	}
 	return NULL;
+}
+
+static
+void addmsim(int id, int llim, int hlim, double rate)
+{
+	struct devsim *priv=getDev(id);
+
+	if(!!priv){
+		printf("Id already in use\n");
+		return;
+	}
+
+	priv=calloc(1,sizeof(struct devsim));
+
+	if(!priv){
+		printf("Allocation failed\n");
+		return;
+	}
+
+	priv->id=id;
+
+	callbackSetCallback(timercb, &priv->updatecb);
+	callbackSetPriority(priorityHigh, &priv->updatecb);
+
+	priv->rate=rate;
+
+	priv->hw.lim_h_val=hlim;
+	priv->hw.lim_l_val=llim;
+
+	ellAdd(&devices, &priv->node);
 }
 
 static
@@ -182,12 +212,15 @@ void timercb(CALLBACK* cb)
 	priv=pmr->dpvt;
 	rset=(struct rset*)pmr->rset;
 
+	dbScanLock((dbCommon*)pmr);
+
 	callbackRequestDelayed(&priv->updatecb, 1.0/priv->rate);
 
+	update_motor(&priv->hw);
 	priv->updateReady=1;
 
-	dbScanLock((dbCommon*)pmr);
 	(*rset->process)(pmr);
+
 	dbScanUnlock((dbCommon*)pmr);
 }
 
@@ -196,8 +229,6 @@ CALLBACK_VALUE update_values(motorRecord *pmr)
 {
 	struct devsim *priv=pmr->dpvt;
 	msta_field modsts;
-
-	update_motor(&priv->hw);
 
 	if(!priv->updateReady)
 		return NOTHING_DONE;
@@ -387,36 +418,6 @@ RTN_STATUS end_trans(struct motorRecord *pmr)
 	}
 
 	return OK;
-}
-
-static
-void addmsim(int id, int llim, int hlim, double rate)
-{
-	struct devsim *priv=getDev(id);
-
-	if(!!priv){
-		printf("Id already in use\n");
-		return;
-	}
-
-	priv=calloc(1,sizeof(struct devsim));
-
-	if(!priv){
-		printf("Allocation failed\n");
-		return;
-	}
-
-	priv->id=id;
-
-	callbackSetCallback(timercb, &priv->updatecb);
-	callbackSetPriority(priorityHigh, &priv->updatecb);
-
-	priv->rate=rate;
-
-	priv->hw.lim_h_val=hlim;
-	priv->hw.lim_l_val=llim;
-
-	ellAdd(&devices, &priv->node);
 }
 
 struct motor_dset devMSIM = {
