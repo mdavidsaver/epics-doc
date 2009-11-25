@@ -119,6 +119,9 @@ struct devsim *getDev(int id)
 }
 
 static
+void timercb(CALLBACK* cb);
+
+static
 void addmsim(int id, int llim, int hlim, double rate)
 {
 	struct devsim *priv=getDev(id);
