@@ -169,6 +169,8 @@ long init_record(motorRecord *pmr)
 
 	callbackSetUser(pmr, &priv->updatecb);
 
+	stat.All=0;
+
 	stat.Bits.RA_DONE=1;
 
 	pmr->msta=stat.All;

@@ -318,6 +318,8 @@ into a moving state which can only be exited by a stop command.
 
 [source,c]
 --------------------------------------------------------------
+  stat.All=0;
+
   stat.Bits.RA_DONE=1;
 
   pmr->msta=stat.All;
