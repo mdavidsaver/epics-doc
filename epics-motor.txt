@@ -4,26 +4,366 @@ Compile with asciidoc
 http://www.methods.co.nz/asciidoc/
 /////////
 
-A Motor Record Example
-======================
-:Author:    Michael Davidsaver
-:Email:     mdavidsaver@bnl.gov
-:Date:      November 2009
+Motor Record Device Support
+===========================
+:Author:    Michael_Davidsaver,_Daron_Chabot
+:Email:     mdavidsaver@bnl.gov, dchabot@bnl.gov
+:Date:      December 2009
 :Revision:  1
-:Key words: epics, ioc, motor
+:Key words: epics, motor, devsup
 
 == Introduction ==
 
 The EPICS motorRecord is the most commonly used of the special (application) record types.
 It is the most common interface for control of a single axis.
-The motorRecord is typically used in conjuction with the 'common device support',
-a library of functions intended to impliment the device support function in a reusable way.
-Howver, the author is of the opinion that this is an attempt to solve, with a large amount of
-code, what would be better accomplished with a little documentation.
-To that end this document will present a minimal complete example of device support using the
-motorRecord.
+The motorRecord is typically used in conjunction with the 'common device support',
+a library of functions of to help build device support.
+However, this is a large body of code which hides no small amount of magic.
+This document will present a minimal complete example of device support using the
+motorRecord without the 'common device support'.
 
-== Prelude ==
+== Hardware Model ==
+
+The Motor record is built around the idea of a device which accepts commands
+ and returns responses serially.
+Status information may be polled or come asynchronously.
+Polling the device for status is a costly operation,
+ so the device may only be regularly polled when it is needed,
+ usually while the axis is in motion.
+
+Historically a controller was a RS-232 or similar device with no asynchronous interrupts.
+Many axis shared the same link so bandwidth was an issue.
+
+Functionally, the device is treated as a stepper motor.
+It is sent move commands as discrete steps and the device (support) is expected to
+ maintain a signed counter of the number of commanded steps since IOC initialization.
+Additionally, the device may provide an encoder which can be used as feedback
+ for closed loop operation.
+
+Status for two limit switches and a home switch can be monitored.
+
+== Types of Motion ==
+
+The motor record supports xxx different kinds of motion: normal, backlash, home, and jog.
+All controllers will support normal motions.
+Backlash motion is implemented by the record as a normal motion so no additional effort is required.
+Home and Jog motions require that device support implement the required commands.
+
+=== Normal ===
+
+Moves a finite number of steps to a user commanded destination
+ which is known before the move begins.
+
+Required commands: MOVE_ABS, MOVE_REL
+
+Optional commands: SET_VEL_BASE, SET_VELOCITY, SET_ACCEL
+
+=== Jog ===
+
+This is a constant velocity move for a user determined length of time
+ which is not known when the move begins.
+
+Required commands: JOG, STOP_AXIS, JOG_VELOCITY
+
+=== Backlash ===
+
+The motor record will keeps track of the direction of the last move.
+Following the next normal or jog move in the opposite direction has ended,
+ a backlash move is initialized.
+The backlash move an additional fixed number of steps (TODO direction?) which are not added to the record's position counter.
+
+=== Home ===
+
+A homing motion moves in the selected direction until the home switch is activated.
+No backlash motion is used after a homing move.
+
+Required commands: HOME_FOR, HOME_REV
+
+Optional commands: SET_VEL_BASE, SET_VELOCITY, SET_ACCEL
+
+== Processing ==
+
+In general an EPICS record will only process on one condition: timer, IRQ, event, or external.
+However, the Motor record is designed to process on several conditions: timer/IRQ and external.
+It must respond to external commands, especially 'STOP' with low latency,
+ while at the same time providing status updates while it motion.
+
+This is accomplished by requiring that the 'SCAN' field always be set to 'Passive'
+ to ensure that external actions (CA puts) cause immediate processing.
+It also requires that device support should provide a timer or interrupt handler which will
+ triggers processing.
+This is left to device support because the implementation will be device dependent.
+
+== Device Support ==
+
+The Motor record requires four additional device support functions.
+Three to construct and send command sequences ('transactions'), and one to receive updates.
+Communication from the record to the device support is handled through the 'transaction' functions,
+ while communication from device support to the record is handled through the update function.
+
+=== Commands ===
+
+Constructing commands involves the 'start_trans', 'build_trans', and 'end_trans' functions.
+These ``transactions'' are compound command sequences created from a set of primitive
+ actions.
+The Motor record will first call 'start_trans' to clear any previously unsent commands.
+This is followed by several calls to 'build_trans'.
+At this point the Motor record will either call 'end_trans' to ``commit'' the transaction
+ by sending it to hardware, or call 'start_trans' again to abort it.
+
+[source,c]
+----------------------------------
+double arg=vel;
+start_trans(pmr);
+build_trans(SET_VELOCITY, &arg, pmr);
+if(use_relative){
+  arg=dest-cur;
+  build_trans(MOVE_REL, &arg, pmr);
+}else{
+  arg=dest;
+  build_trans(MOVE_ABS, &arg, pmr);
+}
+build_trans(GO, 0, pmr);
+end_trans(pmr);
+----------------------------------
+
+Historically this process was used to construct an ascii string.
+Successive calls to 'build_trans' appended to a string buffer,
+ and end_trans sent it to the device.
+Register based controllers may map the primitive actions as individual register interactions.
+However, it is important that 'build_trans' not perform any I/O operations.
+The record may omit a call to 'end_trans' so that the next call to 'start_trans'
+will clear the pending actions with no effect.
+
+This can be accomplished by maintaining an in memory list of actions to be performed.
+The example below demonstrates a simple and effective way of implementing this.
+
+If a particular command is not meaningful for a controller,
+ then it should be ignored.
+
+==== Moves: MOVE_ABS, MOVE_REL ====
+
+The motor record can use either relative and absolute move commands.
+Relative moves are used in the presence of an encoder.
+If the controller does not support both types of moves, then it is fairly simple
+for software to implement one in terms of the other.
+
+Argument: 1
+
+==== Homing: HOME_FOR, HOME_REV ====
+
+Trigger a move in either direction which will stop when the home switch is activated.
+
+Argument: TODO
+
+==== Set Position Counter: LOAD_POS ====
+
+This command is used to manually set/reset the controller's internal absolute position
+ count (if applicable), and the RMP field.
+
+Argument: 1
+
+==== Profiled Motion: SET_VEL_BASE, SET_VELOCITY, SET_ACCEL ====
+
+Many controllers use the a parametrized profile when moving.
+A controller can use whichever of these parameters is appropriate.
+If a controller supports a single velocity parameter then it must use 'SET_VELOCITY' for this.
+
+Argument: 1
+
+==== Start Motion: GO ====
+
+This command is the last issued as part of a transaction which will cause motion.
+
+Argument: 0
+
+==== Configuration: SET_RESOLUTION, SET_ENC_RATIO ====
+
+TODO
+
+Argument: 1
+
+==== Request Update: GET_INFO ====
+
+Send when an external command requires an immediate status update.
+This may be called once at the end of the record processing.
+
+Controllers which are interrupt or timer driven will not implement this command.
+
+Argument: 0
+
+==== Immediate Stop: STOP_AXIS ====
+
+Commands the controller to immediately stop all motion on this axis.
+
+Argument: 0
+
+==== Jogging: JOG, JOG_VELOCITY ====
+
+Start a constant velocity move.
+
+Argument: 0 (JOG), 1 (JOG_VELOCITY)
+
+==== PID parameters: SET_PGAIN, SET_IGAIN, SET_DGAIN ====
+
+Can be implemented if the controller supports closed loop control.
+
+Argument: 1
+
+==== Closed Loop Control: ENABLE_TORQUE, DISABL_TORQUE ====
+
+Used to enable/disable closed loop control.
+
+Argument: 0
+
+==== PRIMITIVE ====
+
+Send a raw command string to the controller.
+
+Argument: TODO
+
+==== Controller Soft Limits: SET_HIGH_LIMIT, SET_LOW_LIMIT ====
+
+If the controller support software limits.
+This is completely independent of the hardware limit switches.
+
+Argument: 1
+
+==== Required Commands ====
+
+At a minimum, device support must implement the following commands:
+ MOVE_ABS, MOVE_REL, LOAD_POS, GO, and STOP_AXIS.
+
+=== Status Updates ===
+
+The 'update_values' device support function is used by device support as a callback into device support.
+It is called by the motor record as soon as it is processed.
+The function may then update certain fields in the record, or not.
+If any fields is changed then 'update_values' must return 'CALLBACK_DATA',
+ or 'NOTHING_DONE' otherwise.
+This allows the record to correctly detect which fields have been changed and to
+ react accordingly (post monitors).
+
+'update_values' allows the Motor record to poll device support for status updates when the record processes.
+However, since device support can (and should) trigger processing when it wants the record to be updated,
+this really allows for periodic and/or interrupt driven status updates from device support.
+
+While there is no technical limitation on which fields can be changed by 'update_values', it
+is only safe to modify fields: 'RMP', 'REP', and 'MSTA'.
+
+==== RMP Raw Motor Position ====
+
+This field is the absolute absolute position counter, the number of commanded steps.
+It is a signed 32-bit integer.  Use of this field is required.
+
+==== REP Raw Encoder Position ====
+
+If an encoder readback is available it should be placed in this field, otherwise if should not be modified.
+This field is a signed 32-bit integer.
+
+==== MSTA Motor Status ====
+
+This field is a bit array for indicating controller status, some bits are required, while others are optional.
+
+The 'msta_field' union defined in 'motor.h' should be used when filling this field.
+
+The 'RA_DONE', 'RA_DIRECTION', 'RA_PLUS_LS', and 'RA_MINUS_LS' bits will be used by all device support.
+
+===== RA_DIRECTION =====
+
+Used to compute the TDIR field.
+Not used internally.
+
+Value: 0 - Positive, 1 - Negative
+
+===== RA_DONE =====
+
+Used to compute the MOVN field.
+This field is used internally to indicate if the axis is in motion.
+This should be cleared when the axis begins moving, and set when it has stopped.
+
+Must be initialized to 1.
+
+Value: 0 - Moving, 1 - Stopped
+
+===== RA_PLUS_LS =====
+
+Indicates limit switch status in the raw positive direction.
+
+Value: 0 - Normal, 1 - At limit
+
+===== RA_HOME =====
+
+Used to set the ATHM field if no encoder is present, or it is not used.
+
+Value: 0 - Normal, 1 - At home
+
+===== EA_SLIP =====
+
+Not used.
+
+===== EA_POSITION =====
+
+Indicates status of closed loop control (position maintenance).
+
+Value: 0 - Open loop, 1 - Closed loop
+
+===== EA_SLIP_STALL =====
+
+Used to signal an axis slip or stall, if supported by the controller.
+Causes a Major alarm on the record.
+
+Value: 0 - Normal, 1 - Alarm
+
+===== EA_HOME =====
+
+Used to set the ATHM field if an encoder is present, and it is used.
+
+Value: 0 - Normal, 1 - At home
+
+===== EA_PRESENT =====
+
+If the controller reports an encoder position in the REP field it must also set this flag.
+
+Value: 0 - No encoder, 1 - Encoder present
+
+===== RA_PROBLEM =====
+
+Used to signal a failure effecting the motor.
+Causes a Major alarm on the record and resets axis status to stopped.
+If this flag is set, it is assumed that the controller has attempted to stop the axis.
+
+Value: 0 - Normal, 1 - Alarm
+
+===== RA_MOVING =====
+
+Not used.
+
+===== GAIN_SUPPORT =====
+
+Set to indicate support for closed loop control.
+
+Value: 0 - Not supported, 1 - Closed loop available
+
+===== CNTRL_COMM_ERR =====
+
+Used to signal a failure in communications with the motor.
+Causes an Invalid alarm on the record.
+
+Value: 0 - Normal, 1 - Alarm
+
+===== RA_MINUS_LS =====
+
+Indicates limit switch status in the raw negative direction.
+
+Value: 0 - Normal, 1 - At limit
+
+===== RA_HOMED =====
+
+Not used.
+
+
+== An Example ==
 
 [source,c]
 ------------------------
@@ -49,13 +389,13 @@ motorRecord.
 #include <motor.h>
 ------------------------
 
-== Data Structures ==
+=== Data Structures ===
 
 This example will use a simulated motor.
 It is a linear stage which moves at a fixed rate with zero acceleration time.
 It has positive and negative limit switches, but no home switch, or encoder.
 
-=== Simulation State ===
+==== Simulation State ====
 
 The 'hardware' structure is the state of this simulate.
 It must hold the motor's settings and its current state.
@@ -87,10 +427,10 @@ struct hardware {
 
 Both counts remaining and velocity will have the same sign.
 
-=== Transactions ===
+==== Transactions ====
 
 The motorRecord sends commands to the axis as transactions.
-These are sets of primative commands assembled and committed (sent) in groups.
+These are sets of primitive commands assembled and committed (sent) in groups.
 Historically these were ascii strings (ie 'VEL4.2;ACC0.2;REL4000;GO').
 
 Since our simulated motor does not deal in ascii strings we will instead keep
@@ -115,7 +455,7 @@ struct trans {
 };
 -------------------------------------
 
-=== Device Support Private ===
+==== Device Support Private ====
 
 Now we come to the device support private structure for motorRecord.
 
@@ -146,8 +486,8 @@ Used to match an instance created with a IOCsh function to a record.
   CALLBACK updatecb;
 -------------------------------------------------
 
-A callback used to impliment the internal polling of device state.
-This will be timer driven at a fixed rate.
+A callback used to implement the internal polling of device state.
+This will be timer running at a fixed rate.
 
 [source,c]
 -------------------------------------------------
@@ -156,9 +496,9 @@ This will be timer driven at a fixed rate.
 };
 -------------------------------------------------
 
-The list of uncommitted transaction for this motor.
+The list of uncommitted transactions for this motor.
 
-== Simulation ==
+=== Simulation ===
 
 When the simulation is running we will periodically advance the state.
 
@@ -180,7 +520,7 @@ void update_motor(struct hardware *hw)
   moved = ellapsed * hw->vel;
 ------------------------------------------------------
 
-By looking at the time since the last update determine how far the motor
+By looking at the time since the last update, determine how far the motor
 has moved.
 
 [source,c]
@@ -192,8 +532,8 @@ has moved.
   }
 ------------------------------------------------------
 
-Since our simulated motor is well behaved it will stop after moving
-the requested number of steps.
+The simulated motor is well behaved.
+It will always stop after moving exactly the requested number of steps.
 
 [source,c]
 ------------------------------------------------------
@@ -215,8 +555,9 @@ the requested number of steps.
 ------------------------------------------------------
 
 Update the internal position and limit state.
+Clip the position if it would exceed the limits.
 
-== Convinence ==
+=== Convenience ===
 
 A helper function for searching for device support instances by global id number.
 
@@ -241,7 +582,7 @@ struct devsim *getDev(int id)
 }
 --------------------------------------------------------------
 
-== Initialization ==
+=== Initialization ===
 
 Device support instances will be created from the IOCsh.
 Here we specify the real positions of the hard limit switches.
@@ -285,7 +626,7 @@ void addmsim(int id, int llim, int hlim, double rate)
 }
 --------------------------------------------------------------
 
-=== init_record ===
+==== init_record ====
 
 Here we match the record and device support instances by matching
 the number given to the IOCsh function with the record OUT link.
@@ -313,7 +654,7 @@ long init_record(motorRecord *pmr)
 
 Here we come upon the first of several quirks of the motorRecord.
 
-If the RA_DONE flag is not initialized to 1 then the motor will immdiately go
+If the RA_DONE flag is not initialized to 1 then the motor will immediately go
 into a moving state which can only be exited by a stop command.
 
 [source,c]
@@ -345,16 +686,15 @@ error:
 }
 --------------------------------------------------------------
 
-=== Start Polling ===
+==== Start Polling ====
 
-Notice that the periodic update time was not started in 'init_record'.
-Our callback can not be started before 'iocInit()' has completed because the
-record lock has not been created yet and attempting to call 'dbScanLock'
-would have undesireable results.
+Notice that the periodic update timer was not started in 'init_record'.
+This is because the callback will cause record processing,
+ but this will fail unless 'iocInit()' has completed.
 
 To avoid this we use the IOC initialization hooks to start the timers
-as iocInit finishes.  Note that the 'initHookAtEnd' hooks is called after
-autosave has completed.
+as iocInit finishes.
+Note that the 'initHookAtEnd' hook is called after autosave has completed as well.
 
 [source,c]
 ----------------------------------------------------------------------------------------------
@@ -376,13 +716,13 @@ void inithooks(initHookState state)
 }
 ----------------------------------------------------------------------------------------------
 
-== Poll Motor State ==
+=== Poll Motor State ===
 
 Polling the motor's state happens in several parts.
-It may be caused by the periodic timer, or by a hardware interrupts.
-In either case the result would the update callback being scheduled.
+It may be caused by the periodic timer, or by a hardware interrupt.
+In either case the update flag will be set and then the record will process.
 
-=== Update Callback ===
+==== Update Callback ====
 
 The period timer does three things.  First it rearms itself, second it sets the 'updateReady' flag,
 then it processes the record.
@@ -420,14 +760,14 @@ void timercb(CALLBACK* cb)
 
 Note that 'update_motor' is called here so that it can be guarded by the record lock.
 
-=== update_values ===
+==== update_values ====
 
 When the motorRecord is processed the first thing which occurs is a call to
 the 'update_values' device support function.
 This is a test by the record to determine why it was processed.
 It also gives the record a change to save a copy of the fields
 which can be changed so that monitors can be posted if a change
-dows in fact occur.
+does in fact occur.
 
 The only fields which can be updated are 'RMP', 'REP', and 'MSTA'.
 
@@ -458,13 +798,13 @@ CALLBACK_VALUE update_values(motorRecord *pmr)
 }
 -------------------------------------------------
 
-== Command Transactions ==
+=== Command Transactions ===
 
 Commands are build and sent to the device through three functions: start, build, and end transaction.
 
-=== start_trans ===
+==== start_trans ====
 
-This function begins a new transation by aborting any previous uncommited transaction.
+This function begins a new transaction by aborting any previous uncommitted transaction.
 
 [source,c]
 ----------------------------------------------------------------------------------
@@ -489,18 +829,18 @@ long start_trans(struct motorRecord *pmr)
 }
 ----------------------------------------------------------------------------------
 
-=== Actions ===
+==== Actions ====
 
-Now we will look at some of the primative actions which can go into a transaction.
+Now we will look at some of the primitive actions which can go into a transaction.
 
-The best (only) way to gain and understanding of what groups of primatives are actually
+The best (only) way to gain an understanding of what groups of primitives are actually
 used is review the source for the motorRecord record support.
 
-==== Position ====
+===== Position =====
 
 A relative move is commanded if the axis has an encoder present.
 Otherwise absolute moves are used.
-It is usually wise (and easy) to impliment both move types.
+It is usually wise (and easy) to implement both move types.
 
 [source,c]
 ---------------------------------------------
@@ -513,7 +853,7 @@ void move_rel(motorRecord *pmr, double rel)
 }
 ---------------------------------------------
 
-We just impliment absolute moves in terms of the relative.
+We just implement absolute moves in terms of the relative.
 
 [source,c]
 ---------------------------------------------
@@ -541,7 +881,7 @@ void load_pos(motorRecord *pmr, double newpos)
 }
 ----------------------------------------------
 
-==== Velocity ====
+===== Velocity =====
 
 Set to move velocity.
 The motion profile used by the motorRecord has two velocities,
@@ -558,7 +898,7 @@ void set_velocity(motorRecord *pmr, double vel)
 }
 ---------------------------------------------
 
-==== Immediate ====
+===== Immediate =====
 
 This both commands motion and notes the time for use by the simulation.
 
@@ -660,7 +1000,7 @@ RTN_STATUS build_trans(motor_cmnd cmd, double *val, struct motorRecord *pmr)
 }
 ---------------------------------------------------------------------------------
 
-=== end_trans ===
+==== end_trans ====
 
 Here we simply iterate through the list of transaction and execute the actions.
 
@@ -704,7 +1044,7 @@ RTN_STATUS end_trans(struct motorRecord *pmr)
 }
 ----------------------------------------------------------------------------------
 
-== Boiler Plate ==
+=== Boiler Plate ===
 
 Standard code export the IOC shell function and device support.
 
