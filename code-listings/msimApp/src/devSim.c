@@ -243,6 +243,7 @@ CALLBACK_VALUE update_values(motorRecord *pmr)
 
 	modsts.Bits.RA_PLUS_LS = priv->hw.lim_h;
 	modsts.Bits.RA_MINUS_LS = priv->hw.lim_l;
+	modsts.Bits.RA_DONE = !priv->hw.moving;
 
 	pmr->msta=modsts.All;
 
@@ -309,6 +310,9 @@ static
 void go(motorRecord *pmr)
 {
 	struct devsim *priv=pmr->dpvt;
+	msta_field stat;
+
+	/* Simulation start */
 
 	if(!priv->hw.remaining)
 		return;
@@ -321,6 +325,12 @@ void go(motorRecord *pmr)
 
 	priv->hw.moving=1;
 	epicsTimeGetCurrent(&priv->hw.last);
+
+	/* Record start */
+	stat.All=pmr->msta;
+	stat.Bits.RA_DONE=0;
+	pmr->msta=stat.All;
+	priv->updateReady=1;
 }
 
 static
@@ -328,11 +338,19 @@ void stop(motorRecord *pmr)
 {
 	struct devsim *priv=pmr->dpvt;
 
+	/* Simulation stop */
+
 	if(!priv->hw.moving)
 		return;
 
 	priv->hw.moving=0;
 	priv->hw.remaining=0;
+
+	/* Record stop */
+	stat.All=pmr->msta;
+	stat.Bits.RA_DONE=1;
+	pmr->msta=stat.All;
+	priv->updateReady=1;
 }
 
 static
