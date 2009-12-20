@@ -11,14 +11,18 @@ Motor Record Device Support
 :Date:      December 2009
 :Revision:  1
 :Key words: epics, motor, devsup
+:Revision history:
 
 == Introduction ==
 
 The EPICS motorRecord is the most commonly used of the special (application) record types.
 It is the most common interface for control of a single axis.
+This document will describe the device support interface of the motorRecord,
+ how the record uses it, and what it requires of a device support implementation.
+
 The motorRecord is typically used in conjunction with the 'common device support',
 a library of functions of to help build device support.
-However, this is a large body of code which hides no small amount of magic.
+However, this is a large body of code which contains no small amount of magic.
 This document will present a minimal complete example of device support using the
 motorRecord without the 'common device support'.
 
@@ -35,7 +39,7 @@ Historically a controller was a RS-232 or similar device with no asynchronous in
 Many axis shared the same link so bandwidth was an issue.
 
 Functionally, the device is treated as a stepper motor.
-It is sent move commands as discrete steps and the device (support) is expected to
+It is sent move commands as discrete steps and the device (or device support) is expected to
  maintain a signed counter of the number of commanded steps since IOC initialization.
 Additionally, the device may provide an encoder which can be used as feedback
  for closed loop operation.
@@ -96,10 +100,28 @@ This is left to device support because the implementation will be device depende
 
 == Device Support ==
 
+The device support entry table, or dset, for the motor-record contains the standard dset (see "base/include/devSup.h"),
+ plus four fields for pointers to functions that are particular to that record-type.
+The C-structure therefore appears as defined in "motorApp/MotorSrc/motor.h":
+
+[source,c]
+---------------------------------------------------------------------------
+/* device support entry table */
+struct motor_dset
+{
+    struct dset base;
+    CALLBACK_VALUE (*update_values) (struct motorRecord *);
+    long (*start_trans) (struct motorRecord *);
+    RTN_STATUS (*build_trans) (motor_cmnd, double *, struct motorRecord *);
+    RTN_STATUS (*end_trans) (struct motorRecord *);
+};
+---------------------------------------------------------------------------
+
 The Motor record requires four additional device support functions.
 Three to construct and send command sequences ('transactions'), and one to receive updates.
 Communication from the record to the device support is handled through the 'transaction' functions,
  while communication from device support to the record is handled through the update function.
+
 
 === Commands ===
 
@@ -110,6 +132,8 @@ The Motor record will first call 'start_trans' to clear any previously unsent co
 This is followed by several calls to 'build_trans'.
 At this point the Motor record will either call 'end_trans' to ``commit'' the transaction
  by sending it to hardware, or call 'start_trans' again to abort it.
+
+The following is an incomplete example of what a motor record transaction will look like.
 
 [source,c]
 ----------------------------------
@@ -128,8 +152,8 @@ end_trans(pmr);
 ----------------------------------
 
 Historically this process was used to construct an ascii string.
-Successive calls to 'build_trans' appended to a string buffer,
- and end_trans sent it to the device.
+Successive calls to 'build_trans' append to a string buffer,
+ and end_trans sends it to the device.
 Register based controllers may map the primitive actions as individual register interactions.
 However, it is important that 'build_trans' not perform any I/O operations.
 The record may omit a call to 'end_trans' so that the next call to 'start_trans'
@@ -138,8 +162,11 @@ will clear the pending actions with no effect.
 This can be accomplished by maintaining an in memory list of actions to be performed.
 The example below demonstrates a simple and effective way of implementing this.
 
-If a particular command is not meaningful for a controller,
- then it should be ignored.
+The motor command codes are defined by the 'motor_cmnd' enum in "motor.h".
+The value argument of 'build_trans' is a double pointer.
+This can be an array, but is usually a pointer to a scalar value.
+
+If a particular command is not meaningful for a controller it should be ignored.
 
 ==== Moves: MOVE_ABS, MOVE_REL ====
 
@@ -154,7 +181,7 @@ Argument: 1
 
 Trigger a move in either direction which will stop when the home switch is activated.
 
-Argument: TODO
+Argument: 1 (but value always 0.0)
 
 ==== Set Position Counter: LOAD_POS ====
 
@@ -219,13 +246,16 @@ Argument: 0
 ==== PRIMITIVE ====
 
 Send a raw command string to the controller.
+No longer used by motor record.
 
-Argument: TODO
+Initialization and configuration actions should be implmented as IOC shell functions.
+
+Argument: ?
 
 ==== Controller Soft Limits: SET_HIGH_LIMIT, SET_LOW_LIMIT ====
 
 If the controller support software limits.
-This is completely independent of the hardware limit switches.
+Soft limits are completely independent of the hardware limit switches.
 
 Argument: 1
 
@@ -265,7 +295,35 @@ This field is a signed 32-bit integer.
 
 This field is a bit array for indicating controller status, some bits are required, while others are optional.
 
-The 'msta_field' union defined in 'motor.h' should be used when filling this field.
+The 'msta_field' union defined in 'motor.h' must be used when filling this field.
+
+[source,c]
+-------------------------------------------------------------------------------------------
+typedef union
+{
+    unsigned long All;
+    struct {
+      unsigned int na		    :17;/* N/A bits  */
+      unsigned int RA_HOMED       :1; /* Axis has been homed.*/
+	unsigned int RA_MINUS_LS    :1;	/* minus limit switch has been hit */
+	unsigned int CNTRL_COMM_ERR :1;	/* Controller communication error. */
+	unsigned int GAIN_SUPPORT   :1;	/* Motor supports closed-loop position control. */
+	unsigned int RA_MOVING      :1;	/* non-zero velocity present */
+	unsigned int RA_PROBLEM     :1; /* driver stopped polling */
+	unsigned int EA_PRESENT     :1; /* encoder is present */
+	unsigned int EA_HOME        :1; /* encoder home signal on */
+	unsigned int EA_SLIP_STALL  :1; /* slip/stall detected */
+	unsigned int EA_POSITION    :1; /* position maintenence enabled */
+	unsigned int EA_SLIP        :1; /* encoder slip enabled */
+	unsigned int RA_HOME        :1; /* The home signal is on */
+	unsigned int RA_PLUS_LS     :1; /* plus limit switch has been hit */
+	unsigned int RA_DONE        :1;	/* a motion is complete */
+	unsigned int RA_DIRECTION   :1;	/* (last) 0=Negative, 1=Positive */d
+    } Bits;                                
+} msta_field;
+-------------------------------------------------------------------------------------------
+
+Note: The above representation corresponds to a big-endian IOC. See "motorApp/MotorSrc/motor.h" for details. 
 
 The 'RA_DONE', 'RA_DIRECTION', 'RA_PLUS_LS', and 'RA_MINUS_LS' bits will be used by all device support.
 
@@ -337,7 +395,7 @@ Value: 0 - Normal, 1 - Alarm
 
 ===== RA_MOVING =====
 
-Not used.
+Not used.  (See RA_DONE).
 
 ===== GAIN_SUPPORT =====
 
@@ -362,6 +420,32 @@ Value: 0 - Normal, 1 - At limit
 
 Not used.
 
+== Debugging ==
+
+The following points may be useful in debugging mis-behaving motor device support:
+
+* To enable debugging print-messages add the following line to "motorApp/MotorSrc/Makefile": 
+
+------------------------
+USR_CPPFLAGS += =-DDEBUG
+------------------------
+
+* When using the standard IOC shell add the following to the application's startup script:
+
+-----------------------
+var(motorRecordDebug,6)
+-----------------------
+
+* Those using the RTEMS Cexp shell will instead add the following:
+
+------------------
+motorRecordDebug=6
+------------------
+
+* Set the Motor Record's field, RTRY (number of retries), to zero.
+This will prevent the record-support from "hunting" for the correct position, should device support be misbehaving.
+* Set the Motor Record's field, BDST (backlash distance) to zero.
+Initially this will only confuse the situation.
 
 == An Example ==
 
@@ -392,14 +476,16 @@ Not used.
 === Data Structures ===
 
 This example will use a simulated motor.
-It is a linear stage which moves at a fixed rate with zero acceleration time.
-It has positive and negative limit switches, but no home switch, or encoder.
+It is a linear stage which moves at a constant rate with zero acceleration time.
+The simulated "controller" does implements an absolute position counter,
+and positive and negative limit switches.
+However, it was no home switch or encoder, and does not support soft limits.
 
 ==== Simulation State ====
 
 The 'hardware' structure is the state of this simulate.
 It must hold the motor's settings and its current state.
-State includes the motor's current position and the position of the limits.
+State includes the motor's current position and the position of the hard limits.
 These are distinct from what is represented in the motorRecord itself.
 It also holds the number of steps to move (signed), and the velocity.
 
