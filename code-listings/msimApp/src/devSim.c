@@ -337,6 +337,7 @@ static
 void stop(motorRecord *pmr)
 {
 	struct devsim *priv=pmr->dpvt;
+	msta_field stat;
 
 	/* Simulation stop */
 
