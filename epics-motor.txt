@@ -8,7 +8,7 @@ Motor Record Device Support
 ===========================
 :Author:    Michael_Davidsaver,_Daron_Chabot
 :Email:     mdavidsaver@bnl.gov, dchabot@bnl.gov
-:Date:      December 2009
+:Date:      January 2010
 :Revision:  1
 :Key words: epics, motor, devsup
 :Revision history:
@@ -553,8 +553,7 @@ struct devsim {
   struct hardware hw;
 -------------------------------------------------
 
-For reasons which will become apparent we must maintain a IOC global list of
-device support instances.  Also the "hidden" state for the simulation.
+A IOC global list of device support instances will be needed later.  Also the "hidden" state for the simulation.
 
 [source,c]
 -------------------------------------------------
@@ -845,6 +844,7 @@ void timercb(CALLBACK* cb)
 ----------------------------------------------------------------
 
 Note that 'update_motor' is called here so that it can be guarded by the record lock.
+This allows us to avoid threading issues.
 
 ==== update_values ====
 
@@ -921,13 +921,13 @@ long start_trans(struct motorRecord *pmr)
 Now we will look at some of the primitive actions which can go into a transaction.
 
 The best (only) way to gain an understanding of what groups of primitives are actually
-used is review the source for the motorRecord record support.
+used is to review the source for the motorRecord record support.
 
 ===== Position =====
 
 A relative move is commanded if the axis has an encoder present.
 Otherwise absolute moves are used.
-It is usually wise (and easy) to implement both move types.
+It is always necessary to implement both move types.
 
 [source,c]
 ---------------------------------------------
@@ -940,7 +940,7 @@ void move_rel(motorRecord *pmr, double rel)
 }
 ---------------------------------------------
 
-We just implement absolute moves in terms of the relative.
+Implement an absolute move in terms of a relative move.
 
 [source,c]
 ---------------------------------------------
@@ -970,7 +970,7 @@ void load_pos(motorRecord *pmr, double newpos)
 
 ===== Velocity =====
 
-Set to move velocity.
+Set the move velocity.
 The motion profile used by the motorRecord has two velocities,
 we need only one and chose to ignore the base velocity.
 
@@ -987,7 +987,7 @@ void set_velocity(motorRecord *pmr, double vel)
 
 ===== Immediate =====
 
-This both commands motion and notes the time for use by the simulation.
+This both commands motion, and notes the time for use by the simulation.
 
 [source,c]
 ----------------------------------------------
