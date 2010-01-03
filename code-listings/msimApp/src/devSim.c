@@ -310,7 +310,6 @@ static
 void go(motorRecord *pmr)
 {
 	struct devsim *priv=pmr->dpvt;
-	msta_field stat;
 
 	/* Simulation start */
 
@@ -326,18 +325,14 @@ void go(motorRecord *pmr)
 	priv->hw.moving=1;
 	epicsTimeGetCurrent(&priv->hw.last);
 
-	/* Record start */
-	stat.All=pmr->msta;
-	stat.Bits.RA_DONE=0;
-	pmr->msta=stat.All;
-	priv->updateReady=1;
+	/* update record */
+	callbackRequest(&priv->updatecb);
 }
 
 static
 void stop(motorRecord *pmr)
 {
 	struct devsim *priv=pmr->dpvt;
-	msta_field stat;
 
 	/* Simulation stop */
 
@@ -347,11 +342,8 @@ void stop(motorRecord *pmr)
 	priv->hw.moving=0;
 	priv->hw.remaining=0;
 
-	/* Record stop */
-	stat.All=pmr->msta;
-	stat.Bits.RA_DONE=1;
-	pmr->msta=stat.All;
-	priv->updateReady=1;
+	/* update record */
+	callbackRequest(&priv->updatecb);
 }
 
 static
