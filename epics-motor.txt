@@ -595,14 +595,13 @@ void update_motor(struct hardware *hw)
   epicsTimeStamp now;
   double ellapsed, moved;
 
-  if(!hw->moving)
-    return;
+  if(hw->moving){
 
-  epicsTimeGetCurrent(&now);
+    epicsTimeGetCurrent(&now);
 
-  ellapsed = epicsTimeDiffInSeconds(&now, &hw->last);
+    ellapsed = epicsTimeDiffInSeconds(&now, &hw->last);
 
-  moved = ellapsed * hw->vel;
+    moved = ellapsed * hw->vel;
 ------------------------------------------------------
 
 By looking at the time since the last update, determine how far the motor
@@ -611,10 +610,10 @@ has moved.
 [source,c]
 ------------------------------------------------------
 
-  if( fabs(moved) >= fabs(hw->remaining) ){
-    moved = hw->remaining;
-    hw->moving = 0;
-  }
+    if( fabs(moved) >= fabs(hw->remaining) ){
+      moved = hw->remaining;
+      hw->moving = 0;
+    }
 ------------------------------------------------------
 
 The simulated motor is well behaved.
@@ -622,8 +621,9 @@ It will always stop after moving exactly the requested number of steps.
 
 [source,c]
 ------------------------------------------------------
-  hw->pos += (epicsInt32)moved;
-  hw->remaining -= (epicsInt32)moved;
+    hw->pos += (epicsInt32)moved;
+    hw->remaining -= (epicsInt32)moved;
+  }
 
   if(hw->pos >= hw->lim_h_val) {
     hw->pos = hw->lim_h_val;
@@ -1187,6 +1187,7 @@ epicsExportRegistrar(msimreg);
 Also the database definition.
 
 --------------------------------------------------
+variable(motorRecordDebug)
 device(motor, VME_IO, devMSIM, "Moter Simple Sim")
 registrar(msimreg)
 --------------------------------------------------

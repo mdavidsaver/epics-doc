@@ -70,22 +70,23 @@ void update_motor(struct hardware *hw)
 	epicsTimeStamp now;
 	double ellapsed, moved;
 
-	if(!hw->moving)
-		return;
+	if(hw->moving){
 
-	epicsTimeGetCurrent(&now);
+		epicsTimeGetCurrent(&now);
 
-	ellapsed = epicsTimeDiffInSeconds(&now, &hw->last);
+		ellapsed = epicsTimeDiffInSeconds(&now, &hw->last);
+	
+		moved = ellapsed * hw->vel;
+	
+		if( fabs(moved) >= fabs(hw->remaining) ){
+			moved = hw->remaining;
+			hw->moving = 0;
+		}
+	
+		hw->pos += (epicsInt32)moved;
+		hw->remaining -= (epicsInt32)moved;
 
-	moved = ellapsed * hw->vel;
-
-	if( fabs(moved) >= fabs(hw->remaining) ){
-		moved = hw->remaining;
-		hw->moving = 0;
 	}
-
-	hw->pos += (epicsInt32)moved;
-	hw->remaining -= (epicsInt32)moved;
 
 	if(hw->pos >= hw->lim_h_val) {
 		hw->pos = hw->lim_h_val;
