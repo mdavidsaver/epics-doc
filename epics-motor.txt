@@ -8,23 +8,30 @@ Motor Record Device Support
 ===========================
 :Author:    Michael_Davidsaver,_Daron_Chabot
 :Email:     mdavidsaver@bnl.gov, dchabot@bnl.gov
-:Date:      January 2010
+:Date:      February 2010
 :Revision:  1
 :Key words: epics, motor, devsup
 :Revision history:
 
 == Introduction ==
 
-The EPICS motorRecord is the most commonly used of the special (application) record types.
+The EPICS motorRecord is the most widely used of the special (application) record types.
 It is the most common interface for control of a single axis.
 This document will describe the device support interface of the motorRecord,
  how the record uses it, and what it requires of a device support implementation.
 
 The motorRecord is typically used in conjunction with the 'common device support',
 a library of functions of to help build device support.
-However, this is a large body of code which contains no small amount of magic.
-This document will present a minimal complete example of device support using the
-motorRecord without the 'common device support'.
+This library has been extended to work closely with the Asyn hardware access abstraction
+layer.
+However, it is a large body of code which contains no small amount of magic.
+The authors of this document must admit to not being able to understand and use this
+code base.
+
+Consequently document will present a minimal complete example of motorRecord device support
+without using the 'common device support'.
+We hope that it will serve to provide contrast between what the motorRecord requires,
+and what the 'common device support' provides.
 
 == Hardware Model ==
 
@@ -36,13 +43,12 @@ Polling the device for status is a costly operation,
  usually while the axis is in motion.
 
 Historically a controller was a RS-232 or similar device with no asynchronous interrupts.
-Many axis shared the same link so bandwidth was an issue.
+Multiple axes shared the same link so bandwidth was an issue.
 
 Functionally, the device is treated as a stepper motor.
 It is sent move commands as discrete steps and the device (or device support) is expected to
  maintain a signed counter of the number of commanded steps since IOC initialization.
-Additionally, the device may provide an encoder which can be used as feedback
- for closed loop operation.
+Additionally, the device may provide an encoder for feedback.
 
 Status for two limit switches and a home switch can be monitored.
 
@@ -71,10 +77,10 @@ Required commands: JOG, STOP_AXIS, JOG_VELOCITY
 
 === Backlash ===
 
-The motor record will keeps track of the direction of the last move.
-Following the next normal or jog move in the opposite direction has ended,
+The motor record will keep track of the direction of the last move.
+Following the next normal or jog move in the opposite direction,
  a backlash move is initialized.
-The backlash move an additional fixed number of steps (TODO direction?) which are not added to the record's position counter.
+The backlash moves an additional fixed number of steps (TODO direction?) which are not added to the record's position counter.
 
 === Home ===
 
@@ -155,7 +161,8 @@ Historically this process was used to construct an ascii string.
 Successive calls to 'build_trans' append to a string buffer,
  and end_trans sends it to the device.
 Register based controllers may map the primitive actions as individual register interactions.
-However, it is important that 'build_trans' not perform any I/O operations.
+However, it is important that 'build_trans' not perform any I/O operations,
+ only 'end_trans'.
 The record may omit a call to 'end_trans' so that the next call to 'start_trans'
 will clear the pending actions with no effect.
 
@@ -164,7 +171,7 @@ The example below demonstrates a simple and effective way of implementing this.
 
 The motor command codes are defined by the 'motor_cmnd' enum in "motor.h".
 The value argument of 'build_trans' is a double pointer.
-This can be an array, but is usually a pointer to a scalar value.
+This can be an array, but is usually a pointer to a scalar value (position, velocity, ...).
 
 If a particular command is not meaningful for a controller it should be ignored.
 
@@ -186,13 +193,13 @@ Argument: 1 (but value always 0.0)
 ==== Set Position Counter: LOAD_POS ====
 
 This command is used to manually set/reset the controller's internal absolute position
- count (if applicable), and the RMP field.
+ count (if applicable), and the RMP (raw motor position) field.
 
 Argument: 1
 
 ==== Profiled Motion: SET_VEL_BASE, SET_VELOCITY, SET_ACCEL ====
 
-Many controllers use the a parametrized profile when moving.
+Many controllers use a parametrized profile when moving.
 A controller can use whichever of these parameters is appropriate.
 If a controller supports a single velocity parameter then it must use 'SET_VELOCITY' for this.
 
@@ -212,10 +219,8 @@ Argument: 1
 
 ==== Request Update: GET_INFO ====
 
-Send when an external command requires an immediate status update.
+Sent by record support when it desires an immediate status update from device support.
 This may be called once at the end of the record processing.
-
-Controllers which are interrupt or timer driven will not implement this command.
 
 Argument: 0
 
@@ -228,6 +233,7 @@ Argument: 0
 ==== Jogging: JOG, JOG_VELOCITY ====
 
 Start a constant velocity move.
+The sign of the arguement to 'JOG_VELOCITY' indicates direction.
 
 Argument: 0 (JOG), 1 (JOG_VELOCITY)
 
@@ -329,14 +335,14 @@ The 'RA_DONE', 'RA_DIRECTION', 'RA_PLUS_LS', and 'RA_MINUS_LS' bits will be used
 
 ===== RA_DIRECTION =====
 
-Used to compute the TDIR field.
+Used to compute the TDIR (direction of travel) field.
 Not used internally.
 
 Value: 0 - Positive, 1 - Negative
 
 ===== RA_DONE =====
 
-Used to compute the MOVN field.
+Used to compute the MOVN (moving) field.
 This field is used internally to indicate if the axis is in motion.
 This should be cleared when the axis begins moving, and set when it has stopped.
 
@@ -352,7 +358,7 @@ Value: 0 - Normal, 1 - At limit
 
 ===== RA_HOME =====
 
-Used to set the ATHM field if no encoder is present, or it is not used.
+Used to set the ATHM (at home) field if no encoder is present, or it is not used.
 
 Value: 0 - Normal, 1 - At home
 
@@ -375,13 +381,13 @@ Value: 0 - Normal, 1 - Alarm
 
 ===== EA_HOME =====
 
-Used to set the ATHM field if an encoder is present, and it is used.
+Used to set the ATHM (at home) field if an encoder is present, and it is used.
 
 Value: 0 - Normal, 1 - At home
 
 ===== EA_PRESENT =====
 
-If the controller reports an encoder position in the REP field it must also set this flag.
+If the controller reports an encoder position in the REP (raw encoder position) field it must also set this flag.
 
 Value: 0 - No encoder, 1 - Encoder present
 
@@ -477,13 +483,16 @@ Initially this will only confuse the situation.
 
 This example will use a simulated motor.
 It is a linear stage which moves at a constant rate with zero acceleration time.
-The simulated "controller" does implements an absolute position counter,
+The simulated "controller" implements an absolute position counter,
 and positive and negative limit switches.
-However, it was no home switch or encoder, and does not support soft limits.
+However, it was no home switch or encoder, and does not support additional soft limits.
+
+The position of the limit switches with respect to the motorRecord soft limits is arbitrary.
+However, normal operation the record soft limits would be inside the bounds of the limit switches.
 
 ==== Simulation State ====
 
-The 'hardware' structure is the state of this simulate.
+The 'hardware' structure is the state of this simulation.
 It must hold the motor's settings and its current state.
 State includes the motor's current position and the position of the hard limits.
 These are distinct from what is represented in the motorRecord itself.
@@ -640,7 +649,7 @@ It will always stop after moving exactly the requested number of steps.
 ------------------------------------------------------
 
 Update the internal position and limit state.
-Clip the position if it would exceed the limits.
+Clip the position if it would haved exceed the limits.
 
 === Convenience ===
 
@@ -851,7 +860,7 @@ This allows us to avoid threading issues.
 When the motorRecord is processed the first thing which occurs is a call to
 the 'update_values' device support function.
 This is a test by the record to determine why it was processed.
-It also gives the record a change to save a copy of the fields
+It also gives the record the opportunity to save a copy of the fields
 which can be changed so that monitors can be posted if a change
 does in fact occur.
 
@@ -887,7 +896,7 @@ CALLBACK_VALUE update_values(motorRecord *pmr)
 
 === Command Transactions ===
 
-Commands are build and sent to the device through three functions: start, build, and end transaction.
+Commands are built and sent to the device through three functions: start, build, and end transaction.
 
 ==== start_trans ====
 
