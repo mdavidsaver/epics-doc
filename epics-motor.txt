@@ -426,6 +426,57 @@ Value: 0 - Normal, 1 - At limit
 
 Not used.
 
+== Criticism ==
+
+There are several problematic points in the design of the motorRecord which should be pointed
+out.
+
+=== Multiple Coordinate Systems ===
+
+The motor record contains fields with position values in no less then four coordinate systems:
+raw motor, raw encoder, dial, and user.
+This in turn necessitates three sets of parameters to control the coordinate transforms.
+At the same time it restricts the form these transforms to simple linear relations.
+
+However, device support is only allowed to see that raw (integer) coordinates.
+This makes it difficult to create synthetic axes which appear as normal motors.
+
+=== Processing Ambiguity ===
+
+In order to be responsive to both internal (hardware) and external (channel access)
+events the motorRecord must process in unusual ways.
+To be responsive to user requests it must use passive processing.
+However, to provide updates during motion it must process periodically.
+
+To accomplish both it assumes that device support will trigger processing internally.
+The result of the 'update_values' device support function to defermine which condition caused
+processing.
+Different actions are taken for each case.
+
+=== Device Support Interface ===
+
+The motorRecord device support functions reflect its bidirectional nature.
+It has both write ('start_trans', 'build_trans', and 'end_trans')
+as well as read ('update_values') functions.
+
+The transaction based interface of the '*_trans' functions is a much more general interface
+then what is needed to impliment the transactions currently defined.
+Also, the (almost) unused abort transaction mechanism adds significant complexity when interactioning
+with register based devices.
+
+=== One Record per Axis ===
+
+Most of the inflexibility and strange behaviors of the motorRecord come from the decision
+to place all the logic for an axis in a single record.
+The decision has lead to an attempt to create a one-size-fits-all solution with little expandability
+in the cases (eg multi-axis motion) where it does not fit.
+
+Additionally, providing access through fields instead of seperate records has lead to a sort of
+lock-in.
+Client software working with 'rec.DVAL' and 'rec.VAL' must always interact with the same record.
+It is not possible to use a calcRecord or other mechanisms in the process database to modify
+these values.
+
 == Debugging ==
 
 The following points may be useful in debugging mis-behaving motor device support:
