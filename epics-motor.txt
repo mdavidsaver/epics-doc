@@ -28,10 +28,10 @@ However, it is a large body of code which contains no small amount of magic.
 The authors of this document must admit to not being able to understand and use this
 code base.
 
-Consequently document will present a minimal complete example of motorRecord device support
+Consequently this document will present a minimal complete example of motorRecord device support
 without using the 'common device support'.
-We hope that it will serve to provide contrast between what the motorRecord requires,
-and what the 'common device support' provides.
+We hope that it will serve to illistrate what the motorRecord requires,
+and what the 'common device support' must provide.
 
 == Hardware Model ==
 
