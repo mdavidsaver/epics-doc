@@ -75,7 +75,7 @@ $(PDF): %.pdf: %.xml
 LISTINGSBASE=Makefile README.txt configure iocBoot/Makefile
 
 epics-devsup-listings.tar.gz:
-	cd code-listings && git archive --prefix=epics-devsup/ HEAD $(LISTINGSBASE) iocBoot/iocprng1 prngApp|gzip > ../$@
+	cd code-listings && git archive --prefix=epics-devsup/ HEAD $(LISTINGSBASE) iocBoot/iocprng1 prngApp msimApp|gzip > ../$@
 
 clean:
 	rm -f $(HTML) $(DOCBOOK) $(PDF)
