@@ -1,0 +1,2318 @@
+#LyX 1.6.6.1 created this file. For more info see http://www.lyx.org/
+\lyxformat 345
+\begin_document
+\begin_header
+\textclass article
+\use_default_options true
+\language english
+\inputencoding auto
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+
+\graphics default
+\paperfontsize default
+\spacing single
+\use_hyperref true
+\pdf_bookmarks true
+\pdf_bookmarksnumbered false
+\pdf_bookmarksopen true
+\pdf_bookmarksopenlevel 2
+\pdf_breaklinks true
+\pdf_pdfborder true
+\pdf_colorlinks true
+\pdf_backref false
+\pdf_pdfusetitle true
+\pdf_quoted_options "linkcolor=blue"
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\use_esint 1
+\cite_engine basic
+\use_bibtopic false
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation skip
+\defskip medskip
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\author "" 
+\author "" 
+\end_header
+
+\begin_body
+
+\begin_layout Title
+Fun with Makefiles
+\begin_inset Newline newline
+\end_inset
+
+
+\size normal
+An Introduction to the EPICS Build System
+\end_layout
+
+\begin_layout Author
+
+\size footnotesize
+Michael Davidsaver <mdavidsaver@bnl.gov>
+\end_layout
+
+\begin_layout Date
+EPICS Collaboration Meeting Fall 2010
+\end_layout
+
+\begin_layout Abstract
+A practical introduction to conventions and features of the EPICS build
+ system with examples and advice.
+ It is assumed that the reader is familier with using make and has at looked
+ at, but not written, a Makefile before.
+\end_layout
+
+\begin_layout Section
+What is important and where to find it
+\end_layout
+
+\begin_layout Standard
+We will begin with a tour of the contents of an EPICS support module.
+ We will begin with a new module created with makeBaseApp
+\begin_inset Foot
+status collapsed
+
+\begin_layout Plain Layout
+The makeBaseApp utility comes with EPICS Base.
+ This example used version 3.14.11
+\end_layout
+
+\end_inset
+
+ and examine its contents.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ mkdir buildexample
+\end_layout
+
+\begin_layout Plain Layout
+
+$ cd buildexample
+\end_layout
+
+\begin_layout Plain Layout
+
+$ makeBaseApp -t ioc my
+\end_layout
+
+\begin_layout Plain Layout
+
+$ makeBaseApp -i -t ioc -p myApp -a linux-x86 test
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Table 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "tbl:makebaseapp"
+
+\end_inset
+
+ contains a complete list of the files which constitute the build system
+ for the module.
+ Only one file 
+\family typewriter
+myApp/src/myMain.cpp
+\family default
+ is not part of the build system.
+ The table also notes files which will need to be modified in the course
+ of creating a support module, and those which and end user will need to
+ modify to build it.
+ The EPICS build system is designed so that most of these files will not
+ need modification.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float table
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Box Frameless
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+width "100col%"
+special "none"
+height "1in"
+height_special "totalheight"
+status open
+
+\begin_layout Plain Layout
+\begin_inset Tabular
+<lyxtabular version="3" rows="16" columns="4">
+<features>
+<column alignment="left" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<column alignment="left" valignment="top" width="0">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+File
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Dev
+\begin_inset Foot
+status collapsed
+
+\begin_layout Plain Layout
+Files which module develpers will modify
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+User
+\begin_inset Foot
+status collapsed
+
+\begin_layout Plain Layout
+Files which end users will modify
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Description
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Makefile
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+X
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Main entry point for build
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+configure/CONFIG
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Include for configuration
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+configure/CONFIG_SITE
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+X
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Configuration overrides
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+configure/Makefile
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+configure/RELEASE
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+X
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+X
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Locations of other modules
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+configure/RULES
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Rules for src/ directories
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+configure/RULES.ioc
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Rules for ioc*/ directories
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+configure/RULES_DIRS
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Rules for non-leaf directories
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+configure/RULES_TOP
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Rules for top-level Makefile
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+myApp/Makefile
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Dispatchs to Db and src
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+myApp/Db/Makefile
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+X
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Entry for expand/install of .db
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+myApp/src/Makefile
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+X
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Entry for compiling code
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+myApp/src/myMain.cpp
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+softIOC 
+\family typewriter
+main()
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+iocBoot/Makefile
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Dispatch for IOCs
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+iocBoot/ioctest/Makefile
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Entry for IOCs
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption
+
+\begin_layout Plain Layout
+List of module contents
+\end_layout
+
+\end_inset
+
+
+\begin_inset CommandInset label
+LatexCommand label
+name "tbl:makebaseapp"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Makefile Roles
+\end_layout
+
+\begin_layout Standard
+The build system contains a number of files, some with the usual 
+\shape italic
+Makefile
+\shape default
+ name and some with different names (ie 
+\shape italic
+CONFIG
+\shape default
+ or 
+\shape italic
+RULES
+\shape default
+).
+ All however use the same syntax.
+ These files fall into several catagories
+\end_layout
+
+\begin_layout Description
+Config Defines variables (ie 
+\series bold
+CFLAGS += -Wall
+\series default
+) but must not contain any targets/rules since they are included before
+ the default target.
+ Config makefile are meant to be included at the beginning of a Entry Point
+ makefile.
+\end_layout
+
+\begin_layout Description
+Rules Similar to Config, but can contain targets/rules.
+ There are several rules files specialized for places they are meant to
+ be included from.
+\end_layout
+
+\begin_layout Description
+Node These are Makefiles whose purpose is to recurse into sub-directories
+ containing other Makefiles.
+ The Top-Level Makefile is the root node.
+\end_layout
+
+\begin_layout Description
+Leaf Makefiles which perform some action (compile code, expand DBs, \SpecialChar \ldots{}
+).
+ Can not recurse.
+\end_layout
+
+\begin_layout Section
+Make Targets
+\end_layout
+
+\begin_layout Standard
+A summery of make target names and where they are valid
+\end_layout
+
+\begin_layout Standard
+\begin_inset Tabular
+<lyxtabular version="3" rows="5" columns="6">
+<features>
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Target
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Top
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Dispatch
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+src
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Db
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+ioc
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+all
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+X
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+X
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+X
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+X
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+X
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+clean
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+X
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+X
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+X
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+X
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+X
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+distclean
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+X
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+rebuild
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+X
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Top-level Makefile
+\end_layout
+
+\begin_layout Standard
+This file is the usual entry point when building a module.
+ It will recursivly Make sub-directories.
+ It also has some special targets.
+ Since 3.14.X Node makefiles have supported dependency based building of modules
+ with several subdirectories.
+ All directory names are make target.
+ Building a directory will first build all dependent directories.
+\end_layout
+
+\begin_layout Standard
+A typical top-level Makefile will look:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "language={[gnu]make}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+TOP = .
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+All Node and Leaf Makefiles begin with a definition of 
+\family typewriter
+TOP
+\family default
+ which is the relative location of the top level directory in the module's
+ source tree.
+ This is used to reference locations in the source tree.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "language={[gnu]make}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+include $(TOP)/configure/CONFIG
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Next include the main configuration.
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+Add ref
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "language={[gnu]make}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+DIRS := $(DIRS) $(filter-out $(DIRS), configure)
+\end_layout
+
+\begin_layout Plain Layout
+
+DIRS := $(DIRS) $(filter-out $(DIRS), $(wildcard *App))
+\end_layout
+
+\begin_layout Plain Layout
+
+DIRS := $(DIRS) $(filter-out $(DIRS), $(wildcard iocBoot))
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The 
+\family typewriter
+DIRS
+\family default
+ variable defines the default order in which subdirectories will be recursed
+ into.
+ The configure directory must be first, and the iocBoot directory last.
+ The ordering of other directories is left to the module developer.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "language={[gnu]make}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+define DIR_template
+\end_layout
+
+\begin_layout Plain Layout
+
+ $(1)_DEPEND_DIRS = configure 
+\end_layout
+
+\begin_layout Plain Layout
+
+endef
+\end_layout
+
+\begin_layout Plain Layout
+
+$(foreach dir, $(filter-out configure,$(DIRS)), 
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+  $(eval $(call DIR_template,$(dir))))
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+iocBoot_DEPEND_DIRS += $(filter %App,$(DIRS))
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Beginning with 3.14.X it is possible to specify dependencies between directories.
+ This allows a developer to (re)build part of a module with many sub-directories.
+ 
+\begin_inset Note Greyedout
+status collapsed
+
+\begin_layout Plain Layout
+TODO: Explain how to remain compatible
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "language={[gnu]make}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+include $(TOP)/configure/RULES_TOP
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Finally include the rules for top-level makefile rules.
+\end_layout
+
+\begin_layout Section
+configure/
+\end_layout
+
+\begin_layout Standard
+Of the files under the configure directory the most important are 
+\family typewriter
+RELEASE
+\family default
+ and 
+\family typewriter
+CONFIG_SITE
+\family default
+.
+ The remaining files are alse described for completeness.
+\end_layout
+
+\begin_layout Subsection
+RELEASE
+\end_layout
+
+\begin_layout Standard
+The purpose of the 
+\family typewriter
+RELEASE
+\family default
+ file is to reference other locations in the file system.
+ The most important of these is the location of EPICS Base which will be
+ found in all support modules.
+ It may also contain the location to other support modules which this module
+ depends on.
+\end_layout
+
+\begin_layout Standard
+The syntax of this file is restricted to variable definitions since it must
+ be parsed by several scripts as well as Make itself.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "language=make"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+ASYN=/some/place/support/asyn
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# EPICS_BASE usually appears last so other apps
+\end_layout
+
+\begin_layout Plain Layout
+
+# can override stuff: 
+\end_layout
+
+\begin_layout Plain Layout
+
+EPICS_BASE=/location/of/epics-3.14.11
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Adding an entry to 
+\family typewriter
+RELEASE
+\family default
+ can add to the search paths for compiling, linking, and database expansion.
+ In the above example the search path for C headers would be: current directory,
+ current module, ASYN, and finally EPICS_BASE.
+ For a more detailed look at how the C compiler and linker search path is
+ defined see section 
+\begin_inset CommandInset ref
+LatexCommand vref
+reference "sec:path:release"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+To avoid interdependency problems the variables defined in a modules 
+\family typewriter
+RELEASE
+\family default
+ file are checked against any variables defined in the 
+\family typewriter
+RELEASE
+\family default
+ files of the modules they reference.
+ For example, this check ensures that all modules have the same value for
+ 
+\family typewriter
+EPICS_BASE
+\family default
+.
+\end_layout
+
+\begin_layout Subsection
+CONFIG_SITE
+\end_layout
+
+\begin_layout Standard
+This file contains additional parameters for controlling the build.
+ The most commonly used is 
+\family typewriter
+CROSS_COMPILER_TARGET_ARCHS
+\family default
+ which specifies compiler targets besides the host target.
+ It can slo be used to apply additional configuration to the entire module.
+ A common example is adding CFLAGS.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "language=make"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+CHECK_RELEASE=YES
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+CROSS_COMPILER_TARGET_ARCHS = RTEMS-mvme3100
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+USR_CFLAGS += -Wall
+\end_layout
+
+\begin_layout Plain Layout
+
+USR_CXXFLAGS += -Wall
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Box Boxed
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+width "100col%"
+special "none"
+height "1in"
+height_special "totalheight"
+status open
+
+\begin_layout Plain Layout
+
+\series bold
+Note:
+\series default
+ Like all Config type makefiles 
+\family typewriter
+CONFIG_SITE
+\family default
+ must not define any targets/rules.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Makefile
+\end_layout
+
+\begin_layout Standard
+The Makefile in the configure directory is responsible for running the consisten
+cy check on 
+\family typewriter
+RELEASE
+\family default
+.
+ Few users will need to modify this file.
+\end_layout
+
+\begin_layout Subsection
+RULES* files
+\end_layout
+
+\begin_layout Standard
+These files are proxies for the identically named rules files in the defined
+ 
+\family typewriter
+$(CONFIG)
+\family default
+ location.
+ The definition of 
+\family typewriter
+$(CONFIG)
+\family default
+ is set when the 
+\family typewriter
+CONFIG
+\family default
+ file is included.
+ Typically this will be 
+\family typewriter
+$(EPICS_BASE)/configure
+\family default
+.
+\end_layout
+
+\begin_layout Section
+myApp/Makefile
+\end_layout
+
+\begin_layout Standard
+Each subdirectory of a module can either Node or a Leaf.
+ In the conventional layout it is a leaf containing two directories: Db
+ and src.
+ Any other directories are ignored.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+TOP = ..
+\end_layout
+
+\begin_layout Plain Layout
+
+include $(TOP)/configure/CONFIG
+\end_layout
+
+\begin_layout Plain Layout
+
+DIRS := $(DIRS) $(filter-out $(DIRS), $(wildcard *src*))
+\end_layout
+
+\begin_layout Plain Layout
+
+DIRS := $(DIRS) $(filter-out $(DIRS), $(wildcard *Src*))
+\end_layout
+
+\begin_layout Plain Layout
+
+DIRS := $(DIRS) $(filter-out $(DIRS), $(wildcard *db*))
+\end_layout
+
+\begin_layout Plain Layout
+
+DIRS := $(DIRS) $(filter-out $(DIRS), $(wildcard *Db*))
+\end_layout
+
+\begin_layout Plain Layout
+
+include $(TOP)/configure/RULES_DIRS
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The names ``Src'' and ``db'' are historical.
+ New code should use ``src'' and ``Db''.
+ The database directory is capitalized to differenciate it from the install
+ location 
+\family typewriter
+$(TOP)/db
+\family default
+.
+\end_layout
+
+\begin_layout Section
+myApp/Db/Makefile
+\end_layout
+
+\begin_layout Standard
+This Makefile provides rules for installing (and generating) database files
+ and template as well as access security files.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+TOP=../..
+\end_layout
+
+\begin_layout Plain Layout
+
+include $(TOP)/configure/CONFIG
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+DB += one.db
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The 
+\family typewriter
+DB
+\family default
+ list will install the file one.db from this location.
+ If one.db does not exist, but one.substitutions does, then the MSI utility
+ will be used to generate one.db.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+DB_INSTALLS += $(ASYN)/db/asynRecord.db
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The 
+\family typewriter
+DB_INSTALLS
+\family default
+ list will copy files from any location in the 
+\family typewriter
+$(TOP)/db
+\family default
+.
+ This can be useful for modules which provide only an IOC as a way to collect
+ the latest version of database files provided by other modules.
+\end_layout
+
+\begin_layout Standard
+However, modules which will be depended on by other modules should not do
+ this since it will result in multiple (possibley different) copies of a
+ database file appearing in the MSI search path.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+include $(TOP)/configure/RULES
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+myApp/src/Makefile
+\end_layout
+
+\begin_layout Standard
+Source directory Makefiles can contain entries to generate/install a number
+ of different types of files.
+ The following sections will describe several common situations.
+\end_layout
+
+\begin_layout Subsection
+Application
+\end_layout
+
+\begin_layout Standard
+The following is an example of the most common situation, an application
+ which provides no additional support.
+ Such an application merely collections the necessary support modules and
+ links them together.
+ It produces an executable binary (
+\family typewriter
+myprod
+\family default
+ or 
+\family typewriter
+myprod.exe
+\family default
+) and a fully expanded database definition (
+\family typewriter
+my.dbd
+\family default
+).
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+TOP=../..
+\end_layout
+
+\begin_layout Plain Layout
+
+include $(TOP)/configure/CONFIG
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+PROD_IOC = myprod
+\end_layout
+
+\begin_layout Plain Layout
+
+DBD += my.dbd
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# my.dbd will be made up from these files
+\end_layout
+
+\begin_layout Plain Layout
+
+my_DBD += base.dbd
+\end_layout
+
+\begin_layout Plain Layout
+
+my_DBD += asSupport.dbd
+\end_layout
+
+\begin_layout Plain Layout
+
+my_DBD += asyn.dbd
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# my_registerRecordDeviceDriver.cpp derives from my.dbd
+\end_layout
+
+\begin_layout Plain Layout
+
+myprod_SRCS += my_registerRecordDeviceDriver.cpp
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# Build the main IOC entry point on workstation OSs.
+\end_layout
+
+\begin_layout Plain Layout
+
+myprod_SRCS_DEFAULT += myMain.cpp
+\end_layout
+
+\begin_layout Plain Layout
+
+myprod_SRCS_vxWorks += -nil-
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+myprod_LIBS += asyn autosave
+\end_layout
+
+\begin_layout Plain Layout
+
+myprod_LIBS += $(EPICS_BASE_IOC_LIBS)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+include $(TOP)/configure/RULES
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Support module
+\end_layout
+
+\begin_layout Standard
+Another common pattern is support module which provides some device supports
+ and registrar functions.
+ In this situation the incomplete database definition (fooSupport.dbd) and
+ the library foo (libfoo.a, libfoo.so, or foo.dll) are installed.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Box Boxed
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+width "100col%"
+special "none"
+height "1in"
+height_special "totalheight"
+status open
+
+\begin_layout Plain Layout
+
+\series bold
+Note:
+\series default
+ Each leaf directory can build only a single library.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+TOP=../..
+\end_layout
+
+\begin_layout Plain Layout
+
+include $(TOP)/configure/CONFIG
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+LIBRARY_IOC = foo
+\end_layout
+
+\begin_layout Plain Layout
+
+DBD += fooSupport.dbd
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+LIB_SRCS += some.c
+\end_layout
+
+\begin_layout Plain Layout
+
+LIB_SRCS += another.c
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# extend search path for headers
+\end_layout
+
+\begin_layout Plain Layout
+
+foo_INCLUDES += /some/path/include /a/dir/include
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# link with libraries
+\end_layout
+
+\begin_layout Plain Layout
+
+# from another EPICS module
+\end_layout
+
+\begin_layout Plain Layout
+
+LIB_LIBS += Com
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# link with libraries
+\end_layout
+
+\begin_layout Plain Layout
+
+# using the system search path
+\end_layout
+
+\begin_layout Plain Layout
+
+LIB_SYS_LIBS += dl
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# Explicitly link with /some/path/libanother.so
+\end_layout
+
+\begin_layout Plain Layout
+
+LIB_LIBS += another
+\end_layout
+
+\begin_layout Plain Layout
+
+another_DIR += /some/path
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# Link as -L/a/dir -lbar
+\end_layout
+
+\begin_layout Plain Layout
+
+LIB_LDFLAGS += -L/a/dir
+\end_layout
+
+\begin_layout Plain Layout
+
+LIB_SYS_LIBS += bar
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+include $(TOP)/configure/RULES
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Utility library
+\end_layout
+
+\begin_layout Standard
+A normal library
+\end_layout
+
+\begin_layout Subsection
+Host tools
+\end_layout
+
+\begin_layout Standard
+Host executables
+\end_layout
+
+\begin_layout Subsection
+Unit Test
+\end_layout
+
+\begin_layout Standard
+A 3.14.x style unit test
+\end_layout
+
+\begin_layout Section
+Tips
+\end_layout
+
+\begin_layout Subsection
+Defining the search path with RELEASE
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:path:release"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "language=make"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+ASYN=/some/place/support/asyn
+\end_layout
+
+\begin_layout Plain Layout
+
+EPICS_BASE=/location/of/epics-3.14.11
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Including these entries in configure/RELEASE will result in the C compiler
+ and linker searching in the following places.
+ If any of these locations does not exist then if will be omitted from the
+ list of compiler arguments.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+$ gcc ...
+ -I .
+ -I ..
+ 
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+-I $(TOP)/include/os/Linux -I $(TOP)/include 
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+-I $(ASYN)/include/os/Linux -I $(ASYN)/include 
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+-I $(EPICS_BASE)/include/os/Linux 
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+-I $(EPICS_BASE)/include ...
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+.
+ Build directory (ie myApp/src/O.linux-x86/)
+\end_layout
+
+\begin_layout Description
+..
+ Current source dir (ie myApp/src/)
+\end_layout
+
+\begin_layout Description
+$(TOP)/include/os/Linux Module OS include dir
+\end_layout
+
+\begin_layout Description
+$(TOP)/include Module generic include dir
+\end_layout
+
+\begin_layout Description
+$(ASYN)/include/os/Linux Asyn OS dir
+\end_layout
+
+\begin_layout Description
+$(ASYN)/include Asyn generic dir
+\end_layout
+
+\begin_layout Description
+$(EPICS_BASE)/include/os/Linux Base OS directory
+\end_layout
+
+\begin_layout Description
+$(EPICS_BASE)/include.
+ Base generic dir
+\end_layout
+
+\begin_layout Section
+\start_of_appendix
+Makefile syntax introduction
+\end_layout
+
+\begin_layout Standard
+Generally makefiles contain two types of entries: variable definitions and
+ target rules.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "language={[gnu]make}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+CFLAGS += -Wall
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+output: input.c
+\end_layout
+
+\begin_layout Plain Layout
+
+	$(CC) -o $@ $(CFLAGS) $<
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document
