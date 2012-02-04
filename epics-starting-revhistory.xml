@@ -7,4 +7,12 @@
         Initial revision
       </revremark>
   </revision>
+  <revision>
+    <revnumber>2</revnumber>
+    <date>February 2012</date>
+    <authorinitials>MAD</authorinitials>
+      <revremark>
+        Revise for newer software versions.  Updates links etc.
+      </revremark>
+  </revision>
 </revhistory>

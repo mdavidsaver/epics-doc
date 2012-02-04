@@ -8,8 +8,8 @@ Getting Started with EPICS
 ==========================
 :Author:    Michael Davidsaver
 :Email:     mdavidsaver@bnl.gov
-:Date:      February 2009
-:Revision:  1
+:Date:      February 2012
+:Revision:  2
 :Key words: epics, edm, alh, ioc
 :Revision history:
 
@@ -123,14 +123,14 @@ The specific versions used in this document are only examples.
 `8`19`28~~~~~~~~~~~~~~~~~~~~
 Name,File,Download
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Base,BaseR3.14.10.tar.gz,http://www.aps.anl.gov/epics/base/R3-14/index.php[http://www.aps.anl.gov/epics/base/R3-14/index.php]
+Base,baseR3.14.12.2.tar.gz,http://www.aps.anl.gov/epics/base/R3-14/12.php[http://www.aps.anl.gov/epics/base/R3-14/12.php]
 Extensions,extensionsTop_20070703.tar.gz, http://www.aps.anl.gov/epics/extensions/configure/index.php[http://www.aps.anl.gov/epics/extensions/configure/index.php]
-ALH,alh1_2_24.tar.gz,http://www.aps.anl.gov/epics/extensions/alh/index.php[http://www.aps.anl.gov/epics/extensions/alh/index.php]
-EDM,edm-1-11-1zg.tgz,http://ics-web.sns.ornl.gov/edm/[http://ics-web.sns.ornl.gov/edm/]
+ALH,alh1_2_26.tar.gz,http://www.aps.anl.gov/epics/extensions/alh/index.php[http://www.aps.anl.gov/epics/extensions/alh/index.php]
+EDM,edm-1-12-71.tgz,http://ics-web.sns.ornl.gov/edm/[http://ics-web.sns.ornl.gov/edm/]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Download all the files listed in components table into '$HOME/myepics'.
-First unpack Base and Extensions.  Either rename or symlink 'base-3.14.10' to 'base'.
+First unpack Base and Extensions.  Either rename or symlink 'base-3.14.12.2' to 'base'.
 Create the directory 'extensions/etc'
 Now unpack ALH and EDM in the 'extensions/src' directory.
 
@@ -164,7 +164,7 @@ make
 --------------
 
 More infomation on compiling EPICS Base can be found in 'base/documentation/README.html'
-or online at http://www.aps.anl.gov/epics/base/R3-14/10-docs/README.html[http://www.aps.anl.gov/epics/base/R3-14/10-docs/README.html].
+or online at http://www.aps.anl.gov/epics/base/R3-14/12-docs/README.html[http://www.aps.anl.gov/epics/base/R3-14/12-docs/README.html].
 
 ALH
 ~~~
@@ -180,7 +180,7 @@ Now build the Alarm Handler.
 
 -----------------------------------
 export EPICS_EXTENSIONS="${HOME}/myepics/extensions"
-cd ${EPICS_EXTENSIONS}/src/alh1_2_24
+cd ${EPICS_EXTENSIONS}/src/alh1_2_26
 make
 ------------------------------------
 
@@ -516,8 +516,8 @@ Infomation on writing more functionality for IOCs can be found in the Developer'
 References
 ----------
 
-+ [[[CAref]]] Jeffrey O. Hill & Ralph Lange. 'Channel Access Reference Manual'. http://www.aps.anl.gov/epics/base/R3-14/10-docs/CAref.html[http://www.aps.anl.gov/epics/base/R3-14/10-docs/CAref.html]
-+ [[[AppDev]]] Marty Kraimer et al.  'EPICS Application Developer's Guide '. http://www.aps.anl.gov/epics/base/R3-14/10-docs/AppDevGuide.pdf[http://www.aps.anl.gov/epics/base/R3-14/10-docs/AppDevGuide.pdf]
++ [[[CAref]]] Jeffrey O. Hill & Ralph Lange. 'Channel Access Reference Manual'. http://www.aps.anl.gov/epics/base/R3-14/12-docs/CAref.html[http://www.aps.anl.gov/epics/base/R3-14/12-docs/CAref.html]
++ [[[AppDev]]] Marty Kraimer et al.  'EPICS Application Developer's Guide '. http://www.aps.anl.gov/epics/base/R3-14/12-docs/AppDevGuide.pdf[http://www.aps.anl.gov/epics/base/R3-14/12-docs/AppDevGuide.pdf]
 + [[[EpicsRTEMS]]] W. Eric Norum. 'Getting started with EPICS on RTEMS'. http://www.aps.anl.gov/epics/base/RTEMS/tutorial/[http://www.aps.anl.gov/epics/base/RTEMS/tutorial/]
 + [[[EDMman]]] John  Sinclair. 'Extensible Display Manager'.  http://ics-web.sns.ornl.gov/edm/edmUserManual/index.html[http://ics-web.sns.ornl.gov/edm/edmUserManual/index.html]
-+ [[[ALHman]]] Janet Anderson. 'Alarm Handler User's Guide'  http://www.aps.anl.gov/epics/EpicsDocumentation/ExtensionsManuals/AlarmHandler/alhUserGuide-1.2.16/ALHUserGuide.html[http://www.aps.anl.gov/epics/EpicsDocumentation/ExtensionsManuals/AlarmHandler/alhUserGuide-1.2.16/ALHUserGuide.html]
++ [[[ALHman]]] Janet Anderson. 'Alarm Handler User's Guide'  http://www.aps.anl.gov/epics/EpicsDocumentation/ExtensionsManuals/AlarmHandler/alhUserGuide-1.2.26/ALHUserGuide.html[http://www.aps.anl.gov/epics/EpicsDocumentation/ExtensionsManuals/AlarmHandler/alhUserGuide-1.2.26/ALHUserGuide.html]
