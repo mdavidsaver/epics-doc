@@ -25,6 +25,7 @@ prng_DBD += prngdist.dbd
 prng_SRCS += prng_registerRecordDeviceDriver.cpp
 prng_SRCS += devprng.c
 prng_SRCS += devprngasync.c
+prng_SRCS += devprngintr.c
 
 prng_SRCS += devprngdist.c
 prng_SRCS += iocshdist.c

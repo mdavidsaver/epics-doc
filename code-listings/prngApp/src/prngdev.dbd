@@ -1,2 +1,3 @@
 device(ai,CONSTANT,devAiPrng,"Random")
 device(ai,CONSTANT,devAiPrngAsync,"Random Async")
+device(ai,CONSTANT,devAiPrngIntr,"Random Intr")
