@@ -15,4 +15,12 @@
         Revise for newer software versions.  Updates links etc.
       </revremark>
   </revision>
+  <revision>
+    <revnumber>3</revnumber>
+    <date>February 2013</date>
+    <authorinitials>MAD</authorinitials>
+      <revremark>
+        Correct testing section.  The EPICS_CAS_INTF_ADDR_LIST is ignored by RSRV.
+      </revremark>
+  </revision>
 </revhistory>

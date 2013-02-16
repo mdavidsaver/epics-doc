@@ -8,8 +8,8 @@ Getting Started with EPICS
 ==========================
 :Author:    Michael Davidsaver
 :Email:     mdavidsaver@bnl.gov
-:Date:      February 2012
-:Revision:  2
+:Date:      February 2013
+:Revision:  3
 :Key words: epics, edm, alh, ioc
 :Revision history:
 
@@ -280,22 +280,16 @@ EDM and ALH.
 It is assumed that this example is being executed on a disconnected
 system, or at least on a system which sees no EPICS traffic and
 hosts no IOCs.
-However, in the interest safety the following can act to limit
-the interaction between the clients and IOCs of this example
-with any which may happen to be on the same IP subnet.
-They can still interact with any other IOCs on the same
-machine.
+In the interest of safety the following will prevent clients
+on the local system from connecting to IOCs on other systems.
+However, remote clients may connect to local IOCs.
+Complete isolation requires a firewall set to block
+TCP and UDP traffic on ports 5064 and 5065.
 
 -----------------------------------------
 export EPICS_CA_AUTO_ADDR_LIST=NO
 export EPICS_CA_ADDR_LIST=localhost
-export EPICS_CAS_INTF_ADDR_LIST=localhost
 -----------------------------------------
-
-The first two acts on clients and limits them to interacting
-with Channel Access Servers bound to the localhost interface.
-The third forces all such servers to bind only to the localhost
-interface.
 
 So in summary, the environment constructed for the following examples is:
 
@@ -314,7 +308,6 @@ export EDMHELPFILES=$EPICS_EXTENSIONS/src/edm/helpFiles
 export EDMLIBS=$EPICS_EXTENSIONS/lib/$EPICS_HOST_ARCH
 export EPICS_CA_AUTO_ADDR_LIST=NO
 export EPICS_CA_ADDR_LIST=localhost
-export EPICS_CAS_INTF_ADDR_LIST=localhost
 --------------------------------------------------------------------------------------
 
 SoftIoc
