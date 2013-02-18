@@ -8,8 +8,8 @@ Basic EPICS Device Support
 ==========================
 :Author:    Michael Davidsaver
 :Email:     mdavidsaver@bnl.gov
-:Date:      April 2009
-:Revision:  1
+:Date:      Febuary 2013
+:Revision:  2
 :Key words: epics, ioc, device support
 :Revision history:
 
@@ -25,6 +25,9 @@ descriptions and lists of device support functions.
 To determine the exact form of a record's device support functions the source
 found in '$EPICS_BASE/src/rec' is invaluable.
 
+The latest version of this page, and code listings, can be found at:
+https://pubweb.bnl.gov/\~mdavidsaver/#doc[https://pubweb.bnl.gov/~mdavidsaver/#doc]
+
 Prepare IOC environment
 -----------------------
 
@@ -34,11 +37,13 @@ and that the EPICS executables are in the system search PATH.
 All paths given in this example are assumed to be relative to the 'devsumexample'
 directory.
 
+---------------------
 $ mkdir devsupexample
 $ cd devsupexample
+---------------------
 
-PRNG Example
-------------
+Periodic Example
+----------------
 
 Let us begin with an example.
 The Analog input record is intended to represent a value read from hardware
@@ -177,6 +182,9 @@ is determined by record support.
 For information on a specific record types see the 'Record Reference Manual'<<RecRef>>
 and the source (ie '$EPICS_BASE/src/rec/aiRecord.c').
 
+init_record
+^^^^^^^^^^^
+
 [source,c]
 --------------------------------------------------------
 static long init_record(aiRecord *pao)
@@ -206,6 +214,9 @@ It allocates space for the structure used to keep internal state,
 then parses the Constant input link string to get the initial seed value.
 
 The input link can only by a CONSTANT link so there is no need to verify this.
+
+read_ai
+^^^^^^^
 
 [source,c]
 -----------------------------------
@@ -254,7 +265,7 @@ Place the following in 'prngApp/Db/prng.db' and add it to the makefile 'prngApp/
 record(ai,"$(P)"){
   field(DTYP,"$(D)")
   field(DESC,"Random numbers")
-  field(SCAN,"1 second")
+  field(SCAN,"$(SCAN=1 second)")
   field(INP,"$(S)")
   field(LINR,"LINEAR")
   field(ESLO,1e-9)
@@ -333,6 +344,9 @@ Add the following line to 'prngApp/src/prngdev.dbd'
 device(ai,CONSTANT,devAiPrngAsync,"Random Async")
 --------------------------------------
 
+Writing Support
+~~~~~~~~~~~~~~~
+
 Now create the file 'prngApp/src/devprngasync.c' and add the following sections.
 
 [source,c]
@@ -379,6 +393,9 @@ void prng_cb(CALLBACK* cb);
 
 Note the addition to the 'prngState' struct of a CALLBACK.
 
+init_record
+^^^^^^^^^^^
+
 [source,c]
 --------------------------------------------------------
 static long init_record(aiRecord *pao)
@@ -410,6 +427,9 @@ static long init_record(aiRecord *pao)
 
 The callback function and priority are set.
 
+read_ai
+^^^^^^^
+
 [source,c]
 -----------------------------------
 static long read_ai(aiRecord *pao)
@@ -439,6 +459,9 @@ While 'PACT' is set the IOC will not try to process this record again.
 
 When the callback has completed it must manually process the record
 which will complete the operation and allow 'PACT' to be cleared.
+
+callback
+^^^^^^^^
 
 [source,c]
 ----------------------------
@@ -491,13 +514,351 @@ cd ${TOP}/iocBoot/${IOC}
 iocInit
 --------------------------------------------------
 
+Interrupt Driven Example
+------------------------
+
+This section demonstrates a variation on the Periodic example
+which allows the periodic SCAN (eg. "1 second") to be switch
+with a SCAN rate driven from a device specific source ("I/O Intr").
+In this example an arbitrary thread is used.
+
+Add the following line to 'prngApp/src/prngdev.dbd'
+
+--------------------------------------
+device(ai,CONSTANT,devAiPrngIntr,"Random Intr")
+--------------------------------------
+
+Writing Support
+~~~~~~~~~~~~~~~
+
+Now create 'prngApp/src/devprngintr.c' with the following sections.
+
+
+[source,c]
+-----------------------------------------
+#include <stdlib.h>
+#include <epicsExport.h>
+#include <dbAccess.h>
+#include <devSup.h>
+#include <recGbl.h>
+#include <dbScan.h>
+#include <dbDefs.h>
+#include <ellLib.h>
+#include <cantProceed.h>
+#include <epicsThread.h>
+#include <epicsMutex.h>
+#include <initHooks.h>
+
+#include <aiRecord.h>
+
+static ELLLIST allprngs = ELLLIST_INIT;
+
+struct prngState {
+  ELLNODE node;
+  unsigned int seed;
+  unsigned int lastnum;
+  epicsMutexId lock;
+  IOSCANPVT scan;
+  epicsThreadId generator;
+};
+-----------------------------------------
+
+As before we define a private structure.  Several addition members are added.
+The most significant is 'IOCSCANPVT scan;' as will be seen in the following
+sections.
+
+init
+^^^^
+
+[source,c]
+-----------------------------------------------
+static void start_workers(initHookState state);
+
+static long init(int phase)
+{
+  if(phase==0)
+    initHookRegister(&start_workers);
+  return 0;
+}
+-----------------------------------------------
+
+Use of 'I/O Intr' scanning is not permitted before a certain point
+in the IOC startup sequence ('iocInit())').  Here a callback function
+is added which will receive notification of all future updates.
+
+Note that a device support 'long init(int)' function is called exactly twice (phase 0 and 1)
+during the initialization sequence.  By waiting until this point, the callback function will
+not be called for some of the hook states (they have already happened).  To capture all states
+the hook must be registered before 'iocInit()' is called.  This can be accomplished by using
+a 'registrar()' function.
+
+init_record
+^^^^^^^^^^^
+
+[source,c]
+------------------------------------------------------
+static long init_record(aiRecord *prec)
+{
+  struct prngState* priv;
+  unsigned long start;
+
+  priv=callocMustSucceed(1,sizeof(*priv),"prngintr");
+
+  recGblInitConstantLink(&prec->inp,DBF_ULONG,&start);
+
+  priv->seed=start;
+  scanIoInit(&priv->scan);
+  priv->lock = epicsMutexMustCreate();
+  priv->generator = NULL;
+  ellAdd(&allprngs, &priv->node);
+  prec->dpvt=priv;
+
+  return 0;
+}
+------------------------------------------------------
+
+Each record is initialized with its own private structure and (later) worker thread.
+
+The 'allprngs' list is used to keep track of all private structures created.  No locking is needed
+in this example because 'init_record()' is called during the singled threaded phase of database
+initialization, and the list will not be modified afterward.
+
+The function 'scanIoInit()' is used to prepare this structure's 'I/O Intr' scan list.
+
+Init hook
+^^^^^^^^^
+
+[source,c]
+-------------------------------------------------------------------------------------------
+static void start_workers(initHookState state)
+{
+  ELLNODE *cur;
+  if(state!=initHookAfterInterruptAccept)
+    return;
+  for(cur=ellFirst(&allprngs); cur; cur=ellNext(cur)) {
+    struct prngState *priv = CONTAINER(cur, struct prngState, node);
+    priv->generator = epicsThreadMustCreate("prngworker",
+                                            epicsThreadPriorityMedium,
+                                            epicsThreadGetStackSize(epicsThreadStackSmall),
+                                            &worker, priv);
+  }
+}
+-------------------------------------------------------------------------------------------
+
+Here the hook function is uses the state 'initHookAfterInterruptAccept' to
+start a worker for each of the private structures.
+
+Worker
+^^^^^^
+
+[source,c]
+-----------------------------------------
+static void worker(void* raw)
+{
+  struct prngState* priv=raw;
+  while(1) {
+    epicsMutexMustLock(priv->lock);
+    priv->lastnum = rand_r(&priv->seed);
+    epicsMutexUnlock(priv->lock);
+
+    scanIoRequest(priv->scan);
+    
+    epicsThreadSleep(1.0);
+  }
+}
+-----------------------------------------
+
+The worker thread itself simply loops.  Each iteration updates the private structure with a new random number.
+When the number is ready the function 'scanIoRequest()' to queue a request to process all records associated
+with this scan list.
+
+'scanIoRequest()' does not process the records directly, and can be called from interrupt context.
+
+get_iointr_info
+^^^^^^^^^^^^^^^
+
+[source,c]
+----------------------------------------------------------------
+static long get_ioint_info(int dir,dbCommon* prec,IOSCANPVT* io)
+{
+  struct prngState* priv=prec->dpvt;
+  
+  *io = priv->scan;
+  return 0;
+}
+----------------------------------------------------------------
+
+So far we have seen how to initialize a scan list with 'scanIoInit()', and how to request a scan with 'scanIoRequest()'.
+Of course this is only interesting if doing so will actually cause some records to be processed.
+
+A record is added to a scan list by setting its SCAN field to 'I/O Intr'.  This can either by set in
+a .db files, or changed at runtime.  In either case this results in a call to the 'get_ioint_info()'
+function with 'dir=0'.  If this function is not provided, or if no scan list is given ('*io = NULL') then the
+record will revert to 'Passive' SCAN.
+
+Once a record is successfully added to a scan list, it will be processed once for each call to
+'scanIoRequest()'.  The 'I/O Intr' scanning mechanism is based on a fixed length queue shared
+by all scan lists.  So care must be taken to avoid overflowing this queue.
+
+Setting the SCAN field to a value other than 'I/O Intr' will cause the 'get_ioint_info()'
+function to be called a second time with 'dir=1'.  In this case the record will be removed from the provided
+scan list.  It is essential that the same scan list be provided for both calls.  Doing
+otherwise will result in undefined behavior (typically a crash).
+
+read_ai
+^^^^^^^
+
+[source,c]
+------------------------------------
+static long read_ai(aiRecord *prec)
+{
+  struct prngState* priv=prec->dpvt;
+
+  epicsMutexMustLock(priv->lock);
+  prec->rval = priv->lastnum;
+  epicsMutexUnlock(priv->lock);
+
+  return 0;
+}
+------------------------------------
+
+The device support read function simply copies the latest random number.
+
+As random numbers are generated by the worker
+thread we can use 'SCAN=I/O Intr' to update the record with minimum latency.  It is also possible
+to set 'SCAN=10 second' to throttle back the rate.
+
+
+[source,c]
+----------------------------------------
+struct {
+  long num;
+  DEVSUPFUN  report;
+  DEVSUPFUN  init;
+  DEVSUPFUN  init_record;
+  DEVSUPFUN  get_ioint_info;
+  DEVSUPFUN  read_ai;
+  DEVSUPFUN  special_linconv;
+} devAiPrngIntr = {
+  6, /* space for 6 functions */
+  NULL,
+  init,
+  init_record,
+  get_ioint_info,
+  read_ai,
+  NULL
+};
+epicsExportAddress(dset,devAiPrngIntr);
+----------------------------------------
+
+Define the device support table.
+
+Rate Limiting
+~~~~~~~~~~~~~
+
+[source,c]
+------------------------------
+void scanIoRequest(IOSCANPVT);
+------------------------------
+
+The I/O Intr mechanism is implemented using the EPICS callback
+API (eg. 'callbackRequest(CALLBACK*)').  In fact each IOSCANPVT
+consists of three such callbacks, one for each of the available
+priorities.  Each priority has a fixed length FIFO for requests, and a worker
+thread to run them.
+
+A fixed length FIFO can, of course, become full if requests are queued too quickly.
+Unfortunately, the API provides no straight forward way of preventing or detecting this.
+Because this FIFO is shared, an overflow can be caused by any driver in the IOC, and effect all drivers.
+
+To see the effect of this try removing 'epicsThreadSleep(1.0);' from the worker thread.
+
+While not a complete solution, simple rate limiting of the source (caller of 'scanIoRequest') will
+generally be sufficient to avoid problems.  It is advisable to make this limit user controllable
+to allow it to be reduced in IOCs with high load.
+
+While the I/O Intr API does not provide a solution, it is possible to construct one using knowledge
+about the implementation.  This of course assumes that the implementation will not change.
+
+Knowing that I/O Intr scan lists are executed in an EPICS callback, and knowing that each
+callback worker executes callbacks sequentially, in the order they are added, then
+the following code has a guaranteed ordering.
+
+[source,c]
+----------------------------------------------
+IOCSCANPVT scan;
+int waitfor;
+CALLBACK done[3];
+...
+void cbfunc(CALLBACK *) {
+  if(--waitfor)
+    return;
+  /* re-enable IRQ */
+}
+...
+callbackSetPriority(priorityLow, &done[0]);
+callbackSetPriority(priorityMedium, &done[1]);
+callbackSetPriority(priorityHigh, &done[2]);
+...
+/* disable IRQ */
+scanIoRequest(scan);
+waitfor = 3;
+callbackRequest(&done[0]);
+callbackRequest(&done[1]);
+callbackRequest(&done[2]);
+----------------------------------------------
+
+After all three of the 'done' callbacks have run, it is certain that
+all records in the 'scan' list have been processed.  Thus, the interrupt
+source could be re-enabled in, or after, the last callback without fear
+of overflowing the FIFO.
+
+
+
+When to Use
+-----------
+
+The Periodic example presented above suffers from two problems.
+Because all processing for a given SCAN rate is done on a single thread,
+any device support which blocks the thread will cause the entire IOC to
+become unresponsive.
+Also, the periodic SCANs are based on the system time of the computer
+running the IOC, which will rarely be tied to the processing cycle of
+the device being controlled.
+
+The Asynchronous example solves the first problem by allowing work
+to be offloaded in another thread.  The second problem is partly
+solved.  While start of processing is not tied a device, the completion
+can be.
+
+The I/O Intr examples allows all work to be done outside the normally
+scanning process, and the results pushed into records.
+
+Now to consider some situations:
+
+Simple periodic scanning is appropriate when the value to be read (or written) is immediately accessible,
+and the source of the value gives no notification of when a new value is available.  An example
+of this is a temperature measurement from a memory mapped device (eg. local CPU temp.).
+
+Asynchronous processing is appropriate in a number of cases.  When the value is not immediately accessible,
+but rather arrives some time after it is requested.  It is also useful when the underlying operation
+is a blocking system call.  Also, asynchronous processing works with the Channel Access put
+with callback operation ('ca_put_callback()').
+
+I/O Intr processing is most appropriate when data is delivered
+without an explicit request (unsolicited), perhaps driven by an external
+trigger or clock.
+
+However, there are a number of situations where I/O Intr processing can
+be used instead of Asynchronous processing.  Instead of one Asynchronous record, use two records.
+The first initiates the request, while the second uses 'SCAN=I/O Intr' to scan on completion.
+This may be helpful if the result(s) of the operation should be stored in several records.
+
+This also allows flexibility if many request can be queued before a response arrives.
+It may also avoid the need to provide an explicit cancel action.
+
 Now What
 --------
-
-Notice that the two seed values are the same and observe the values
-of the two PVs at run time.
-Now change the delay on the asynchronous callback (ie 'callbackRequestDelayed()')
-from 0.1 to 1.1 and compare the results.
 
 These examples demonstrates writing device support for a single AI record.
 Support for other record types (BO, STRINGIN, EVENT, ...) differs only
