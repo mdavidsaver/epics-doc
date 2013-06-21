@@ -1,0 +1,172 @@
+
+/////////
+Compile with asciidoc
+http://www.methods.co.nz/asciidoc/
+/////////
+
+Debian Linux on UEIPAC 300
+==========================
+:Author:    Michael Davidsaver
+:Email:     mdavidsaver@bnl.gov
+:Date:      21 June 2013
+:Revision:  1
+:Key words: linux, powerpc
+:Revision history:
+
+Introduction
+------------
+
+Herein is described the process of building a kernel and creating
+a bare bones Debian boot image for a UEIPAC 300 embedded I/O controller.
+
+This guide assumes that:
+
+* The host computer is running Debian 7.0.
+* An sdcard with of at least 512 MB is available
+
+This device is based on a powerpc 603e (MPC8347).
+It comes from the factory with the U-Boot bootloader.
+
+Toolchain
+---------
+
+Pre-build cross compiler toolchains are available from the emdebian project.
+
+http://www.emdebian.org/crosstools.html[http://www.emdebian.org/crosstools.html]
+
+Add the emdebian package repository:
+
+---------------------------------------------------
+# cat < EOF > /etc/apt/sources.list.d/emdebian.list
+deb http://www.emdebian.org/debian/ wheezy main
+EOF
+# apt-get install emdebian-archive-keyring
+# apt-get update
+# apt-get install g++-4.7-powerpc-linux-gnu
+---------------------------------------------------
+
+With Debian 7.0 it is necessary to create some symlinks.
+For later releases this may not be necessary.
+Check for the presence of "/usr/bin/powerpc-linux-gnu-gcc"
+with no suffix.
+
+---------------------------------------------------
+# for ff in /usr/bin/powerpc-linux-gnu-*-4.7; do \
+bb=`basename $ff`; \
+ln -s ../../bin/$bb /usr/local/bin/${bb%-4.7}; done
+---------------------------------------------------
+
+Building a Kernel
+-----------------
+
+For this step the kernel source patch files supplied by UEI are needed.
+This example assumes that the patches for the DENX 3.4.6 kernel are present.
+
+
+[source,sh]
+------------------------------------------------------
+$ git clone git://git.denx.de/linux-denx.git linux-src
+$ cd linux-src
+$ git co DENX-v3.4.6
+$ git apply ../0001-linux-3.4.6-ueipac834x-bsp.patch
+$ git commit -m 'ueipac834x-bsp' -a
+$ git apply ../0002-linux-3.4.6-ueipac834x-spi.patch
+$ git commit -m 'ueipac834x-spi' -a
+------------------------------------------------------
+
+Apply a configuration from http://pubweb.bnl.gov/%7Emdavidsaver/files/uei[http://pubweb.bnl.gov/~mdavidsaver/files/uei].
+
+[source,sh]
+--------------------------------------------------------------------
+$ cp ../config.DENX-v3.4.6-bnl .config
+$ make ARCH=powerpc CROSS_COMPILE=powerpc-linux-gnu- silentoldconfig
+--------------------------------------------------------------------
+
+Now build:
+
+[source,sh]
+-------------------------------------------------------------------------------
+$ make ARCH=powerpc CROSS_COMPILE=powerpc-linux-gnu- cuImage.ueipac834x modules
+$ cp arch/powerpc/boot/cuImage.ueipac834x ../image-DENX-v3.4.6-bnl
+$ rm -rf mymodules
+$ make ARCH=powerpc CROSS_COMPILE=powerpc-linux-gnu- \
+INSTALL_MOD_PATH=$PWD/mymodules modules_install
+$ cd mymodules
+$ tar -cjf ../../modules-DENX-v3.4.6-bnl.tbz2 .
+$ cd ..
+-------------------------------------------------------------------------------
+
+At this point the kernel can be test booted.
+
+Creating a root filesystem image
+--------------------------------
+
+This section is derived from
+http://wiki.debian.org/EmDebian/CrossDebootstrap#Configuring_the_new_system_.28target_specific.29[http://wiki.debian.org/EmDebian/CrossDebootstrap]
+
+Note bug http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=706297[706297]
+in qemu-user-static which prevents the following from working on an amd64 host.
+
+------------------------------------------------------------------
+# apt-get install binfmt-support qemu qemu-user-static debootstrap
+------------------------------------------------------------------
+
+---------------------------------------------------------------------------------
+# mkdir output
+# debootstrap --foreign --arch powerpc wheezy output http://ftp.debian.org/debian
+# cp /usr/bin/qemu-ppc-static output/usr/bin/
+# DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true \
+LC_ALL=C LANGUAGE=C LANG=C chroot output /debootstrap/debootstrap --second-stage
+---------------------------------------------------------------------------------
+
+The final command is using binfmt (transparent execution of foreign binaries)
+to run the process emulator (qemu-ppc-static).
+
+Now set a root password
+
+----------------------
+# chroot output passwd
+----------------------
+
+And setup the serial console
+
+-----------------------------------------------------------------------------
+# sed  -e '/^[^#].*tty/d' output/etc/inittab
+# echo "T0:23:respawn:/sbin/getty -L ttyS0 57600 vt100" >> output/etc/inittab
+-----------------------------------------------------------------------------
+
+Now archive this image along side the kernel module archive.
+
+-----------------------------------
+# cd output
+# tar -cjf ../wheezy-powerpc.tbz2 .
+-----------------------------------
+
+Populate SD Card
+----------------
+
+First we format the SD card using the sfdisk tool.
+Here we assume a blank SD card is present as /dev/sdb
+
+------------------------------------
+# cat < EOF > /tmp/sfdisk.cmd
+,,L
+EOF
+# sfdisk /dev/sdb << /tmp/sfdisk.cmd
+# mkfs.ext2 -L cube /dev/sdb1
+# mkdir /mnt/cube
+# mount -t ext2 /dev/sdb1 /mnt/cube
+# cd /mnt/cube
+# tar -xapf .../wheezy-powerpc.tbz2
+# tar -xaf .../modules-DENX-v3.4.6-bnl.tbz2
+# sync
+# eject /dev/sdb
+------------------------------------
+
+Booting
+-------
+
+The file "image-DENX-v3.4.6-bnl" created above should be placed on a tftp server
+and loaded with U-Boot either "tftpboot" or "bootp" commands followed by "bootm".
+
+The SD card populated above, should be placed in the device.

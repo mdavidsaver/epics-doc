@@ -8,7 +8,8 @@ DOCSRC=epics-starting.txt \
 epics-devsup.txt \
 epics-rtems.txt \
 epics-ioc.txt \
-epics-motor.txt
+epics-motor.txt \
+ueipac-linux.txt
 
 epics_ioc_PNG += ioc-db.png
 
