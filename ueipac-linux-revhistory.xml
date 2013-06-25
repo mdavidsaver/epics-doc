@@ -7,4 +7,12 @@
         Initial revision
       </revremark>
   </revision>
+  <revision>
+    <revnumber>2</revnumber>
+    <date>25 June 2013</date>
+    <authorinitials>MAD</authorinitials>
+      <revremark>
+	Instructions for host with Debian Squeeze (6.0)
+      </revremark>
+  </revision>
 </revhistory>

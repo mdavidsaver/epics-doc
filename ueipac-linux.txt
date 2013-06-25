@@ -8,8 +8,8 @@ Debian Linux on UEIPAC 300
 ==========================
 :Author:    Michael Davidsaver
 :Email:     mdavidsaver@bnl.gov
-:Date:      21 June 2013
-:Revision:  1
+:Date:      25 June 2013
+:Revision:  2
 :Key words: linux, powerpc
 :Revision history:
 
@@ -17,43 +17,63 @@ Introduction
 ------------
 
 Herein is described the process of building a kernel and creating
-a bare bones Debian boot image for a UEIPAC 300 embedded I/O controller.
+a bare bones Debian 7.0 (wheezy) boot image for a UEIPAC 300 embedded I/O controller.
 
 This guide assumes that:
 
-* The host computer is running Debian 7.0.
+* The host computer is running Debian 6.0 (squeeze) on i386.
 * An sdcard with of at least 512 MB is available
 
 This device is based on a powerpc 603e (MPC8347).
 It comes from the factory with the U-Boot bootloader.
 
-Toolchain
----------
+Host System Preparation
+-----------------------
+
+The build process requires several additional packages be installed on the host system
+from two sources in addition to the main Debian repository.
 
 Pre-build cross compiler toolchains are available from the emdebian project.
 
 http://www.emdebian.org/crosstools.html[http://www.emdebian.org/crosstools.html]
 
-Add the emdebian package repository:
+Add the emdebian and backports package repositories:
 
----------------------------------------------------
+-----------------------------------------------------------------------
 # cat < EOF > /etc/apt/sources.list.d/emdebian.list
-deb http://www.emdebian.org/debian/ wheezy main
+deb http://www.emdebian.org/debian/ squeeze main
+EOF
+# cat < EOF > /etc/apt/sources.list.d/backports.list
+deb http://backports.debian.org/debian-backports squeeze-backports main
 EOF
 # apt-get install emdebian-archive-keyring
 # apt-get update
-# apt-get install g++-4.7-powerpc-linux-gnu
----------------------------------------------------
+# apt-get install g++-4.4-powerpc-linux-gnu \
+build-essential u-boot debootstrap
+# apt-get -t squeeze-backports install qemu-user-static
+-----------------------------------------------------------------------
 
-With Debian 7.0 it is necessary to create some symlinks.
+Note: Only the package 'g++-4.4-powerpc-linux-gnu' and its dependencies are taken from the
+emdebian repository.
+
+Note: qemu-user-static >= 1.1.2+dfsg-6a is needed on i386 hosts.
+This version is present in wheezy and squeeze-backports.
+
+Note: Bug http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=706297[706297]
+in qemu-user-static which prevents version 1.1.2+dfsg-6a from working on an amd64 host.
+
+Toolchain
+---------
+
+With Debian 6.0 it is necessary to create some symlinks.
 For later releases this may not be necessary.
 Check for the presence of "/usr/bin/powerpc-linux-gnu-gcc"
 with no suffix.
 
 ---------------------------------------------------
-# for ff in /usr/bin/powerpc-linux-gnu-*-4.7; do \
+# for ff in /usr/bin/powerpc-linux-gnu-*-4.4; do \
 bb=`basename $ff`; \
-ln -s ../../bin/$bb /usr/local/bin/${bb%-4.7}; done
+ln -s ../../bin/$bb /usr/local/bin/${bb%-4.4}; done
 ---------------------------------------------------
 
 Building a Kernel
@@ -104,13 +124,6 @@ Creating a root filesystem image
 This section is derived from
 http://wiki.debian.org/EmDebian/CrossDebootstrap#Configuring_the_new_system_.28target_specific.29[http://wiki.debian.org/EmDebian/CrossDebootstrap]
 
-Note bug http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=706297[706297]
-in qemu-user-static which prevents the following from working on an amd64 host.
-
-------------------------------------------------------------------
-# apt-get install binfmt-support qemu qemu-user-static debootstrap
-------------------------------------------------------------------
-
 ---------------------------------------------------------------------------------
 # mkdir output
 # debootstrap --foreign --arch powerpc wheezy output http://ftp.debian.org/debian
@@ -131,7 +144,7 @@ Now set a root password
 And setup the serial console
 
 -----------------------------------------------------------------------------
-# sed  -e '/^[^#].*tty/d' output/etc/inittab
+# sed -i -e '/^[^#].*tty/d' output/etc/inittab
 # echo "T0:23:respawn:/sbin/getty -L ttyS0 57600 vt100" >> output/etc/inittab
 -----------------------------------------------------------------------------
 
