@@ -71,3 +71,8 @@ clean:
 	rm -f $(HTML) $(DOCBOOK) $(PDF)
 	rm -f $(PNG)
 	rm -f *.aux *.out *.log
+
+commit: $(HTML) $(PDF) $(PNG)
+	./commit-gh.sh $^
+
+.PHONY: stage clean all help html pdf
