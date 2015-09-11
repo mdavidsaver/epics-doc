@@ -6,7 +6,6 @@ INKSCAPE=inkscape
 
 DOCSRC=epics-starting.txt \
 epics-devsup.txt \
-epics-rtems.txt \
 epics-ioc.txt \
 epics-motor.txt
 
@@ -16,9 +15,11 @@ PNG=$(epics_ioc_PNG)
 
 ioc_db_png_FLAGS += -d 100
 
-HTML=$(patsubst %.txt,%.html,$(DOCSRC))
+GEN_HTML=$(patsubst %.txt,%.html,$(DOCSRC))
 DOCBOOK=$(patsubst %.txt,%.xml,$(DOCSRC))
 PDF=$(patsubst %.xml,%.pdf,$(DOCBOOK))
+
+HTML=index.html $(GEN_HTML)
 
 USE_XHTML=YES
 XHTML_YES=-b xhtml11
@@ -54,13 +55,13 @@ pdf: png $(PDF)
 epics-starting.xml: epics-starting-revhistory.xml
 epics-starting.xml: epics-starting-revhistory.xml
 
-$(HTML): %.html: %.txt
+%.html: %.txt
 	$(ASCIIDOC) $(HTMLOPTS) $(filter %.txt,$^)
 
-$(DOCBOOK): %.xml: %.txt
+%.xml: %.txt
 	$(ASCIIDOC) $(DOCBOOKOPTS) $<
 
-$(PDF): %.pdf: %.xml
+%.pdf: %.xml
 	$(DBLATEX) $<
 
 %.png : %.svg
@@ -68,7 +69,7 @@ $(PDF): %.pdf: %.xml
 	$(INKSCAPE) -z $< $(ISFLAGS) $(PNGFLAGS) -e $@
 
 clean:
-	rm -f $(HTML) $(DOCBOOK) $(PDF)
+	rm -f $(GEN_HTML) $(DOCBOOK) $(PDF)
 	rm -f $(PNG)
 	rm -f *.aux *.out *.log
 

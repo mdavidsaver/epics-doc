@@ -54,7 +54,7 @@ Status for two limit switches and a home switch can be monitored.
 
 == Types of Motion ==
 
-The motor record supports xxx different kinds of motion: normal, backlash, home, and jog.
+The motor record supports several different kinds of motion: normal, backlash, home, and jog.
 All controllers will support normal motions.
 Backlash motion is implemented by the record as a normal motion so no additional effort is required.
 Home and Jog motions require that device support implement the required commands.
