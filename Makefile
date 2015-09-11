@@ -17,9 +17,13 @@ ioc_db_png_FLAGS += -d 100
 
 GEN_HTML=$(patsubst %.txt,%.html,$(DOCSRC))
 DOCBOOK=$(patsubst %.txt,%.xml,$(DOCSRC))
-PDF=$(patsubst %.xml,%.pdf,$(DOCBOOK))
+GEN_PDF=$(patsubst %.xml,%.pdf,$(DOCBOOK))
 
 HTML=index.html $(GEN_HTML)
+
+PDF = $(GEN_PDF)
+PDF += vme/understanding-vme.pdf
+PDF += vme/understanding-vme-handout.pdf
 
 USE_XHTML=YES
 XHTML_YES=-b xhtml11
@@ -69,7 +73,7 @@ epics-starting.xml: epics-starting-revhistory.xml
 	$(INKSCAPE) -z $< $(ISFLAGS) $(PNGFLAGS) -e $@
 
 clean:
-	rm -f $(GEN_HTML) $(DOCBOOK) $(PDF)
+	rm -f $(GEN_HTML) $(DOCBOOK) $(GEN_PDF)
 	rm -f $(PNG)
 	rm -f *.aux *.out *.log
 
