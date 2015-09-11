@@ -163,7 +163,7 @@ cd $EPICS_BASE
 make
 --------------
 
-More infomation on compiling EPICS Base can be found in 'base/documentation/README.html'
+More information on compiling EPICS Base can be found in 'base/documentation/README.html'
 or online at http://www.aps.anl.gov/epics/base/R3-14/12-docs/README.html[http://www.aps.anl.gov/epics/base/R3-14/12-docs/README.html].
 
 ALH

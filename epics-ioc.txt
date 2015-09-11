@@ -21,7 +21,7 @@ which sits between the network stack and the hardware devices whos inputs and ou
 The larger control system sees it as a set of Channels which can be read or written to.
 Inside the IOC a Channel is revealed to be an a field of a Record in the Process Database, a Process Variable (PV).
 Records can be associated with each other by creating Links.
-This allows information to flow between Recordss when they are processed.
+This allows information to flow between Records when they are processed.
 
 This is the mile high view of an IOC and lacks several of the key details which enable one to take a new
 piece of hardware and create good EPICS support for it.
@@ -35,7 +35,7 @@ image::ioc-db.png[]
 
 In the database pictured above there are five PVs.
 Four of the PVs have device support.
-These four PVs are linked to two seperate but identical devices.
+These four PVs are linked to two separate but identical devices.
 The fifth PV might be of a record type which does not need device support, or which uses soft device support.
 
 Linking Records Together
@@ -85,7 +85,7 @@ The 9 allowed hardware link types are listed in table <<hw_types>>.
 ----------------------------------------
 
 There are two things to consider with hardware links.
-How they are implimented, and how they are intended to be used.
+How they are implemented, and how they are intended to be used.
 
 A HW link type name is just a label applied to one arm of a C union (defined in link.h).
 For example, a VME_IO link might be written ``#C0x4000 S0x8 @signed''.
@@ -95,10 +95,14 @@ The first two members are short integers and the last is a string.
 After parsing no further action is taken.
 This is all that a hardware link is.
 
-This collection of integers and a string is intended to be used as a way of addressing hardware.  But since there is so much variation in the way different devices and buses are addressed the implimentation must be very generic.
-The current scheme is a trade off to remove some parsing (ie atoi()) and error checking code which would otherwise be replicated by every device support, and move it into the process database framework.
+This collection of integers and a string is intended to be used as a way of addressing hardware.
+But since there is so much variation in the way different devices and buses are addressed the implementation must be very generic.
+The current scheme is a trade off to remove some parsing (ie atoi())
+and error checking code which would otherwise be replicated by every device support,
+and move it into the process database framework.
 
-A link type like VME_IO is so named because it is often convienent to think of addressing a vme card by slot number and a function/channel code, with the string acting as a catch-all for any other information.
+A link type like VME_IO is so named because it is often convenient to think of addressing a vme card by slot number and a function/channel code,
+with the string acting as a catch-all for any other information.
 VME cards do not need to use VME_IO type links and GPIB devices do not need to use GPIB_IO type links.
 Since VME_IO and GPIB_IO links store the same data (two short ints and a string) they are in fact functionally identical.
 They differ only in the names used in the two arms of the C union.
@@ -126,7 +130,9 @@ An example of this is given below in <<ex2>>.
 Device Support Private Data
 ---------------------------
 
-The use of hardware links implies some sort of lookup to get from a set of short integers and a string to a pointer to a memory mapped device, or a system file descriptor/socket for message based devices.
+The use of hardware links implies some sort of lookup to get from
+a set of short integers and a string to a pointer to a memory mapped device,
+or a system file descriptor/socket for message based devices.
 
 It would be inefficient to do this lookup every time the device must be accessed.
 For this reason the device support author is provided with the Device Support Private (dpvt)
@@ -159,7 +165,8 @@ Driver support is not required.
 In many cases the extra abstraction it provides serve only to add complexity with no real benifit.
 Knowing when to use it is a skill which develops with time.
 
-The example <<ex4>> below extends the PRNG device support developed in the 'Basic EPICS Device Support' document to demonstrate a case where Driver Support can be useful.
+The example <<ex4>> below extends the PRNG device support developed in the 'Basic EPICS Device Support' document
+to demonstrate a case where Driver Support can be useful.
 
 The Full Crate
 --------------
@@ -168,14 +175,16 @@ EPICS is a distributed control system and must be able to scale well,
 both in number of IOCs as well as the size of any one of these IOCS.
 
 The concepts of Linking exists to enforce isolation between records (and associated Device Supports).
-The idea is that if records instances can only interact in well understood ways then it is easier to scale to an arbitrarily large number of records.
+The idea is that if records instances can only interact in well understood ways then it is easier
+to scale to an arbitrarily large number of records.
 Hardware linking allows this isolation to be broken to the extent necessary to deal the reality with complex devices.
 
 When writing Device Support the author considers a device is layers.
 For example, first that an ADC card has a channel,
 then that it has many channels,
 and finally that it is one cards among many on the bus.
-It is important to consider that a Device Support will go into an IOC which many have many of its devices, and other devices which it should not interfere with.
+It is important to consider that a Device Support will go into an IOC which many have many of its devices,
+and other devices which it should not interfere with.
 
 Consider what will happen when someone puts 20 identical cards in one VME crate.
 How will resources be allocated?
@@ -204,7 +213,7 @@ The device support 'devAoMine' takes the sum of the two integer parts of the
 hardware link and uses this as the VME address of the register it should operate on.
 The parm string is used to hold optional modifiers.
 
-The record 'A:1' exists to provide a seperate linear scaling for the setting.
+The record 'A:1' exists to provide a separate linear scaling for the setting.
 
 The forward link between 'A:2' and 'A:3' causes the '0x8' register to be read after
 the '0x4' register is written.
@@ -614,7 +623,7 @@ Driver Support (Gaussian)
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 While the difference between the Gaussian and Uniform generators is small they are
-placed in seperate files to demonstrate that the two Driver Supports can be completely
+placed in separate files to demonstrate that the two Driver Supports can be completely
 isolated from each other.
 
 [source,c]
