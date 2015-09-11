@@ -363,6 +363,8 @@ cd $HOME/myepics/myioc
 sum.db
 ~~~~~~
 
+https://github.com/mdavidsaver/epics-doc/raw/master/starting/sum.db[https://github.com/mdavidsaver/epics-doc/raw/master/starting/sum.db]
+
 ----------------------------
 record(ao,"$(INST):a"){
   field(DTYP,"Soft Channel")
@@ -392,6 +394,8 @@ when loaded at runtime.
 
 sum.cmd
 ~~~~~~~~~~~~~
+
+https://github.com/mdavidsaver/epics-doc/raw/master/starting/sum.cmd[https://github.com/mdavidsaver/epics-doc/raw/master/starting/sum.cmd]
 
 -----------------------------------
 dbLoadRecords("sum.db","INST=calc")
@@ -456,6 +460,8 @@ Also set 'Null Condition' to 'Disabled' and check 'Editable',
 
 The file `sum.edl` is provided as a starting point.
 
+https://github.com/mdavidsaver/epics-doc/raw/master/starting/sum.edl[https://github.com/mdavidsaver/epics-doc/raw/master/starting/sum.edl]
+
 Execute the display and try setting the three fields.
 Try setting A and B so that the sum exceeds 15.
 Also try using slider controls for A and B.
@@ -497,6 +503,8 @@ The border of the sum widget should change color (the alarm sensitive/border pro
 
 sum-alarm.db
 ~~~~~~~~~~~~
+
+https://github.com/mdavidsaver/epics-doc/raw/master/starting/sum-alarm.db[https://github.com/mdavidsaver/epics-doc/raw/master/starting/sum-alarm.db]
 
 ----------------------------
 record(ao,"$(INST):a"){
@@ -557,6 +565,8 @@ Run
 ./startDM_Local -macro 'INST=calc' sum.ui
 -----------------------------------------
 
+https://github.com/mdavidsaver/epics-doc/raw/master/starting/sum.ui[https://github.com/mdavidsaver/epics-doc/raw/master/starting/sum.ui]
+
 PV Access with cs-studio
 ------------------------
 
@@ -564,12 +574,14 @@ PV Access with cs-studio
 ./cs-studio --launcher.openFile /CSS/sum.opi
 --------------------------------------------
 
+https://github.com/mdavidsaver/epics-doc/raw/master/starting/sum.opi[https://github.com/mdavidsaver/epics-doc/raw/master/starting/sum.opi]
+
 Have Fun
 --------
 
-For more information of record types see the 'Record Reference Manual'
+For more information on record types see the 'Record Reference Manual'
 in the EPICS wiki http://www.aps.anl.gov/epics/wiki/index.php/RRM_3-14[http://www.aps.anl.gov/epics/wiki/index.php/RRM_3-14].
-Infomation on writing more functionality for IOCs can be found in the Developer's guide <<AppDev>>.
+Information on writing more functionality for IOCs can be found in the Developer's guide <<AppDev>>.
 
 References
 ----------
