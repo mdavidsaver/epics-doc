@@ -8,16 +8,13 @@ DOCSRC=epics-starting.txt \
 epics-devsup.txt \
 epics-rtems.txt \
 epics-ioc.txt \
-epics-motor.txt \
-ueipac-linux.txt
+epics-motor.txt
 
 epics_ioc_PNG += ioc-db.png
 
 PNG=$(epics_ioc_PNG)
 
 ioc_db_png_FLAGS += -d 100
-
-LISTINGS=epics-devsup-listings.tar.gz
 
 HTML=$(patsubst %.txt,%.html,$(DOCSRC))
 DOCBOOK=$(patsubst %.txt,%.xml,$(DOCSRC))
@@ -39,8 +36,6 @@ png: $(PNG)
 
 doc: html pdf
 
-listings: $(LISTINGS)
-
 info:
 	@echo "DOCSRC=$(DOCSRC)"
 	@echo "HTML=$(HTML)"
@@ -50,7 +45,7 @@ info:
 help:
 	@echo "Targets:"
 	@echo "          all clean"
-	@echo "          html pdf listings"
+	@echo "          html pdf"
 
 html: png $(HTML)
 
@@ -72,16 +67,7 @@ $(PDF): %.pdf: %.xml
 	@echo "PNG $@"
 	$(INKSCAPE) -z $< $(ISFLAGS) $(PNGFLAGS) -e $@
 
-LISTINGSBASE=Makefile README.txt configure iocBoot/Makefile
-
-epics-devsup-listings.tar.gz:
-	cd code-listings && git archive --prefix=epics-devsup/ HEAD $(LISTINGSBASE) iocBoot/iocprng1 prngApp msimApp|gzip > ../$@
-
 clean:
 	rm -f $(HTML) $(DOCBOOK) $(PDF)
 	rm -f $(PNG)
-	rm -f $(LISTINGS)
 	rm -f *.aux *.out *.log
-
-publish-list: $(HTML) $(PNG) $(PDF) $(LISTINGS)
-	@echo "$(patsubst %,$(PP)/%,$^)" | tr ' ' '\n' >> $(PF)

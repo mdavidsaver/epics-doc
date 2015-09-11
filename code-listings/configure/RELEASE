@@ -22,7 +22,7 @@ TEMPLATE_TOP=$(EPICS_BASE)/templates/makeBaseApp/top
 #SNCSEQ=$(EPICS_BASE)/../modules/soft/seq
 
 # EPICS_BASE usually appears last so other apps can override stuff:
-EPICS_BASE=/home/mdavidsaver/epics/base
+EPICS_BASE=/usr/lib/epics
 
 #Capfast users may need the following definitions
 #CAPFAST_TEMPLATES=
