@@ -7,7 +7,7 @@ http://www.methods.co.nz/asciidoc/
 Hardware Links and Driver Support
 =================================
 :Author:    Michael Davidsaver
-:Email:     mdavidsaver@bnl.gov
+:Email:     mdavidsaver@gmail.com
 :Date:      September 2009
 :Revision:  1
 :Key words: epics, ioc
