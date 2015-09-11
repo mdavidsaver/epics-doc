@@ -8,8 +8,8 @@ Getting Started with EPICS
 ==========================
 :Author:    Michael Davidsaver
 :Email:     mdavidsaver@gmail.com
-:Date:      February 2013
-:Revision:  3
+:Date:      September 2015
+:Revision:  4
 :Key words: epics, edm, ioc
 :Revision history:
 
@@ -45,9 +45,12 @@ No privileged operations are used.
 - myepics
   - base
   - extensions
+     - configure
      - src
        - edm
      - etc
+  - caqtdm
+  - cs-studio
 --------------
 
 Several environment variables must also be set when building and using
@@ -101,11 +104,8 @@ if run on a machine attached to a network with Channel Access traffic.
 Their meanings are discussed below, and explained fully in the
 'Channel Access Reference Manual' <<CAref>>.
 
-EPICS_CAS_INTF_ADDR_LIST::
-  localhost
-
 EPICS_CA_ADDR_LIST::
-  localhost
+  127.255.255.255
 
 EPICS_CA_AUTO_ADDR_LIST::
   NO
@@ -115,20 +115,21 @@ Getting the Source
 
 The source for most EPICS software can be found at or through the
 http://www.aps.anl.gov/epics/[EPICS Home Page].
-The specific versions used in this document are only examples.
+The specific versions listed below were used when writing this document.
 
 .EPICS Components
-[grid="all"]
-`8`19`28~~~~~~~~~~~~~~~~~~~~
+[format="csv",options="header",cols="1,2,3"]
+|===========================
 Name,File,Download
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Base,baseR3.14.12.2.tar.gz,http://www.aps.anl.gov/epics/base/R3-14/12.php[http://www.aps.anl.gov/epics/base/R3-14/12.php]
-Extensions,extensionsTop_20070703.tar.gz, http://www.aps.anl.gov/epics/extensions/configure/index.php[http://www.aps.anl.gov/epics/extensions/configure/index.php]
-EDM,edm-1-12-71.tgz,http://ics-web.sns.ornl.gov/edm/[http://ics-web.sns.ornl.gov/edm/]
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Base,base-3.15.2.tar.gz,http://www.aps.anl.gov/epics/base/R3-15/2.php[http://www.aps.anl.gov/epics/base/R3-15/2.php]
+Extensions,extensionsTop_201210904.tar.gz, http://www.aps.anl.gov/epics/extensions/configure/index.php[http://www.aps.anl.gov/epics/extensions/configure/index.php]
+EDM,edm-1-12-101.tgz,http://ics-web.sns.ornl.gov/edm/[http://ics-web.sns.ornl.gov/edm/]
+caQtDM,V3.9.4.tar.gz,http://epics.web.psi.ch/software/caqtdm/[http://epics.web.psi.ch/software/caqtdm/]
+cs-studio,CSS-NSLSII-linux64-3.2.16a.zip,http://cs-studio.sourceforge.net/[http://cs-studio.sourceforge.net/]
+|===========================
 
 Download all the files listed in components table into '$HOME/myepics'.
-First unpack Base and Extensions.  Either rename or symlink 'base-3.14.12.2' to 'base'.
+First unpack Base and Extensions.  Either rename or symlink 'base-3.15.2' to 'base'.
 Create the directory 'extensions/etc'
 Now unpack EDM in the 'extensions/src' directory.
 
@@ -137,15 +138,6 @@ Building
 
 Base
 ~~~~
-
-We begin be setting up the environment to build the Base package.
-
---------------------------------------------------------------------------------
-export EPICS_BASE="${HOME}/myepics/base"
-export EPICS_HOST_ARCH=`${EPICS_BASE}/startup/EpicsHostArch`
-export PATH="${PATH}:${EPICS_BASE}/bin/${EPICS_HOST_ARCH}"
-export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${EPICS_BASE}/lib/${EPICS_HOST_ARCH}"
---------------------------------------------------------------------------------
 
 Before starting the compile it is worth mentioning that there are
 several files which contain user options which effect the build
@@ -162,7 +154,67 @@ make
 --------------
 
 More information on compiling EPICS Base can be found in 'base/documentation/README.html'
-or online at http://www.aps.anl.gov/epics/base/R3-14/12-docs/README.html[http://www.aps.anl.gov/epics/base/R3-14/12-docs/README.html].
+or online at http://www.aps.anl.gov/epics/base/R3-15/2-docs/README.html[http://www.aps.anl.gov/epics/base/R3-15/2-docs/README.html].
+
+Before leaving this directory, determine the host target name, and set the `EPICS_HOST_ARCH` environment variable.
+Several scripts in the startup/ directory can help with this.
+
+------------------------------------------------
+export EPICS_HOST_ARCH=`./startup/EpicsHostArch`
+------------------------------------------------
+
+cs-studio
+~~~~~~~~~
+
+While the source for the cs-studio client tools is available,
+the build process is quite complex.
+It is recommended to use a pre-compiled version http://cs-studio.sourceforge.net/[http://cs-studio.sourceforge.net/].
+
+The latest stable NSLS2 version is suggested
+http://cs-studio.sourceforge.net/nsls2/nsls2.html[http://cs-studio.sourceforge.net/nsls2/nsls2.html]
+Although any site's version will suffice for the examples given below.
+
+Fetch the .zip and extract intos '$HOME/myepics'.
+This should create an executable '$HOME/myepics/css-nsls2/css-nsls2',
+which is the entry point.
+
+When run it will ask for the location of a workspace,
+the default will suffice, or '$HOME/myepics/workspace'.
+
+Files should be placed under the workspace directory to be visible.
+When started for the first time a sub-directory 'CSS' is created.
+The .opi file(s) mentioned in this guide should be placed here,
+then either refresh the workspace (F5) or restart cs-studio.
+
+caQtDM
+~~~~~~
+
+This package requires Qt, Qwt, and python to be available on the host system.
+
+Once unpacked, set the appropriate environment variables, or edit the file `caQtDM_Env`.
+
+Set `EPICS_BASE` to the full path `$HOME/myepics/base'.
+
+It may be necessary to change other variables (eg. 'PYTHONVERSION') depending on the host.
+
+Build it
+
+-----------------
+./caQtDM_BuildAll
+-----------------
+
+The result can be started with the 'startDM_Local' and 'qtdesigner' wrapper scripts
+which respectively run and edit .ui files.
+
+Extensions
+~~~~~~~~~~
+
+The `extensions` build files come pre-configured to expect that EPICS Base is installed along side them.
+This can be changed by changing the `EPICS_BASE` line in `extensions/configure/RELEASE`.
+
+You may also need to edit `extensions/configure/os/CONFIG_SITE.${EPICS_HOST_ARCH}.${EPICS_HOST_ARCH}`
+and change `X11_LIB` and `MOTIF_LIB` to the directory where these libraries are found
+(eg. '/usr/lib' or '/usr/lib/x86_64-linux-gnu')
 
 EDM
 ~~~
@@ -174,7 +226,16 @@ These are assumed to be present and the build system does not
 check that they are.
 If a compile or link fails look for messages indicating missing
 headers or libraries and install the appropriate package.
-More infomation of building EDM can be found in the EDM User Manual <<EDMman>>.
+More information of building EDM can be found in the EDM User Manual <<EDMman>>.
+
+On Debian Linux (and derivative) these are
+
+---------------------------------------------------------------
+apt-get install libgif-dev libpng-dev libz-dev libmotif-dev\
+ libx11-dev libxp-dev libxmu-dev libxtst-dev x11proto-print-dev
+---------------------------------------------------------------
+
+Now build EDM.
 
 ------------------------------
 cd ${EPICS_EXTENSIONS}/src/edm
@@ -182,12 +243,10 @@ make
 ------------------------------
 
 The GIF plugin needs to link against the ungif library which may not
-be available.
-In this case the solution is not to build the gif plugin.
-A plugin for png images is available.
+be available, and has been unnecessary for some time.
 
 --------------------------------
-sed -i -e 's|giflib||g' Makefile
+sed -i -e 's| ungif||g' giflib/Makefile*
 make
 --------------------------------
 
@@ -219,6 +278,7 @@ mv edmObjects edmPvObjects ${EPICS_EXTENSIONS}/etc/
 The additional step of replacing the absolute paths with '$(EDMLIBS)' is
 taken to allow the built tree to be relocated without requiring modifications
 to these files.
+It may be omitted, and the `EDMOBJECTS` and `EDMPVOBJECTS` environment variables left unset.
 
 Additional Environment
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -236,6 +296,7 @@ export EDMLIBS=$EPICS_EXTENSIONS/lib/$EPICS_HOST_ARCH
 EDM can now be executed, but it can't show anything interesting, yet.
 
 ------
+export PATH="${EPICS_EXTENSIONS}/bin/${EPICS_HOST_ARCH}:${PATH}"
 edm
 ------
 
@@ -257,7 +318,7 @@ TCP and UDP traffic on ports 5064 and 5065.
 
 -----------------------------------------
 export EPICS_CA_AUTO_ADDR_LIST=NO
-export EPICS_CA_ADDR_LIST=localhost
+export EPICS_CA_ADDR_LIST=127.255.255.255
 -----------------------------------------
 
 So in summary, the environment constructed for the following examples is:
@@ -266,8 +327,8 @@ So in summary, the environment constructed for the following examples is:
 export EPICS_BASE="${HOME}/myepics/base"
 export EPICS_EXTENSIONS="${HOME}/myepics/extensions"
 export EPICS_HOST_ARCH=`${EPICS_BASE}/startup/EpicsHostArch`
-export PATH="${PATH}:${EPICS_BASE}/bin/${EPICS_HOST_ARCH}"
-export PATH="${PATH}:${EPICS_EXTENSIONS}/bin/${EPICS_HOST_ARCH}"
+export PATH="${EPICS_BASE}/bin/${EPICS_HOST_ARCH}:${PATH}"
+export PATH="${EPICS_EXTENSIONS}/bin/${EPICS_HOST_ARCH}:${PATH}"
 export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${EPICS_BASE}/lib/${EPICS_HOST_ARCH}"
 export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${EPICS_EXTENSIONS}/lib/${EPICS_HOST_ARCH}"
 export EDMOBJECTS=$EPICS_EXTENSIONS/etc
@@ -276,7 +337,7 @@ export EDMFILES=$EPICS_EXTENSIONS/src/edm/edmMain
 export EDMHELPFILES=$EPICS_EXTENSIONS/src/edm/helpFiles
 export EDMLIBS=$EPICS_EXTENSIONS/lib/$EPICS_HOST_ARCH
 export EPICS_CA_AUTO_ADDR_LIST=NO
-export EPICS_CA_ADDR_LIST=localhost
+export EPICS_CA_ADDR_LIST=127.255.255.255
 --------------------------------------------------------------------------------------
 
 SoftIoc
@@ -329,12 +390,10 @@ record.
 The '$(INST)' will be replaced with an actual prefix string
 when loaded at runtime.
 
-sum-start.cmd
+sum.cmd
 ~~~~~~~~~~~~~
 
 -----------------------------------
-epicsEnvSet("ARCH","linux-x86_64")
-epicsEnvSet("IOC","mytestioc")
 dbLoadRecords("sum.db","INST=calc")
 iocInit
 -----------------------------------
@@ -354,7 +413,7 @@ Running
 Now start the IOC.
 
 ---------------------
-softIoc sum-start.cmd
+softIoc sum.cmd
 ---------------------
 
 When running it provides three PVs: calc:a, calc:b, calc:sum.
@@ -364,7 +423,7 @@ PV Access from a Shell
 
 EPICS Base provides several utilities for reading and modifying
 Process Variables from command shell.  Here 'caget' and 'caput' are
-demonstrated by accessing our softIoc.
+demonstrated by accessing our softIoc (running in another shell).
 
 --------------------------------
 $ caget calc:a calc:b calc:sum
@@ -390,9 +449,54 @@ calc:sum                       5
 PV Access with EDM
 ------------------
 
-First we will revisit the record specification file 'sum.db' and add several fields.
+Run EDM.  First place two 'Text Control' s and one 'Text Monitor' widgets.
+In each one set the PV to one of the three PVs from our IOC.
+Also set 'Null Condition' to 'Disabled' and check 'Editable',
+'Keypad', 'Alarm Sensitive', and 'Alarm Border'.
+
+The file `sum.edl` is provided as a starting point.
+
+Execute the display and try setting the three fields.
+Try setting A and B so that the sum exceeds 15.
+Also try using slider controls for A and B.
+
+To open in edit mode.
+
+--------------------------
+edm -m 'INST=calc' sum.edl
+--------------------------
+
+To go directly to run mode add '-x'.
+Switching between edit and run modes can also be done from the context menu (middle mouse button).
+
+-----------------------------
+edm -x -m 'INST=calc' sum.edl
+-----------------------------
+
+Check EDM's 'Help' menu for more information.
+EDM has a decent on-line help/reference.
+
+Alarms
+~~~~~~
+
+We will revisit the record specification file 'sum.db' and add several fields.
 Some of these additional fields are used by EDM to determine how records
 should be displayed.  Others are used by the IOC for alarming.
+
+Same the new file 'sum-alarm.db'.
+
+Stop and restart the softIoc, either by editing 'sum.cmd', or by giving the macro definition
+and .db files as arguments (two ways to achieve the same result).
+
+---------------------------------------
+softIoc -m 'INST=calc', -d sum-alarm.db
+---------------------------------------
+
+Now set 'calc:a' and 'calc:b' so that the sum exceeds 15.
+The border of the sum widget should change color (the alarm sensitive/border properties).
+
+sum-alarm.db
+~~~~~~~~~~~~
 
 ----------------------------
 record(ao,"$(INST):a"){
@@ -438,14 +542,27 @@ record(calc,"$(INST):sum"){
 }
 ----------------------------
 
-Run EDM.  First place three 'Text Control' s.
-In each one set the PV to one of the three PVs from our IOC.
-Also set 'Null Condition' to 'Disabled' and check 'Editable',
-'Keypad', 'Alarm Sensitive', and 'Alarm Border'.
 
-Execute the display and try setting the three fields.
-Try setting A and B so that the sum exceeds 15.
-Also try using slider controls for A and B.
+PV Access with caQtDM
+---------------------
+
+Where EDM uses .edl files, caQtDM uses .ui files.
+These are created using QT Designer using plugins provided by caQtDM.
+These will not appear unless the appropriate environment variables are set
+(see the 'qtdesigner' wrapper script).
+
+Run
+
+-----------------------------------------
+./startDM_Local -macro 'INST=calc' sum.ui
+-----------------------------------------
+
+PV Access with cs-studio
+------------------------
+
+--------------------------------------------
+./cs-studio --launcher.openFile /CSS/sum.opi
+--------------------------------------------
 
 Have Fun
 --------
@@ -457,7 +574,9 @@ Infomation on writing more functionality for IOCs can be found in the Developer'
 References
 ----------
 
-+ [[[CAref]]] Jeffrey O. Hill & Ralph Lange. 'Channel Access Reference Manual'. http://www.aps.anl.gov/epics/base/R3-14/12-docs/CAref.html[http://www.aps.anl.gov/epics/base/R3-14/12-docs/CAref.html]
-+ [[[AppDev]]] Marty Kraimer et al.  'EPICS Application Developer's Guide '. http://www.aps.anl.gov/epics/base/R3-14/12-docs/AppDevGuide.pdf[http://www.aps.anl.gov/epics/base/R3-14/12-docs/AppDevGuide.pdf]
-+ [[[EpicsRTEMS]]] W. Eric Norum. 'Getting started with EPICS on RTEMS'. http://www.aps.anl.gov/epics/base/RTEMS/tutorial/[http://www.aps.anl.gov/epics/base/RTEMS/tutorial/]
-+ [[[EDMman]]] John  Sinclair. 'Extensible Display Manager'.  http://ics-web.sns.ornl.gov/edm/edmUserManual/index.html[http://ics-web.sns.ornl.gov/edm/edmUserManual/index.html]
+[bibliography]
+
+- [[[CAref]]] Jeffrey O. Hill & Ralph Lange. 'Channel Access Reference Manual'. http://www.aps.anl.gov/epics/base/R3-15/2-docs/CAref.html[http://www.aps.anl.gov/epics/base/R3-15/2-docs/CAref.html]
+- [[[AppDev]]] Marty Kraimer et al.  'EPICS Application Developer's Guide '. http://www.aps.anl.gov/epics/base/R3-15/2-docs/AppDevGuide/[http://www.aps.anl.gov/epics/base/R3-15/2-docs/AppDevGuide/]
+- [[[EpicsRTEMS]]] W. Eric Norum. 'Getting started with EPICS on RTEMS'. http://www.aps.anl.gov/epics/base/RTEMS/tutorial/[http://www.aps.anl.gov/epics/base/RTEMS/tutorial/]
+- [[[EDMman]]] John  Sinclair. 'Extensible Display Manager'.  http://ics-web.sns.ornl.gov/edm/edmUserManual/index.html[http://ics-web.sns.ornl.gov/edm/edmUserManual/index.html]
