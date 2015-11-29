@@ -26,7 +26,7 @@ To determine the exact form of a record's device support functions the source
 found in '$EPICS_BASE/src/rec' is invaluable.
 
 The latest version of this page, and code listings, can be found at:
-https://pubweb.bnl.gov/\~mdavidsaver/#doc[https://pubweb.bnl.gov/~mdavidsaver/#doc]
+http://mdavidsaver.github.io/epics-doc/epics-devsup.html[http://mdavidsaver.github.io/epics-doc/epics-devsup.html]
 
 Prepare IOC environment
 -----------------------
