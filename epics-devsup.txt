@@ -790,7 +790,7 @@ Because this FIFO is shared process wide, an overflow can be caused by any drive
 and effect all drivers using the queue.
 This manifests as the dreaded "callbackRequest: cbLow ring buffer full" log message.
 
-The link:code-listings/prngApp/src/devprngintrrate.c[devprngintrrate.c]
+The link:https://github.com/mdavidsaver/epics-doc/blob/master/code-listings/prngApp/src/devprngintrrate.c[devprngintrrate.c]
 example demonstrates how to avoid this for EPICS Base 3.14 and 3.15.
 
 Beginning in EPICS Base 3.15.0.1 the "I/O Intr" handling API was extended to include
@@ -875,4 +875,4 @@ References
 + [[[RecRef]]] The Epics Collaboration  'EPICS 3.14 Record Reference Manual Wiki' 
 http://www.aps.anl.gov/epics/wiki/index.php/RRM_3-14[http://www.aps.anl.gov/epics/wiki/index.php/RRM_3-14]
 + [[[AppDev]]] Marty Kraimer et al.  'EPICS Application Developer's Guide '.
-http://www.aps.anl.gov/epics/base/R3-15/2-docs/AppDevGuide/[http://www.aps.anl.gov/epics/base/R3-14/10-docs/AppDevGuide.pdf]
+http://www.aps.anl.gov/epics/base/R3-15/2-docs/AppDevGuide/[http://www.aps.anl.gov/epics/base/R3-15/2-docs/AppDevGuide/]
