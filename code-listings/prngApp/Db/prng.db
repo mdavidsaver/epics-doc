@@ -6,4 +6,5 @@ record(ai,"$(P)"){
   field(LINR,"LINEAR")
   field(ESLO,1e-9)
   field(EOFF,-1)
+  field(TPRO, "$(TPRO=)")
 }

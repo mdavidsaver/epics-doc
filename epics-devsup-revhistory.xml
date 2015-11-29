@@ -15,4 +15,12 @@
         Add I/O Intr scanning example
       </revremark>
   </revision>
+  <revision>
+    <revnumber>3</revnumber>
+    <date>November 2015</date>
+    <authorinitials>MAD</authorinitials>
+      <revremark>
+        Update I/O Intr examples to include new APIs from Base 3.15 and 3.16 series.
+      </revremark>
+  </revision>
 </revhistory>

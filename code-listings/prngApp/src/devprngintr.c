@@ -10,6 +10,8 @@
 #include <epicsThread.h>
 #include <epicsMutex.h>
 #include <initHooks.h>
+#include <callback.h>
+#include <epicsVersion.h>
 
 #include <aiRecord.h>
 
@@ -76,8 +78,20 @@ static void worker(void* raw)
     priv->lastnum = rand_r(&priv->seed);
     epicsMutexUnlock(priv->lock);
 
+#ifdef EPICS_VERSION_INT
+#if EPICS_VERSION_INT>=VERSION_INT(3,16,0,0)
+#  define USE_IMMEDIATE
+#endif
+#endif
+
+#ifdef USE_IMMEDIATE
+    scanIoImmediate(priv->scan, priorityHigh);
+    scanIoImmediate(priv->scan, priorityMedium);
+    scanIoImmediate(priv->scan, priorityLow);
+#else
     scanIoRequest(priv->scan);
-    
+#endif
+
     epicsThreadSleep(1.0);
   }
 }

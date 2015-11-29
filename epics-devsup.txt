@@ -8,8 +8,8 @@ Basic EPICS Device Support
 ==========================
 :Author:    Michael Davidsaver
 :Email:     mdavidsaver@gmail.com
-:Date:      Febuary 2013
-:Revision:  2
+:Date:      November 2015
+:Revision:  3
 :Key words: epics, ioc, device support
 :Revision history:
 
@@ -650,6 +650,9 @@ start a worker for each of the private structures.
 
 Worker
 ^^^^^^
+[[iointrworker]]
+
+With EPICS Base less than 3.16.0.
 
 [source,c]
 -----------------------------------------
@@ -673,6 +676,27 @@ When the number is ready the function 'scanIoRequest()' to queue a request to pr
 with this scan list.
 
 'scanIoRequest()' does not process the records directly, and can be called from interrupt context.
+
+With EPICS Base greater than or equal to 3.16.0 (as of Nov. 2015 not released).
+
+[source,c]
+-----------------------------------------
+static void worker(void* raw)
+{
+  struct prngState* priv=raw;
+  while(1) {
+    epicsMutexMustLock(priv->lock);
+    priv->lastnum = rand_r(&priv->seed);
+    epicsMutexUnlock(priv->lock);
+
+    scanIoImmediate(priv->scan, priorityHigh);
+    scanIoImmediate(priv->scan, priorityMedium);
+    scanIoImmediate(priv->scan, priorityLow);
+
+    epicsThreadSleep(1.0);
+  }
+}
+-----------------------------------------
 
 get_iointr_info
 ^^^^^^^^^^^^^^^
@@ -753,66 +777,44 @@ epicsExportAddress(dset,devAiPrngIntr);
 
 Define the device support table.
 
-Rate Limiting
-~~~~~~~~~~~~~
+Rate Limiting (Base < 3.16.0)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-[source,c]
-------------------------------
-void scanIoRequest(IOSCANPVT);
-------------------------------
-
-The I/O Intr mechanism is implemented using the EPICS callback
-API (eg. 'callbackRequest(CALLBACK*)').  In fact each IOSCANPVT
-consists of three such callbacks, one for each of the available
-priorities.  Each priority has a fixed length FIFO for requests, and a worker
-thread to run them.
+The I/O Intr mechanism is implemented using the EPICS callback API.
+Internally 'scanIoRequest()' calls 'callbackRequest(CALLBACK*)' up to three times
+as each IOSCANPVT consists of three such callbacks, one for each of the available priorities.
+Each priority has a fixed length FIFO for requests, and one or more worker threads to run them.
 
 A fixed length FIFO can, of course, become full if requests are queued too quickly.
-Unfortunately, the API provides no straight forward way of preventing or detecting this.
-Because this FIFO is shared, an overflow can be caused by any driver in the IOC, and effect all drivers.
+Because this FIFO is shared process wide, an overflow can be caused by any driver in the IOC,
+and effect all drivers using the queue.
+This manifests as the dreaded "callbackRequest: cbLow ring buffer full" log message.
 
-To see the effect of this try removing 'epicsThreadSleep(1.0);' from the worker thread.
+The link:code-listings/prngApp/src/devprngintrrate.c[devprngintrrate.c]
+example demonstrates how to avoid this for EPICS Base 3.14 and 3.15.
 
-While not a complete solution, simple rate limiting of the source (caller of 'scanIoRequest') will
-generally be sufficient to avoid problems.  It is advisable to make this limit user controllable
-to allow it to be reduced in IOCs with high load.
+Beginning in EPICS Base 3.15.0.1 the "I/O Intr" handling API was extended to include
+'scanIoSetComplete()'.  Prior to this, rate limiting could be accomplished by assuming
+that callbacks are execute in the order queued.  With the introduction in 3.15 or
+parallel processing of callback queues, this no longer hold and the 'scanIoSetComplete()'
+technique must be used.
 
-While the I/O Intr API does not provide a solution, it is possible to construct one using knowledge
-about the implementation.  This of course assumes that the implementation will not change.
+Rate Limiting (Base >= 3.16.0)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Knowing that I/O Intr scan lists are executed in an EPICS callback, and knowing that each
-callback worker executes callbacks sequentially, in the order they are added, then
-the following code has a guaranteed ordering.
+This section describes unreleased functionality as of Nov. 2015.
 
 [source,c]
-----------------------------------------------
-IOCSCANPVT scan;
-int waitfor;
-CALLBACK done[3];
-...
-void cbfunc(CALLBACK *) {
-  if(--waitfor)
-    return;
-  /* re-enable IRQ */
-}
-...
-callbackSetPriority(priorityLow, &done[0]);
-callbackSetPriority(priorityMedium, &done[1]);
-callbackSetPriority(priorityHigh, &done[2]);
-...
-/* disable IRQ */
-scanIoRequest(scan);
-waitfor = 3;
-callbackRequest(&done[0]);
-callbackRequest(&done[1]);
-callbackRequest(&done[2]);
-----------------------------------------------
+---------------------------------------------------
+void scanIoImmediate(IOSCANPVT scan, int priority);
+---------------------------------------------------
 
-After all three of the 'done' callbacks have run, it is certain that
-all records in the 'scan' list have been processed.  Thus, the interrupt
-source could be re-enabled in, or after, the last callback without fear
-of overflowing the FIFO.
+Beginning with EPICS Base 3.16.0 an additional API call is available
+which does record processing in the calling thread (do *not* call from device support).
+This is demonstrated in the <<iointrworker,worker thread>> example shown above.
 
+For situations were blocking is not tolerable (actual interrupt context)
+The 'scanIoSetComplete()' must still be used.
 
 
 When to Use
@@ -873,4 +875,4 @@ References
 + [[[RecRef]]] The Epics Collaboration  'EPICS 3.14 Record Reference Manual Wiki' 
 http://www.aps.anl.gov/epics/wiki/index.php/RRM_3-14[http://www.aps.anl.gov/epics/wiki/index.php/RRM_3-14]
 + [[[AppDev]]] Marty Kraimer et al.  'EPICS Application Developer's Guide '.
-http://www.aps.anl.gov/epics/base/R3-14/10-docs/AppDevGuide.pdf[http://www.aps.anl.gov/epics/base/R3-14/10-docs/AppDevGuide.pdf]
+http://www.aps.anl.gov/epics/base/R3-15/2-docs/AppDevGuide/[http://www.aps.anl.gov/epics/base/R3-14/10-docs/AppDevGuide.pdf]
