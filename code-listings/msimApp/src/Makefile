@@ -8,6 +8,7 @@ include $(TOP)/configure/CONFIG
 #=============================
 # Build the IOC application
 
+ifneq ($(MOTOR),)
 PROD_IOC = msim
 # msim.dbd will be created and installed
 DBD += msim.dbd
@@ -29,6 +30,8 @@ msim_SRCS_DEFAULT += msimMain.cpp
 msim_SRCS_vxWorks += -nil-
 
 msim_LIBS += $(EPICS_BASE_IOC_LIBS)
+
+endif
 
 #===========================
 
