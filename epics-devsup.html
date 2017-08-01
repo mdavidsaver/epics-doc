@@ -1,0 +1,1577 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.6.9" />
+<meta name="keywords" content="epics, ioc, device support" />
+<title>Basic EPICS Device Support</title>
+<style type="text/css">
+/* Shared CSS for AsciiDoc xhtml11 and html5 backends */
+
+/* Default font. */
+body {
+  font-family: Georgia,serif;
+}
+
+/* Title font. */
+h1, h2, h3, h4, h5, h6,
+div.title, caption.title,
+thead, p.table.header,
+#toctitle,
+#author, #revnumber, #revdate, #revremark,
+#footer {
+  font-family: Arial,Helvetica,sans-serif;
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: fuchsia;
+}
+
+em {
+  font-style: italic;
+  color: navy;
+}
+
+strong {
+  font-weight: bold;
+  color: #083194;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #527bbd;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1, h2, h3 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  padding-top: 0.5em;
+}
+h3 {
+  float: left;
+}
+h3 + * {
+  clear: left;
+}
+h5 {
+  font-size: 1.0em;
+}
+
+div.sectionbody {
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+ul, ol, li > p {
+  margin-top: 0;
+}
+ul > li     { color: #aaa; }
+ul > li > * { color: black; }
+
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
+  padding: 0;
+  margin: 0;
+}
+pre {
+  white-space: pre-wrap;
+}
+
+#author {
+  color: #527bbd;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+#email {
+}
+#revnumber, #revdate, #revremark {
+}
+
+#footer {
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+#preamble {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.0em;
+  margin-bottom: 2.0em;
+  margin-right: 10%;
+  color: #606060;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  color: #527bbd;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid #dddddd;
+  border-left: 4px solid #f0f0f0;
+  padding: 0.5em;
+}
+
+div.listingblock > div.content {
+  border: 1px solid #dddddd;
+  border-left: 5px solid #f0f0f0;
+  background: #f8f8f8;
+  padding: 0.5em;
+}
+
+div.quoteblock, div.verseblock {
+  padding-left: 1.0em;
+  margin-left: 1.0em;
+  margin-right: 10%;
+  border-left: 5px solid #f0f0f0;
+  color: #888;
+}
+
+div.quoteblock > div.attribution {
+  padding-top: 0.5em;
+  text-align: right;
+}
+
+div.verseblock > pre.content {
+  font-family: inherit;
+  font-size: inherit;
+}
+div.verseblock > div.attribution {
+  padding-top: 0.75em;
+  text-align: left;
+}
+/* DEPRECATED: Pre version 8.2.7 verse style literal block. */
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #527bbd;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 3px solid #dddddd;
+}
+
+div.exampleblock > div.content {
+  border-left: 3px solid #dddddd;
+  padding-left: 0.5em;
+}
+
+div.imageblock div.content { padding-left: 0; }
+span.image img { border-style: none; vertical-align: text-bottom; }
+a.image:visited { color: white; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: normal;
+  color: navy;
+}
+dd > *:first-child {
+  margin-top: 0.1em;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.arabic {
+  list-style-type: decimal;
+}
+ol.loweralpha {
+  list-style-type: lower-alpha;
+}
+ol.upperalpha {
+  list-style-type: upper-alpha;
+}
+ol.lowerroman {
+  list-style-type: lower-roman;
+}
+ol.upperroman {
+  list-style-type: upper-roman;
+}
+
+div.compact ul, div.compact ol,
+div.compact p, div.compact p,
+div.compact div, div.compact div {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
+}
+
+tfoot {
+  font-weight: bold;
+}
+td > div.verse {
+  white-space: pre;
+}
+
+div.hdlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hdlist tr {
+  padding-bottom: 15px;
+}
+dt.hdlist1.strong, td.hdlist1.strong {
+  font-weight: bold;
+}
+td.hdlist1 {
+  vertical-align: top;
+  font-style: normal;
+  padding-right: 0.8em;
+  color: navy;
+}
+td.hdlist2 {
+  vertical-align: top;
+}
+div.hdlist.compact tr {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.comment {
+  background: yellow;
+}
+
+.footnote, .footnoteref {
+  font-size: 0.8em;
+}
+
+span.footnote, span.footnoteref {
+  vertical-align: super;
+}
+
+#footnotes {
+  margin: 20px 0 20px 0;
+  padding: 7px 0 0 0;
+}
+
+#footnotes div.footnote {
+  margin: 0 0 5px 0;
+}
+
+#footnotes hr {
+  border: none;
+  border-top: 1px solid silver;
+  height: 1px;
+  text-align: left;
+  margin-left: 0;
+  width: 20%;
+  min-width: 100px;
+}
+
+div.colist td {
+  padding-right: 0.5em;
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+div.colist td img {
+  margin-top: 0.3em;
+}
+
+@media print {
+  #footer-badges { display: none; }
+}
+
+#toc {
+  margin-bottom: 2.5em;
+}
+
+#toctitle {
+  color: #527bbd;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
+
+span.aqua { color: aqua; }
+span.black { color: black; }
+span.blue { color: blue; }
+span.fuchsia { color: fuchsia; }
+span.gray { color: gray; }
+span.green { color: green; }
+span.lime { color: lime; }
+span.maroon { color: maroon; }
+span.navy { color: navy; }
+span.olive { color: olive; }
+span.purple { color: purple; }
+span.red { color: red; }
+span.silver { color: silver; }
+span.teal { color: teal; }
+span.white { color: white; }
+span.yellow { color: yellow; }
+
+span.aqua-background { background: aqua; }
+span.black-background { background: black; }
+span.blue-background { background: blue; }
+span.fuchsia-background { background: fuchsia; }
+span.gray-background { background: gray; }
+span.green-background { background: green; }
+span.lime-background { background: lime; }
+span.maroon-background { background: maroon; }
+span.navy-background { background: navy; }
+span.olive-background { background: olive; }
+span.purple-background { background: purple; }
+span.red-background { background: red; }
+span.silver-background { background: silver; }
+span.teal-background { background: teal; }
+span.white-background { background: white; }
+span.yellow-background { background: yellow; }
+
+span.big { font-size: 2em; }
+span.small { font-size: 0.6em; }
+
+span.underline { text-decoration: underline; }
+span.overline { text-decoration: overline; }
+span.line-through { text-decoration: line-through; }
+
+div.unbreakable { page-break-inside: avoid; }
+
+
+/*
+ * xhtml11 specific
+ *
+ * */
+
+div.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead, p.table.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.table {
+  margin-top: 0;
+}
+/* Because the table frame attribute is overriden by CSS in most browsers. */
+div.tableblock > table[frame="void"] {
+  border-style: none;
+}
+div.tableblock > table[frame="hsides"] {
+  border-left-style: none;
+  border-right-style: none;
+}
+div.tableblock > table[frame="vsides"] {
+  border-top-style: none;
+  border-bottom-style: none;
+}
+
+
+/*
+ * html5 specific
+ *
+ * */
+
+table.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+thead, p.tableblock.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.tableblock {
+  margin-top: 0;
+}
+table.tableblock {
+  border-width: 3px;
+  border-spacing: 0px;
+  border-style: solid;
+  border-color: #527bbd;
+  border-collapse: collapse;
+}
+th.tableblock, td.tableblock {
+  border-width: 1px;
+  padding: 4px;
+  border-style: solid;
+  border-color: #527bbd;
+}
+
+table.tableblock.frame-topbot {
+  border-left-style: hidden;
+  border-right-style: hidden;
+}
+table.tableblock.frame-sides {
+  border-top-style: hidden;
+  border-bottom-style: hidden;
+}
+table.tableblock.frame-none {
+  border-style: hidden;
+}
+
+th.tableblock.halign-left, td.tableblock.halign-left {
+  text-align: left;
+}
+th.tableblock.halign-center, td.tableblock.halign-center {
+  text-align: center;
+}
+th.tableblock.halign-right, td.tableblock.halign-right {
+  text-align: right;
+}
+
+th.tableblock.valign-top, td.tableblock.valign-top {
+  vertical-align: top;
+}
+th.tableblock.valign-middle, td.tableblock.valign-middle {
+  vertical-align: middle;
+}
+th.tableblock.valign-bottom, td.tableblock.valign-bottom {
+  vertical-align: bottom;
+}
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+
+
+</style>
+<script type="text/javascript">
+/*<![CDATA[*/
+var asciidoc = {  // Namespace.
+
+/////////////////////////////////////////////////////////////////////
+// Table Of Contents generator
+/////////////////////////////////////////////////////////////////////
+
+/* Author: Mihai Bazon, September 2002
+ * http://students.infoiasi.ro/~mishoo
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+ /* modified by Stuart Rackham, 2006, 2009. License: GPL */
+
+// toclevels = 1..4.
+toc: function (toclevels) {
+
+  function getText(el) {
+    var text = "";
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 3 /* Node.TEXT_NODE */) // IE doesn't speak constants.
+        text += i.data;
+      else if (i.firstChild != null)
+        text += getText(i);
+    }
+    return text;
+  }
+
+  function TocEntry(el, text, toclevel) {
+    this.element = el;
+    this.text = text;
+    this.toclevel = toclevel;
+  }
+
+  function tocEntries(el, toclevels) {
+    var result = new Array;
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
+    // Function that scans the DOM tree for header elements (the DOM2
+    // nodeIterator API would be a better technique but not supported by all
+    // browsers).
+    var iterate = function (el) {
+      for (var i = el.firstChild; i != null; i = i.nextSibling) {
+        if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+          var mo = re.exec(i.tagName);
+          if (mo && (i.getAttribute("class") || i.getAttribute("className")) != "float") {
+            result[result.length] = new TocEntry(i, getText(i), mo[1]-1);
+          }
+          iterate(i);
+        }
+      }
+    }
+    iterate(el);
+    return result;
+  }
+
+  var toc = document.getElementById("toc");
+  if (!toc) {
+    return;
+  }
+
+  // Delete existing TOC entries in case we're reloading the TOC.
+  var tocEntriesToRemove = [];
+  var i;
+  for (i = 0; i < toc.childNodes.length; i++) {
+    var entry = toc.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div'
+     && entry.getAttribute("class")
+     && entry.getAttribute("class").match(/^toclevel/))
+      tocEntriesToRemove.push(entry);
+  }
+  for (i = 0; i < tocEntriesToRemove.length; i++) {
+    toc.removeChild(tocEntriesToRemove[i]);
+  }
+
+  // Rebuild TOC entries.
+  var entries = tocEntries(document.getElementById("content"), toclevels);
+  for (var i = 0; i < entries.length; ++i) {
+    var entry = entries[i];
+    if (entry.element.id == "")
+      entry.element.id = "_toc_" + i;
+    var a = document.createElement("a");
+    a.href = "#" + entry.element.id;
+    a.appendChild(document.createTextNode(entry.text));
+    var div = document.createElement("div");
+    div.appendChild(a);
+    div.className = "toclevel" + entry.toclevel;
+    toc.appendChild(div);
+  }
+  if (entries.length == 0)
+    toc.parentNode.removeChild(toc);
+},
+
+
+/////////////////////////////////////////////////////////////////////
+// Footnotes generator
+/////////////////////////////////////////////////////////////////////
+
+/* Based on footnote generation code from:
+ * http://www.brandspankingnew.net/archive/2005/07/format_footnote.html
+ */
+
+footnotes: function () {
+  // Delete existing footnote entries in case we're reloading the footnodes.
+  var i;
+  var noteholder = document.getElementById("footnotes");
+  if (!noteholder) {
+    return;
+  }
+  var entriesToRemove = [];
+  for (i = 0; i < noteholder.childNodes.length; i++) {
+    var entry = noteholder.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
+      entriesToRemove.push(entry);
+  }
+  for (i = 0; i < entriesToRemove.length; i++) {
+    noteholder.removeChild(entriesToRemove[i]);
+  }
+
+  // Rebuild footnote entries.
+  var cont = document.getElementById("content");
+  var spans = cont.getElementsByTagName("span");
+  var refs = {};
+  var n = 0;
+  for (i=0; i<spans.length; i++) {
+    if (spans[i].className == "footnote") {
+      n++;
+      var note = spans[i].getAttribute("data-note");
+      if (!note) {
+        // Use [\s\S] in place of . so multi-line matches work.
+        // Because JavaScript has no s (dotall) regex flag.
+        note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+        spans[i].innerHTML =
+          "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+        spans[i].setAttribute("data-note", note);
+      }
+      noteholder.innerHTML +=
+        "<div class='footnote' id='_footnote_" + n + "'>" +
+        "<a href='#_footnoteref_" + n + "' title='Return to text'>" +
+        n + "</a>. " + note + "</div>";
+      var id =spans[i].getAttribute("id");
+      if (id != null) refs["#"+id] = n;
+    }
+  }
+  if (n == 0)
+    noteholder.parentNode.removeChild(noteholder);
+  else {
+    // Process footnoterefs.
+    for (i=0; i<spans.length; i++) {
+      if (spans[i].className == "footnoteref") {
+        var href = spans[i].getElementsByTagName("a")[0].getAttribute("href");
+        href = href.match(/#.*/)[0];  // Because IE return full URL.
+        n = refs[href];
+        spans[i].innerHTML =
+          "[<a href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+      }
+    }
+  }
+},
+
+install: function(toclevels) {
+  var timerId;
+
+  function reinstall() {
+    asciidoc.footnotes();
+    if (toclevels) {
+      asciidoc.toc(toclevels);
+    }
+  }
+
+  function reinstallAndRemoveTimer() {
+    clearInterval(timerId);
+    reinstall();
+  }
+
+  timerId = setInterval(reinstall, 500);
+  if (document.addEventListener)
+    document.addEventListener("DOMContentLoaded", reinstallAndRemoveTimer, false);
+  else
+    window.onload = reinstallAndRemoveTimer;
+}
+
+}
+asciidoc.install(2);
+/*]]>*/
+</script>
+</head>
+<body class="article">
+<div id="header">
+<h1>Basic EPICS Device Support</h1>
+<span id="author">Michael Davidsaver</span><br />
+<span id="email"><code>&lt;<a href="mailto:mdavidsaver@gmail.com">mdavidsaver@gmail.com</a>&gt;</code></span><br />
+<span id="revnumber">version 3,</span>
+<span id="revdate">November 2015</span>
+<div id="toc">
+  <div id="toctitle">Table of Contents</div>
+  <noscript><p><b>JavaScript must be enabled in your browser to display the table of contents.</b></p></noscript>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_introduction">1. Introduction</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Device support is the means of providing functionality specific to access hardware.
+This is done by providing several functions which the record support layer
+will call when appropriate.
+The functions which must be provided depend on the record type being supported.
+The <em>Record Reference Manual</em><a href="#RecRef">[RecRef]</a> provides a list of record types with
+descriptions and lists of device support functions.
+To determine the exact form of a record&#8217;s device support functions the source
+found in <em>$EPICS_BASE/src/rec</em> is invaluable.</p></div>
+<div class="paragraph"><p>The latest version of this page, and code listings, can be found at:
+<a href="http://mdavidsaver.github.io/epics-doc/epics-devsup.html">http://mdavidsaver.github.io/epics-doc/epics-devsup.html</a></p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_prepare_ioc_environment">2. Prepare IOC environment</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>It is assumed that EPICS Base is already built, that EPICS_BASE is set,
+and that the EPICS executables are in the system search PATH.</p></div>
+<div class="paragraph"><p>All paths given in this example are assumed to be relative to the <em>devsumexample</em>
+directory.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ mkdir devsupexample
+$ cd devsupexample</code></pre>
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_periodic_example">3. Periodic Example</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Let us begin with an example.
+The Analog input record is intended to represent a value read from hardware
+and interpreted as a floating point number.
+This does not imply that the underlying hardware representation is a floating point number.
+The AI record support provides a facility for conversion between a raw integer value
+and a floating point number.</p></div>
+<div class="paragraph"><p>In this example the <em>hardware</em> device to be read is the system pseudo random number generator.
+Whenever the record is processed a new number is read into the process variable (PV) database.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>makeBaseApp.pl -t ioc prng</code></pre>
+</div></div>
+<div class="paragraph"><p>This creates the makefiles needed to compile the code.
+The files we are about to create will be placed in <em>prngApp/src</em>.
+Later when <em>.db</em> files are created we will place them in <em>prngApp/Db</em>.</p></div>
+<div class="paragraph"><p>Take a moment to examine the files in <em>prngApp/src</em>.
+The file <em>prngMain.cpp</em> will be the point of entry for our IOC when run
+on a non-embedded platform.
+It is not very interesting through as it serves only to invoke the IOC shell.</p></div>
+<div class="paragraph"><p>The <em>prngApp/src/Makefile</em> does contain several interesting entries.
+Removing comments and blank lines leaves the following.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>TOP=../..
+include $(TOP)/configure/CONFIG
+PROD_IOC = prng
+DBD += prng.dbd
+prng_DBD += base.dbd
+prng_SRCS += prng_registerRecordDeviceDriver.cpp
+prng_SRCS_DEFAULT += prngMain.cpp
+prng_SRCS_vxWorks += -nil-
+prng_LIBS += $(EPICS_BASE_IOC_LIBS)
+include $(TOP)/configure/RULES</code></pre>
+</div></div>
+<div class="paragraph"><p>It is important to note that the EPICS build system attaches special significance to
+file names, not just extensions.</p></div>
+<div class="paragraph"><p>This Makefile will build the <em>prng</em> IOC (executable) from the two given C++ files and the database definition.
+Of these three only <em>prngMain.cpp</em> exists currently.
+The file <em>prng_registerRecordDeviceDriver.cpp</em> is automatically generated from the database definition.
+The database definition file <em>prng.dbd</em> is also generated by concatenating <em>base.dbd</em> with other <em>.dbd</em> files which we will add later.
+At this point is effectively just a copy of <em>base.dbd</em>, which is part of the EPICS Base package
+and specifies, among other things, the basic record types (see <em>$EPICS_BASE/dbd/base.dbd</em>).</p></div>
+<div class="paragraph"><p>At this point, the <em>prng</em> IOC can now be compiled, and the resulting executable can be run.
+However, it will not be capable of doing anything more than the <em>softIoc</em> executable.
+In fact, they are functionally identical.</p></div>
+<div class="sect2">
+<h3 id="_device_definition">3.1. Device Definition</h3>
+<div class="paragraph"><p>Our first task is to make an addition to the IOC database for our prng device.
+Create the file <em>prngApp/src/prngdev.dbd</em>:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>device(ai,CONSTANT,devAiPrng,"Random")</code></pre>
+</div></div>
+<div class="paragraph"><p>This defines the device <em>devAiPrng</em> as support for an AI record with a CONSTANT input link
+named "Random".
+The name <em>devAiPrng</em> must be unique in the IOC.
+The combination of record type and name string must also be unique.
+It is convention that device support names should take the form <em>devXxYyyy</em>
+where <em>Xx</em> is the record type and <em>Yyyy</em> identifies the hardware to be supported.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_writing_support">3.2. Writing Support</h3>
+<div class="paragraph"><p>Now create the file <em>prngApp/src/devprng.c</em> with the following sections.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;stdlib.h&gt;</span>
+<span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;epicsExport.h&gt;</span>
+<span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;dbAccess.h&gt;</span>
+<span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;devSup.h&gt;</span>
+<span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;recGbl.h&gt;</span>
+
+<span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;aiRecord.h&gt;</span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">static</span></span> <span style="color: #009900">long</span> <span style="font-weight: bold"><span style="color: #000000">init_record</span></span><span style="color: #990000">(</span><span style="color: #008080">aiRecord</span> <span style="color: #990000">*</span>pao<span style="color: #990000">);</span>
+<span style="font-weight: bold"><span style="color: #0000FF">static</span></span> <span style="color: #009900">long</span> <span style="font-weight: bold"><span style="color: #000000">read_ai</span></span><span style="color: #990000">(</span><span style="color: #008080">aiRecord</span> <span style="color: #990000">*</span>pao<span style="color: #990000">);</span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">prngState</span> <span style="color: #FF0000">{</span>
+  <span style="color: #009900">unsigned</span> <span style="color: #009900">int</span> seed<span style="color: #990000">;</span>
+<span style="color: #FF0000">}</span><span style="color: #990000">;</span></tt></pre></div></div>
+<div class="paragraph"><p>Our device support code will be contained in the <em>init_record</em> and <em>read_ai</em> functions.
+Custom state information will be held in an instance of the <em>prngState</em> structure.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #FF0000">{</span>
+  <span style="color: #009900">long</span> num<span style="color: #990000">;</span>
+  <span style="color: #008080">DEVSUPFUN</span>  report<span style="color: #990000">;</span>
+  <span style="color: #008080">DEVSUPFUN</span>  init<span style="color: #990000">;</span>
+  <span style="color: #008080">DEVSUPFUN</span>  init_record<span style="color: #990000">;</span>
+  <span style="color: #008080">DEVSUPFUN</span>  get_ioint_info<span style="color: #990000">;</span>
+  <span style="color: #008080">DEVSUPFUN</span>  read_ai<span style="color: #990000">;</span>
+  <span style="color: #008080">DEVSUPFUN</span>  special_linconv<span style="color: #990000">;</span>
+<span style="color: #FF0000">}</span> devAiPrng <span style="color: #990000">=</span> <span style="color: #FF0000">{</span>
+  <span style="color: #993399">6</span><span style="color: #990000">,</span> <span style="font-style: italic"><span style="color: #9A1900">/* space for 6 functions */</span></span>
+  NULL<span style="color: #990000">,</span>
+  NULL<span style="color: #990000">,</span>
+  init_record<span style="color: #990000">,</span>
+  NULL<span style="color: #990000">,</span>
+  read_ai<span style="color: #990000">,</span>
+  NULL
+<span style="color: #FF0000">}</span><span style="color: #990000">;</span>
+<span style="font-weight: bold"><span style="color: #000000">epicsExportAddress</span></span><span style="color: #990000">(</span>dset<span style="color: #990000">,</span>devAiPrng<span style="color: #990000">);</span></tt></pre></div></div>
+<div class="paragraph"><p>Now associate the name <em>devAiPrng</em> with our device support functions.
+This mechanism is a way of providing a set of functions which the record support
+will use in to perform certain functions.</p></div>
+<div class="paragraph"><p>It should be noted that AI record support requires <em>read_ai</em> to be specified, but
+<em>init_record</em> is optional.</p></div>
+<div class="paragraph"><p>From the perspective of object oriented programming the record support can be
+regarded as a base class.
+This device support inherits from the AI record support and provides definitions for
+two virtual methods.
+The AI record requires that <em>read_ai</em> be provided while <em>init</em> is optional.
+In this way <em>read_ai</em> functions as a pure virtual method.</p></div>
+<div class="paragraph"><p>The number of functions record support will look for and the meaning of these functions
+is determined by record support.
+For information on a specific record types see the <em>Record Reference Manual</em><a href="#RecRef">[RecRef]</a>
+and the source (ie <em>$EPICS_BASE/src/rec/aiRecord.c</em>).</p></div>
+<div class="sect3">
+<h4 id="_init_record">3.2.1. init_record</h4>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">static</span></span> <span style="color: #009900">long</span> <span style="font-weight: bold"><span style="color: #000000">init_record</span></span><span style="color: #990000">(</span><span style="color: #008080">aiRecord</span> <span style="color: #990000">*</span>pao<span style="color: #990000">)</span>
+<span style="color: #FF0000">{</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">prngState</span><span style="color: #990000">*</span> priv<span style="color: #990000">;</span>
+  <span style="color: #009900">unsigned</span> <span style="color: #009900">long</span> start<span style="color: #990000">;</span>
+
+  priv<span style="color: #990000">=</span><span style="font-weight: bold"><span style="color: #000000">malloc</span></span><span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">sizeof</span></span><span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">prngState</span><span style="color: #990000">));</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">if</span></span><span style="color: #990000">(!</span>priv<span style="color: #990000">)</span><span style="color: #FF0000">{</span>
+    <span style="font-weight: bold"><span style="color: #000000">recGblRecordError</span></span><span style="color: #990000">(</span>S_db_noMemory<span style="color: #990000">,</span> <span style="color: #990000">(</span><span style="color: #009900">void</span><span style="color: #990000">*)</span>pao<span style="color: #990000">,</span>
+      <span style="color: #FF0000">"devAoTimebase failed to allocate private struct"</span><span style="color: #990000">);</span>
+    <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> S_db_noMemory<span style="color: #990000">;</span>
+  <span style="color: #FF0000">}</span>
+
+  <span style="font-weight: bold"><span style="color: #000000">recGblInitConstantLink</span></span><span style="color: #990000">(&amp;</span>pao<span style="color: #990000">-&gt;</span>inp<span style="color: #990000">,</span>DBF_ULONG<span style="color: #990000">,&amp;</span>start<span style="color: #990000">);</span>
+
+  priv<span style="color: #990000">-&gt;</span>seed<span style="color: #990000">=</span>start<span style="color: #990000">;</span>
+  pao<span style="color: #990000">-&gt;</span>dpvt<span style="color: #990000">=</span>priv<span style="color: #990000">;</span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> <span style="color: #993399">0</span><span style="color: #990000">;</span>
+<span style="color: #FF0000">}</span></tt></pre></div></div>
+<div class="paragraph"><p>This <em>init_record</em> function is called once for each record in the IOC
+database which uses DTYP <em>Random</em> (ie <em>devAiPrng</em> device support).
+It allocates space for the structure used to keep internal state,
+then parses the Constant input link string to get the initial seed value.</p></div>
+<div class="paragraph"><p>The input link can only by a CONSTANT link so there is no need to verify this.</p></div>
+</div>
+<div class="sect3">
+<h4 id="_read_ai">3.2.2. read_ai</h4>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">static</span></span> <span style="color: #009900">long</span> <span style="font-weight: bold"><span style="color: #000000">read_ai</span></span><span style="color: #990000">(</span><span style="color: #008080">aiRecord</span> <span style="color: #990000">*</span>pao<span style="color: #990000">)</span>
+<span style="color: #FF0000">{</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">prngState</span><span style="color: #990000">*</span> priv<span style="color: #990000">=</span>pao<span style="color: #990000">-&gt;</span>dpvt<span style="color: #990000">;</span>
+
+  pao<span style="color: #990000">-&gt;</span>rval<span style="color: #990000">=</span><span style="font-weight: bold"><span style="color: #000000">rand_r</span></span><span style="color: #990000">(&amp;</span>priv<span style="color: #990000">-&gt;</span>seed<span style="color: #990000">);</span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> <span style="color: #993399">0</span><span style="color: #990000">;</span>
+<span style="color: #FF0000">}</span></tt></pre></div></div>
+<div class="paragraph"><p>Whenever a record using <em>devAiPrng</em> is processed <em>read_ai</em> is invoked.
+It simply invokes the thread-safe version of the <em>rand</em> function
+to supply a raw (integer) value.</p></div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_building">3.3. Building</h3>
+<div class="paragraph"><p>Now modify <em>prngApp/src/Makefile</em> to include the prng database and support code.
+Then go to the <em>devsupexample</em> directory and run <em>make</em></p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>TOP=../..
+include $(TOP)/configure/CONFIG
+PROD_IOC = prng
+DBD += prng.dbd
+prng_DBD += base.dbd
+prng_DBD += prngdev.dbd # &lt;- added
+prng_SRCS += prng_registerRecordDeviceDriver.cpp
+prng_SRCS += devprng.c  # &lt;- added
+prng_SRCS_DEFAULT += prngMain.cpp
+prng_SRCS_vxWorks += -nil-
+prng_LIBS += $(EPICS_BASE_IOC_LIBS)
+include $(TOP)/configure/RULES</code></pre>
+</div></div>
+</div>
+<div class="sect2">
+<h3 id="_database_configuration">3.4. Database Configuration</h3>
+<div class="paragraph"><p>The next task is to create an IOC database which uses the <em>Random</em> device support.
+Place the following in <em>prngApp/Db/prng.db</em> and add it to the makefile <em>prngApp/Db/Makefile</em>.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>record(ai,"$(P)"){
+  field(DTYP,"$(D)")
+  field(DESC,"Random numbers")
+  field(SCAN,"$(SCAN=1 second)")
+  field(INP,"$(S)")
+  field(LINR,"LINEAR")
+  field(ESLO,1e-9)
+  field(EOFF,-1)
+}</code></pre>
+</div></div>
+<div class="paragraph"><p>This will allow us to create several PVs generating random numbers.
+The combination of record type <em>ai</em> and the <em>DTYP</em> field is used to identify the
+correct device support.
+When instantiated <em>$(P)</em>, <em>$(D)</em>, and <em>$(S)</em> will be replaced with the PV name, device support type (<em>Random</em>), and the initial seed value.
+These will be specified later.</p></div>
+<div class="paragraph"><p>The fields <em>ESLO</em> and <em>EOFF</em> serve to define a linear scale to use when converting (integer) raw
+values to (floating point) engineering units.</p></div>
+<div class="paragraph"><p>Note: when changing <em>prngApp/Db/prng.db</em> remember to run <em>make</em> to update <em>db/prng.db</em>.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_running">3.5. Running</h3>
+<div class="paragraph"><p>In <em>devsupexample</em> create the IOC boot infrastructure to run the first example (prng1).</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>makeBaseApp.pl -a linux-x86 -i -t ioc -p prng prng1</code></pre>
+</div></div>
+<div class="paragraph"><p>In <em>iocBoot/iocprng1/st.cmd</em>:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>&lt; envPaths
+cd ${TOP}
+dbLoadDatabase "dbd/prng.dbd"
+prng_registerRecordDeviceDriver pdbbase
+# V Add this line V
+dbLoadRecords("db/prng.db","P=test:prng,D=Random,S=324235")
+cd ${TOP}/iocBoot/${IOC}
+iocInit</code></pre>
+</div></div>
+<div class="paragraph"><p>Now run the IOC.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>make
+cd iocBoost/iocprng1
+../../bin/linux-x86/prng st.cmd</code></pre>
+</div></div>
+<div class="paragraph"><p>Then watch the value of the PV <em>test:prng</em></p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ camonitor test:prng
+test:prng                      2009-02-21 15:29:15.364549 0.155918
+test:prng                      2009-02-21 15:29:16.364611 -0.681225
+ ...</code></pre>
+</div></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_asynchronous_example">4. Asynchronous Example</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The preceding example assumes that calls to <em>read_ai</em> will return quickly.
+This is true of <em>rand_r</em> which does only a simple computation,
+but not true of many operations which access hardware.
+In these cases it is desirable to start an operation,
+spend time doing other things,
+and only update the database when the result becomes available.</p></div>
+<div class="paragraph"><p>Support for this mode of operation is provided via the <em>PACT</em> flag.
+The following example creates another device support which demonstrates
+asynchronous processing.</p></div>
+<div class="paragraph"><p>Add the following line to <em>prngApp/src/prngdev.dbd</em></p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>device(ai,CONSTANT,devAiPrngAsync,"Random Async")</code></pre>
+</div></div>
+<div class="sect2">
+<h3 id="_writing_support_2">4.1. Writing Support</h3>
+<div class="paragraph"><p>Now create the file <em>prngApp/src/devprngasync.c</em> and add the following sections.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;stdlib.h&gt;</span>
+<span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;epicsExport.h&gt;</span>
+<span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;dbAccess.h&gt;</span>
+<span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;devSup.h&gt;</span>
+<span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;recSup.h&gt;</span>
+<span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;recGbl.h&gt;</span>
+<span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;callback.h&gt;</span>
+
+<span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;aiRecord.h&gt;</span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">static</span></span> <span style="color: #009900">long</span> <span style="font-weight: bold"><span style="color: #000000">init_record</span></span><span style="color: #990000">(</span><span style="color: #008080">aiRecord</span> <span style="color: #990000">*</span>pao<span style="color: #990000">);</span>
+<span style="font-weight: bold"><span style="color: #0000FF">static</span></span> <span style="color: #009900">long</span> <span style="font-weight: bold"><span style="color: #000000">read_ai</span></span><span style="color: #990000">(</span><span style="color: #008080">aiRecord</span> <span style="color: #990000">*</span>pao<span style="color: #990000">);</span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">prngState</span> <span style="color: #FF0000">{</span>
+  <span style="color: #009900">unsigned</span> <span style="color: #009900">int</span> seed<span style="color: #990000">;</span>
+  <span style="color: #008080">CALLBACK</span> cb<span style="color: #990000">;</span> <span style="font-style: italic"><span style="color: #9A1900">/* New */</span></span>
+<span style="color: #FF0000">}</span><span style="color: #990000">;</span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #FF0000">{</span>
+  <span style="color: #009900">long</span> num<span style="color: #990000">;</span>
+  <span style="color: #008080">DEVSUPFUN</span>  report<span style="color: #990000">;</span>
+  <span style="color: #008080">DEVSUPFUN</span>  init<span style="color: #990000">;</span>
+  <span style="color: #008080">DEVSUPFUN</span>  init_record<span style="color: #990000">;</span>
+  <span style="color: #008080">DEVSUPFUN</span>  get_ioint_info<span style="color: #990000">;</span>
+  <span style="color: #008080">DEVSUPFUN</span>  read_ai<span style="color: #990000">;</span>
+  <span style="color: #008080">DEVSUPFUN</span>  special_linconv<span style="color: #990000">;</span>
+<span style="color: #FF0000">}</span> devAiPrngAsync <span style="color: #990000">=</span> <span style="color: #FF0000">{</span>
+  <span style="color: #993399">6</span><span style="color: #990000">,</span> <span style="font-style: italic"><span style="color: #9A1900">/* space for 6 functions */</span></span>
+  NULL<span style="color: #990000">,</span>
+  NULL<span style="color: #990000">,</span>
+  init_record<span style="color: #990000">,</span>
+  NULL<span style="color: #990000">,</span>
+  read_ai<span style="color: #990000">,</span>
+  NULL
+<span style="color: #FF0000">}</span><span style="color: #990000">;</span>
+<span style="font-weight: bold"><span style="color: #000000">epicsExportAddress</span></span><span style="color: #990000">(</span>dset<span style="color: #990000">,</span>devAiPrngAsync<span style="color: #990000">);</span> <span style="font-style: italic"><span style="color: #9A1900">/* change name */</span></span>
+
+<span style="color: #009900">void</span> <span style="font-weight: bold"><span style="color: #000000">prng_cb</span></span><span style="color: #990000">(</span>CALLBACK<span style="color: #990000">*</span> cb<span style="color: #990000">);</span></tt></pre></div></div>
+<div class="paragraph"><p>Note the addition to the <em>prngState</em> struct of a CALLBACK.</p></div>
+<div class="sect3">
+<h4 id="_init_record_2">4.1.1. init_record</h4>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">static</span></span> <span style="color: #009900">long</span> <span style="font-weight: bold"><span style="color: #000000">init_record</span></span><span style="color: #990000">(</span><span style="color: #008080">aiRecord</span> <span style="color: #990000">*</span>pao<span style="color: #990000">)</span>
+<span style="color: #FF0000">{</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">prngState</span><span style="color: #990000">*</span> priv<span style="color: #990000">;</span>
+  <span style="color: #009900">unsigned</span> <span style="color: #009900">long</span> start<span style="color: #990000">;</span>
+
+  priv<span style="color: #990000">=</span><span style="font-weight: bold"><span style="color: #000000">malloc</span></span><span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">sizeof</span></span><span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">prngState</span><span style="color: #990000">));</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">if</span></span><span style="color: #990000">(!</span>priv<span style="color: #990000">)</span><span style="color: #FF0000">{</span>
+    <span style="font-weight: bold"><span style="color: #000000">recGblRecordError</span></span><span style="color: #990000">(</span>S_db_noMemory<span style="color: #990000">,</span> <span style="color: #990000">(</span><span style="color: #009900">void</span><span style="color: #990000">*)</span>pao<span style="color: #990000">,</span>
+      <span style="color: #FF0000">"devAoTimebase failed to allocate private struct"</span><span style="color: #990000">);</span>
+    <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> S_db_noMemory<span style="color: #990000">;</span>
+  <span style="color: #FF0000">}</span>
+
+  <span style="font-style: italic"><span style="color: #9A1900">/* New */</span></span>
+  <span style="font-weight: bold"><span style="color: #000000">callbackSetCallback</span></span><span style="color: #990000">(</span>prng_cb<span style="color: #990000">,&amp;</span>priv<span style="color: #990000">-&gt;</span>cb<span style="color: #990000">);</span>
+  <span style="font-weight: bold"><span style="color: #000000">callbackSetPriority</span></span><span style="color: #990000">(</span>priorityLow<span style="color: #990000">,&amp;</span>priv<span style="color: #990000">-&gt;</span>cb<span style="color: #990000">);</span>
+  <span style="font-weight: bold"><span style="color: #000000">callbackSetUser</span></span><span style="color: #990000">(</span>pao<span style="color: #990000">,&amp;</span>priv<span style="color: #990000">-&gt;</span>cb<span style="color: #990000">);</span>
+  priv<span style="color: #990000">-&gt;</span>cb<span style="color: #990000">.</span>timer<span style="color: #990000">=</span>NULL<span style="color: #990000">;</span>
+
+  <span style="font-weight: bold"><span style="color: #000000">recGblInitConstantLink</span></span><span style="color: #990000">(&amp;</span>pao<span style="color: #990000">-&gt;</span>inp<span style="color: #990000">,</span>DBF_ULONG<span style="color: #990000">,&amp;</span>start<span style="color: #990000">);</span>
+
+  priv<span style="color: #990000">-&gt;</span>seed<span style="color: #990000">=</span>start<span style="color: #990000">;</span>
+  pao<span style="color: #990000">-&gt;</span>dpvt<span style="color: #990000">=</span>priv<span style="color: #990000">;</span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> <span style="color: #993399">0</span><span style="color: #990000">;</span>
+<span style="color: #FF0000">}</span></tt></pre></div></div>
+<div class="paragraph"><p>The callback function and priority are set.</p></div>
+</div>
+<div class="sect3">
+<h4 id="_read_ai_2">4.1.2. read_ai</h4>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">static</span></span> <span style="color: #009900">long</span> <span style="font-weight: bold"><span style="color: #000000">read_ai</span></span><span style="color: #990000">(</span><span style="color: #008080">aiRecord</span> <span style="color: #990000">*</span>pao<span style="color: #990000">)</span>
+<span style="color: #FF0000">{</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">prngState</span><span style="color: #990000">*</span> priv<span style="color: #990000">=</span>pao<span style="color: #990000">-&gt;</span>dpvt<span style="color: #990000">;</span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">if</span></span><span style="color: #990000">(</span> <span style="color: #990000">!</span> pao<span style="color: #990000">-&gt;</span>pact <span style="color: #990000">)</span><span style="color: #FF0000">{</span>
+    <span style="font-style: italic"><span style="color: #9A1900">/* start async operation */</span></span>
+    pao<span style="color: #990000">-&gt;</span>pact<span style="color: #990000">=</span>TRUE<span style="color: #990000">;</span>
+    <span style="font-weight: bold"><span style="color: #000000">callbackSetUser</span></span><span style="color: #990000">(</span>pao<span style="color: #990000">,&amp;</span>priv<span style="color: #990000">-&gt;</span>cb<span style="color: #990000">);</span>
+    <span style="font-weight: bold"><span style="color: #000000">callbackRequestDelayed</span></span><span style="color: #990000">(&amp;</span>priv<span style="color: #990000">-&gt;</span>cb<span style="color: #990000">,</span><span style="color: #993399">0.1</span><span style="color: #990000">);</span>
+    <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> <span style="color: #993399">0</span><span style="color: #990000">;</span>
+  <span style="color: #FF0000">}</span><span style="font-weight: bold"><span style="color: #0000FF">else</span></span><span style="color: #FF0000">{</span>
+    <span style="font-style: italic"><span style="color: #9A1900">/* complete operation */</span></span>
+    pao<span style="color: #990000">-&gt;</span>pact<span style="color: #990000">=</span>FALSE<span style="color: #990000">;</span>
+    <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> <span style="color: #993399">0</span><span style="color: #990000">;</span>
+  <span style="color: #FF0000">}</span>
+<span style="color: #FF0000">}</span></tt></pre></div></div>
+<div class="paragraph"><p>The operation of <em>read_ai</em> changes substantially.
+When the record is processed control passes into <em>read_ai</em> with the <em>PACT</em>
+field set to false.
+To start an asynchronous operation this field is set to TRUE,
+and a delayed action is scheduled.
+While <em>PACT</em> is set the IOC will not try to process this record again.</p></div>
+<div class="paragraph"><p>When the callback has completed it must manually process the record
+which will complete the operation and allow <em>PACT</em> to be cleared.</p></div>
+</div>
+<div class="sect3">
+<h4 id="_callback">4.1.3. callback</h4>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #009900">void</span> <span style="font-weight: bold"><span style="color: #000000">prng_cb</span></span><span style="color: #990000">(</span>CALLBACK<span style="color: #990000">*</span> cb<span style="color: #990000">)</span>
+<span style="color: #FF0000">{</span>
+  aiRecord<span style="color: #990000">*</span> prec<span style="color: #990000">;</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">prngState</span><span style="color: #990000">*</span> priv<span style="color: #990000">;</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">rset</span><span style="color: #990000">*</span> prset<span style="color: #990000">;</span>
+  <span style="color: #008080">epicsInt32</span> raw<span style="color: #990000">;</span>
+
+  <span style="font-weight: bold"><span style="color: #000000">callbackGetUser</span></span><span style="color: #990000">(</span>prec<span style="color: #990000">,</span>cb<span style="color: #990000">);</span>
+  prset<span style="color: #990000">=(</span><span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">rset</span><span style="color: #990000">*)</span>prec<span style="color: #990000">-&gt;</span>rset<span style="color: #990000">;</span>
+  priv<span style="color: #990000">=</span>prec<span style="color: #990000">-&gt;</span>dpvt<span style="color: #990000">;</span>
+
+  raw<span style="color: #990000">=</span><span style="font-weight: bold"><span style="color: #000000">rand_r</span></span><span style="color: #990000">(&amp;</span>priv<span style="color: #990000">-&gt;</span>seed<span style="color: #990000">);</span>
+
+  <span style="font-weight: bold"><span style="color: #000000">dbScanLock</span></span><span style="color: #990000">((</span>dbCommon<span style="color: #990000">*)</span>prec<span style="color: #990000">);</span>
+  prec<span style="color: #990000">-&gt;</span>rval<span style="color: #990000">=</span>raw<span style="color: #990000">;</span>
+  <span style="color: #990000">(*</span>prset<span style="color: #990000">-&gt;</span>process<span style="color: #990000">)(</span>prec<span style="color: #990000">);</span>
+  <span style="font-weight: bold"><span style="color: #000000">dbScanUnlock</span></span><span style="color: #990000">((</span>dbCommon<span style="color: #990000">*)</span>prec<span style="color: #990000">);</span>
+<span style="color: #FF0000">}</span></tt></pre></div></div>
+<div class="paragraph"><p>This generic callback is taken from the <em>EPICS Application Developer&#8217;s Guide</em><a href="#AppDev">[AppDev]</a>.
+It manually invokes record processing.
+It this way <em>read_ai</em> is called while <em>PACT</em> is set.</p></div>
+<div class="paragraph"><p>Note: Due to the way database processing and the <em>PACT</em> flag are handled
+no additional locking is required. More complicated scenarios involving multiple
+PVs might require, for example, a mutex to guard <em>priv&#8594;seed</em>.</p></div>
+<div class="paragraph"><p>Remember to add <em>devprngasync.c</em> to <em>prngApp/src/Makefile</em>.</p></div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_running_2">4.2. Running</h3>
+<div class="paragraph"><p>The database file can be reused so only one change is necessary.</p></div>
+<div class="paragraph"><p>In <em>iocBoot/iocprng1/st.cmd</em> add a line:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>&lt; envPaths
+cd ${TOP}
+dbLoadDatabase "dbd/prng.dbd"
+prng_registerRecordDeviceDriver pdbbase
+dbLoadRecords("db/prng.db","P=test:prng,D=Random,S=324235")
+# V Add this line V
+dbLoadRecords("db/prng.db","P=test:prngasync,D=Random Async,S=324235")
+cd ${TOP}/iocBoot/${IOC}
+iocInit</code></pre>
+</div></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_interrupt_driven_example">5. Interrupt Driven Example</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>This section demonstrates a variation on the Periodic example
+which allows the periodic SCAN (eg. "1 second") to be switch
+with a SCAN rate driven from a device specific source ("I/O Intr").
+In this example, an arbitrary thread is used.</p></div>
+<div class="paragraph"><p>Add the following line to <em>prngApp/src/prngdev.dbd</em></p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>device(ai,CONSTANT,devAiPrngIntr,"Random Intr")</code></pre>
+</div></div>
+<div class="sect2">
+<h3 id="_writing_support_3">5.1. Writing Support</h3>
+<div class="paragraph"><p>Now create <em>prngApp/src/devprngintr.c</em> with the following sections.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;stdlib.h&gt;</span>
+<span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;epicsExport.h&gt;</span>
+<span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;dbAccess.h&gt;</span>
+<span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;devSup.h&gt;</span>
+<span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;recGbl.h&gt;</span>
+<span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;dbScan.h&gt;</span>
+<span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;dbDefs.h&gt;</span>
+<span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;ellLib.h&gt;</span>
+<span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;cantProceed.h&gt;</span>
+<span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;epicsThread.h&gt;</span>
+<span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;epicsMutex.h&gt;</span>
+<span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;initHooks.h&gt;</span>
+
+<span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;aiRecord.h&gt;</span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">static</span></span> <span style="color: #008080">ELLLIST</span> allprngs <span style="color: #990000">=</span> ELLLIST_INIT<span style="color: #990000">;</span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">prngState</span> <span style="color: #FF0000">{</span>
+  <span style="color: #008080">ELLNODE</span> node<span style="color: #990000">;</span>
+  <span style="color: #009900">unsigned</span> <span style="color: #009900">int</span> seed<span style="color: #990000">;</span>
+  <span style="color: #009900">unsigned</span> <span style="color: #009900">int</span> lastnum<span style="color: #990000">;</span>
+  <span style="color: #008080">epicsMutexId</span> lock<span style="color: #990000">;</span>
+  <span style="color: #008080">IOSCANPVT</span> scan<span style="color: #990000">;</span>
+  <span style="color: #008080">epicsThreadId</span> generator<span style="color: #990000">;</span>
+<span style="color: #FF0000">}</span><span style="color: #990000">;</span></tt></pre></div></div>
+<div class="paragraph"><p>As before we define a private structure.  Several addition members are added.
+The most significant is <em>IOCSCANPVT scan;</em> as will be seen in the following
+sections.</p></div>
+<div class="sect3">
+<h4 id="_init">5.1.1. init</h4>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">static</span></span> <span style="color: #009900">void</span> <span style="font-weight: bold"><span style="color: #000000">start_workers</span></span><span style="color: #990000">(</span><span style="color: #008080">initHookState</span> state<span style="color: #990000">);</span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">static</span></span> <span style="color: #009900">long</span> <span style="font-weight: bold"><span style="color: #000000">init</span></span><span style="color: #990000">(</span><span style="color: #009900">int</span> phase<span style="color: #990000">)</span>
+<span style="color: #FF0000">{</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">if</span></span><span style="color: #990000">(</span>phase<span style="color: #990000">==</span><span style="color: #993399">0</span><span style="color: #990000">)</span>
+    <span style="font-weight: bold"><span style="color: #000000">initHookRegister</span></span><span style="color: #990000">(&amp;</span>start_workers<span style="color: #990000">);</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> <span style="color: #993399">0</span><span style="color: #990000">;</span>
+<span style="color: #FF0000">}</span></tt></pre></div></div>
+<div class="paragraph"><p>Use of <em>I/O Intr</em> scanning is not permitted before a certain point
+in the IOC startup sequence (<em>iocInit())</em>).  Here a callback function
+is added which will receive notification of all future updates.</p></div>
+<div class="paragraph"><p>Note that a device support <em>long init(int)</em> function is called exactly twice (phase 0 and 1)
+during the initialization sequence.  By waiting until this point, the callback function will
+not be called for some of the hook states (they have already happened).  To capture all states
+the hook must be registered before <em>iocInit()</em> is called.  This can be accomplished by using
+a <em>registrar()</em> function.</p></div>
+</div>
+<div class="sect3">
+<h4 id="_init_record_3">5.1.2. init_record</h4>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">static</span></span> <span style="color: #009900">long</span> <span style="font-weight: bold"><span style="color: #000000">init_record</span></span><span style="color: #990000">(</span><span style="color: #008080">aiRecord</span> <span style="color: #990000">*</span>prec<span style="color: #990000">)</span>
+<span style="color: #FF0000">{</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">prngState</span><span style="color: #990000">*</span> priv<span style="color: #990000">;</span>
+  <span style="color: #009900">unsigned</span> <span style="color: #009900">long</span> start<span style="color: #990000">;</span>
+
+  priv<span style="color: #990000">=</span><span style="font-weight: bold"><span style="color: #000000">callocMustSucceed</span></span><span style="color: #990000">(</span><span style="color: #993399">1</span><span style="color: #990000">,</span><span style="font-weight: bold"><span style="color: #0000FF">sizeof</span></span><span style="color: #990000">(*</span>priv<span style="color: #990000">),</span><span style="color: #FF0000">"prngintr"</span><span style="color: #990000">);</span>
+
+  <span style="font-weight: bold"><span style="color: #000000">recGblInitConstantLink</span></span><span style="color: #990000">(&amp;</span>prec<span style="color: #990000">-&gt;</span>inp<span style="color: #990000">,</span>DBF_ULONG<span style="color: #990000">,&amp;</span>start<span style="color: #990000">);</span>
+
+  priv<span style="color: #990000">-&gt;</span>seed<span style="color: #990000">=</span>start<span style="color: #990000">;</span>
+  <span style="font-weight: bold"><span style="color: #000000">scanIoInit</span></span><span style="color: #990000">(&amp;</span>priv<span style="color: #990000">-&gt;</span>scan<span style="color: #990000">);</span>
+  priv<span style="color: #990000">-&gt;</span>lock <span style="color: #990000">=</span> <span style="font-weight: bold"><span style="color: #000000">epicsMutexMustCreate</span></span><span style="color: #990000">();</span>
+  priv<span style="color: #990000">-&gt;</span>generator <span style="color: #990000">=</span> NULL<span style="color: #990000">;</span>
+  <span style="font-weight: bold"><span style="color: #000000">ellAdd</span></span><span style="color: #990000">(&amp;</span>allprngs<span style="color: #990000">,</span> <span style="color: #990000">&amp;</span>priv<span style="color: #990000">-&gt;</span>node<span style="color: #990000">);</span>
+  prec<span style="color: #990000">-&gt;</span>dpvt<span style="color: #990000">=</span>priv<span style="color: #990000">;</span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> <span style="color: #993399">0</span><span style="color: #990000">;</span>
+<span style="color: #FF0000">}</span></tt></pre></div></div>
+<div class="paragraph"><p>Each record is initialized with its own private structure and (later) worker thread.</p></div>
+<div class="paragraph"><p>The <em>allprngs</em> list is used to keep track of all private structures created.  No locking is needed
+in this example because <em>init_record()</em> is called during the singled threaded phase of database
+initialization, and the list will not be modified afterward.</p></div>
+<div class="paragraph"><p>The function <em>scanIoInit()</em> is used to prepare this structure&#8217;s <em>I/O Intr</em> scan list.</p></div>
+</div>
+<div class="sect3">
+<h4 id="_init_hook">5.1.3. Init hook</h4>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">static</span></span> <span style="color: #009900">void</span> <span style="font-weight: bold"><span style="color: #000000">start_workers</span></span><span style="color: #990000">(</span><span style="color: #008080">initHookState</span> state<span style="color: #990000">)</span>
+<span style="color: #FF0000">{</span>
+  <span style="color: #008080">ELLNODE</span> <span style="color: #990000">*</span>cur<span style="color: #990000">;</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">if</span></span><span style="color: #990000">(</span>state<span style="color: #990000">!=</span>initHookAfterInterruptAccept<span style="color: #990000">)</span>
+    <span style="font-weight: bold"><span style="color: #0000FF">return</span></span><span style="color: #990000">;</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">for</span></span><span style="color: #990000">(</span>cur<span style="color: #990000">=</span><span style="font-weight: bold"><span style="color: #000000">ellFirst</span></span><span style="color: #990000">(&amp;</span>allprngs<span style="color: #990000">);</span> cur<span style="color: #990000">;</span> cur<span style="color: #990000">=</span><span style="font-weight: bold"><span style="color: #000000">ellNext</span></span><span style="color: #990000">(</span>cur<span style="color: #990000">))</span> <span style="color: #FF0000">{</span>
+    <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">prngState</span> <span style="color: #990000">*</span>priv <span style="color: #990000">=</span> <span style="font-weight: bold"><span style="color: #000000">CONTAINER</span></span><span style="color: #990000">(</span>cur<span style="color: #990000">,</span> <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">prngState</span><span style="color: #990000">,</span> node<span style="color: #990000">);</span>
+    priv<span style="color: #990000">-&gt;</span>generator <span style="color: #990000">=</span> <span style="font-weight: bold"><span style="color: #000000">epicsThreadMustCreate</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"prngworker"</span><span style="color: #990000">,</span>
+                                            epicsThreadPriorityMedium<span style="color: #990000">,</span>
+                                            <span style="font-weight: bold"><span style="color: #000000">epicsThreadGetStackSize</span></span><span style="color: #990000">(</span>epicsThreadStackSmall<span style="color: #990000">),</span>
+                                            <span style="color: #990000">&amp;</span>worker<span style="color: #990000">,</span> priv<span style="color: #990000">);</span>
+  <span style="color: #FF0000">}</span>
+<span style="color: #FF0000">}</span></tt></pre></div></div>
+<div class="paragraph"><p>Here the hook function uses the state <em>initHookAfterInterruptAccept</em> to
+start a worker for each of the private structures.</p></div>
+</div>
+<div class="sect3">
+<h4 id="_worker">5.1.4. Worker</h4>
+<div class="paragraph" id="iointrworker"><p>With EPICS Base less than 3.16.0.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">static</span></span> <span style="color: #009900">void</span> <span style="font-weight: bold"><span style="color: #000000">worker</span></span><span style="color: #990000">(</span><span style="color: #009900">void</span><span style="color: #990000">*</span> raw<span style="color: #990000">)</span>
+<span style="color: #FF0000">{</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">prngState</span><span style="color: #990000">*</span> priv<span style="color: #990000">=</span>raw<span style="color: #990000">;</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">while</span></span><span style="color: #990000">(</span><span style="color: #993399">1</span><span style="color: #990000">)</span> <span style="color: #FF0000">{</span>
+    <span style="font-weight: bold"><span style="color: #000000">epicsMutexMustLock</span></span><span style="color: #990000">(</span>priv<span style="color: #990000">-&gt;</span>lock<span style="color: #990000">);</span>
+    priv<span style="color: #990000">-&gt;</span>lastnum <span style="color: #990000">=</span> <span style="font-weight: bold"><span style="color: #000000">rand_r</span></span><span style="color: #990000">(&amp;</span>priv<span style="color: #990000">-&gt;</span>seed<span style="color: #990000">);</span>
+    <span style="font-weight: bold"><span style="color: #000000">epicsMutexUnlock</span></span><span style="color: #990000">(</span>priv<span style="color: #990000">-&gt;</span>lock<span style="color: #990000">);</span>
+
+    <span style="font-weight: bold"><span style="color: #000000">scanIoRequest</span></span><span style="color: #990000">(</span>priv<span style="color: #990000">-&gt;</span>scan<span style="color: #990000">);</span>
+
+    <span style="font-weight: bold"><span style="color: #000000">epicsThreadSleep</span></span><span style="color: #990000">(</span><span style="color: #993399">1.0</span><span style="color: #990000">);</span>
+  <span style="color: #FF0000">}</span>
+<span style="color: #FF0000">}</span></tt></pre></div></div>
+<div class="paragraph"><p>The worker thread itself simply loops.  Each iteration updates the private structure with a new random number.
+When the number is ready the function <em>scanIoRequest()</em> to queue a request to process all records associated
+with this scan list.</p></div>
+<div class="paragraph"><p><em>scanIoRequest()</em> does not process the records directly, and can be called from interrupt context.</p></div>
+<div class="paragraph"><p>With EPICS Base greater than or equal to 3.16.0 (as of Nov. 2015 not released).</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">static</span></span> <span style="color: #009900">void</span> <span style="font-weight: bold"><span style="color: #000000">worker</span></span><span style="color: #990000">(</span><span style="color: #009900">void</span><span style="color: #990000">*</span> raw<span style="color: #990000">)</span>
+<span style="color: #FF0000">{</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">prngState</span><span style="color: #990000">*</span> priv<span style="color: #990000">=</span>raw<span style="color: #990000">;</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">while</span></span><span style="color: #990000">(</span><span style="color: #993399">1</span><span style="color: #990000">)</span> <span style="color: #FF0000">{</span>
+    <span style="font-weight: bold"><span style="color: #000000">epicsMutexMustLock</span></span><span style="color: #990000">(</span>priv<span style="color: #990000">-&gt;</span>lock<span style="color: #990000">);</span>
+    priv<span style="color: #990000">-&gt;</span>lastnum <span style="color: #990000">=</span> <span style="font-weight: bold"><span style="color: #000000">rand_r</span></span><span style="color: #990000">(&amp;</span>priv<span style="color: #990000">-&gt;</span>seed<span style="color: #990000">);</span>
+    <span style="font-weight: bold"><span style="color: #000000">epicsMutexUnlock</span></span><span style="color: #990000">(</span>priv<span style="color: #990000">-&gt;</span>lock<span style="color: #990000">);</span>
+
+    <span style="font-weight: bold"><span style="color: #000000">scanIoImmediate</span></span><span style="color: #990000">(</span>priv<span style="color: #990000">-&gt;</span>scan<span style="color: #990000">,</span> priorityHigh<span style="color: #990000">);</span>
+    <span style="font-weight: bold"><span style="color: #000000">scanIoImmediate</span></span><span style="color: #990000">(</span>priv<span style="color: #990000">-&gt;</span>scan<span style="color: #990000">,</span> priorityMedium<span style="color: #990000">);</span>
+    <span style="font-weight: bold"><span style="color: #000000">scanIoImmediate</span></span><span style="color: #990000">(</span>priv<span style="color: #990000">-&gt;</span>scan<span style="color: #990000">,</span> priorityLow<span style="color: #990000">);</span>
+
+    <span style="font-weight: bold"><span style="color: #000000">epicsThreadSleep</span></span><span style="color: #990000">(</span><span style="color: #993399">1.0</span><span style="color: #990000">);</span>
+  <span style="color: #FF0000">}</span>
+<span style="color: #FF0000">}</span></tt></pre></div></div>
+</div>
+<div class="sect3">
+<h4 id="_get_iointr_info">5.1.5. get_iointr_info</h4>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">static</span></span> <span style="color: #009900">long</span> <span style="font-weight: bold"><span style="color: #000000">get_ioint_info</span></span><span style="color: #990000">(</span><span style="color: #009900">int</span> dir<span style="color: #990000">,</span>dbCommon<span style="color: #990000">*</span> prec<span style="color: #990000">,</span>IOSCANPVT<span style="color: #990000">*</span> io<span style="color: #990000">)</span>
+<span style="color: #FF0000">{</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">prngState</span><span style="color: #990000">*</span> priv<span style="color: #990000">=</span>prec<span style="color: #990000">-&gt;</span>dpvt<span style="color: #990000">;</span>
+
+  <span style="color: #990000">*</span>io <span style="color: #990000">=</span> priv<span style="color: #990000">-&gt;</span>scan<span style="color: #990000">;</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> <span style="color: #993399">0</span><span style="color: #990000">;</span>
+<span style="color: #FF0000">}</span></tt></pre></div></div>
+<div class="paragraph"><p>So far we have seen how to initialize a scan list with <em>scanIoInit()</em>, and how to request a scan with <em>scanIoRequest()</em>.
+Of course, this is only interesting if doing so will actually cause some records to be processed.</p></div>
+<div class="paragraph"><p>A record is added to a scan list by setting its SCAN field to <em>I/O Intr</em>.  This can either be set in
+a .db files, or changed at runtime.  In either case this results in a call to the <em>get_ioint_info()</em>
+function with <em>dir=0</em>.  If this function is not provided, or if no scan list is given (<em>*io = NULL</em>) then the
+record will revert to <em>Passive</em> SCAN.</p></div>
+<div class="paragraph"><p>Once a record is successfully added to a scan list, it will be processed once for each call to
+<em>scanIoRequest()</em>.  The <em>I/O Intr</em> scanning mechanism is based on a fixed length queue shared
+by all scan lists.  So care must be taken to avoid overflowing this queue.</p></div>
+<div class="paragraph"><p>Setting the SCAN field to a value other than <em>I/O Intr</em> will cause the <em>get_ioint_info()</em>
+function to be called a second time with <em>dir=1</em>.  In this case, the record will be removed from the provided
+scan list.  It is essential that the same scan list is provided for both calls.  Doing
+otherwise will result in undefined behavior (typically a crash).</p></div>
+</div>
+<div class="sect3">
+<h4 id="_read_ai_3">5.1.6. read_ai</h4>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">static</span></span> <span style="color: #009900">long</span> <span style="font-weight: bold"><span style="color: #000000">read_ai</span></span><span style="color: #990000">(</span><span style="color: #008080">aiRecord</span> <span style="color: #990000">*</span>prec<span style="color: #990000">)</span>
+<span style="color: #FF0000">{</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">prngState</span><span style="color: #990000">*</span> priv<span style="color: #990000">=</span>prec<span style="color: #990000">-&gt;</span>dpvt<span style="color: #990000">;</span>
+
+  <span style="font-weight: bold"><span style="color: #000000">epicsMutexMustLock</span></span><span style="color: #990000">(</span>priv<span style="color: #990000">-&gt;</span>lock<span style="color: #990000">);</span>
+  prec<span style="color: #990000">-&gt;</span>rval <span style="color: #990000">=</span> priv<span style="color: #990000">-&gt;</span>lastnum<span style="color: #990000">;</span>
+  <span style="font-weight: bold"><span style="color: #000000">epicsMutexUnlock</span></span><span style="color: #990000">(</span>priv<span style="color: #990000">-&gt;</span>lock<span style="color: #990000">);</span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> <span style="color: #993399">0</span><span style="color: #990000">;</span>
+<span style="color: #FF0000">}</span></tt></pre></div></div>
+<div class="paragraph"><p>The device support read function simply copies the latest random number.</p></div>
+<div class="paragraph"><p>As random numbers are generated by the worker
+thread we can use <em>SCAN=I/O Intr</em> to update the record with minimum latency.  It is also possible
+to set <em>SCAN=10 second</em> to throttle back the rate.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #FF0000">{</span>
+  <span style="color: #009900">long</span> num<span style="color: #990000">;</span>
+  <span style="color: #008080">DEVSUPFUN</span>  report<span style="color: #990000">;</span>
+  <span style="color: #008080">DEVSUPFUN</span>  init<span style="color: #990000">;</span>
+  <span style="color: #008080">DEVSUPFUN</span>  init_record<span style="color: #990000">;</span>
+  <span style="color: #008080">DEVSUPFUN</span>  get_ioint_info<span style="color: #990000">;</span>
+  <span style="color: #008080">DEVSUPFUN</span>  read_ai<span style="color: #990000">;</span>
+  <span style="color: #008080">DEVSUPFUN</span>  special_linconv<span style="color: #990000">;</span>
+<span style="color: #FF0000">}</span> devAiPrngIntr <span style="color: #990000">=</span> <span style="color: #FF0000">{</span>
+  <span style="color: #993399">6</span><span style="color: #990000">,</span> <span style="font-style: italic"><span style="color: #9A1900">/* space for 6 functions */</span></span>
+  NULL<span style="color: #990000">,</span>
+  init<span style="color: #990000">,</span>
+  init_record<span style="color: #990000">,</span>
+  get_ioint_info<span style="color: #990000">,</span>
+  read_ai<span style="color: #990000">,</span>
+  NULL
+<span style="color: #FF0000">}</span><span style="color: #990000">;</span>
+<span style="font-weight: bold"><span style="color: #000000">epicsExportAddress</span></span><span style="color: #990000">(</span>dset<span style="color: #990000">,</span>devAiPrngIntr<span style="color: #990000">);</span></tt></pre></div></div>
+<div class="paragraph"><p>Define the device support table.</p></div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_rate_limiting_base_lt_3_16_0">5.2. Rate Limiting (Base &lt; 3.16.0)</h3>
+<div class="paragraph"><p>The I/O Intr mechanism is implemented using the EPICS callback API.
+Internally <em>scanIoRequest()</em> calls <em>callbackRequest(CALLBACK*)</em> up to three times
+as each IOSCANPVT consists of three such callbacks, one for each of the available priorities.
+Each priority has a fixed length FIFO for requests, and one or more worker threads to run them.</p></div>
+<div class="paragraph"><p>A fixed length FIFO can, of course, become full if requests are queued too quickly.
+Because this FIFO is shared process wide, an overflow can be caused by any driver in the IOC,
+and affect all drivers using the queue.
+This manifests as the dreaded "callbackRequest: cbLow ring buffer full" log message.</p></div>
+<div class="paragraph"><p>The <a href="https://github.com/mdavidsaver/epics-doc/blob/master/code-listings/prngApp/src/devprngintrrate.c">devprngintrrate.c</a>
+example demonstrates how to avoid this for EPICS Base 3.14 and 3.15.</p></div>
+<div class="paragraph"><p>Beginning in EPICS Base 3.15.0.1 the "I/O Intr" handling API was extended to include
+<em>scanIoSetComplete()</em>.  Prior to this, rate limiting could be accomplished by assuming
+that callbacks are executed in the order queued.  With the introduction in 3.15 or
+parallel processing of callback queues, this no longer hold and the <em>scanIoSetComplete()</em>
+technique must be used.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_rate_limiting_base_gt_3_16_0">5.3. Rate Limiting (Base &gt;= 3.16.0)</h3>
+<div class="paragraph"><p>This section describes unreleased functionality as of Nov. 2015.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #009900">void</span> <span style="font-weight: bold"><span style="color: #000000">scanIoImmediate</span></span><span style="color: #990000">(</span><span style="color: #008080">IOSCANPVT</span> scan<span style="color: #990000">,</span> <span style="color: #009900">int</span> priority<span style="color: #990000">);</span></tt></pre></div></div>
+<div class="paragraph"><p>Beginning with EPICS Base 3.16.0 an additional API call is available
+which does record processing in the calling thread (do <strong>not</strong> call from device support).
+This is demonstrated in the <a href="#iointrworker">worker thread</a> example shown above.</p></div>
+<div class="paragraph"><p>For situations where blocking is not tolerable (actual interrupt context)
+The <em>scanIoSetComplete()</em> must still be used.</p></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_when_to_use">6. When to Use</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The Periodic example presented above suffers from two problems.
+Because all processing for a given SCAN rate is done on a single thread,
+any device support which blocks the thread will cause the entire IOC to
+become unresponsive.
+Also, the periodic SCANs are based on the system time of the computer
+running the IOC, which will rarely be tied to the processing cycle of
+the device being controlled.</p></div>
+<div class="paragraph"><p>The Asynchronous example solves the first problem by allowing work
+to be offloaded in another thread.  The second problem is partly
+solved.  While start of processing is not tied a device, the completion
+can be.</p></div>
+<div class="paragraph"><p>The I/O Intr examples allows all work to be done outside the normally
+scanning process, and the results pushed into records.</p></div>
+<div class="paragraph"><p>Now to consider some situations:</p></div>
+<div class="paragraph"><p>Simple periodic scanning is appropriate when the value to be read (or written) is immediately accessible,
+and the source of the value gives no notification of when a new value is available.  An example
+of this is a temperature measurement from a memory mapped device (eg. local CPU temp.).</p></div>
+<div class="paragraph"><p>Asynchronous processing is appropriate in a number of cases.  When the value is not immediately accessible,
+but rather arrives some time after it is requested.  It is also useful when the underlying operation
+is a blocking system call.  Also, asynchronous processing works with the Channel Access put
+with callback operation (<em>ca_put_callback()</em>).</p></div>
+<div class="paragraph"><p>I/O Intr processing is most appropriate when data is delivered
+without an explicit request (unsolicited), perhaps driven by an external
+trigger or clock.</p></div>
+<div class="paragraph"><p>However, there are a number of situations where I/O Intr processing can
+be used instead of Asynchronous processing.  Instead of one Asynchronous record, use two records.
+The first initiates the request, while the second uses <em>SCAN=I/O Intr</em> to scan on completion.
+This may be helpful if the result(s) of the operation should be stored in several records.</p></div>
+<div class="paragraph"><p>This also allows flexibility if many requests can be queued before a response arrives.
+It may also avoid the need to provide an explicit cancel action.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_now_what">7. Now What</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>These examples demonstrate writing device support for a single AI record.
+Support for other record types (BO, STRINGIN, EVENT, &#8230;) differs only
+in which fields the <em>read_*</em> function must update.
+Also interesting are some of the other fields which effect conversion of
+raw values in the analog record types, and the ability to bypass this
+conversion and specify the value in engineering units directly.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_references">8. References</h2>
+<div class="sectionbody">
+<div class="ulist"><ul>
+<li>
+<p>
+<a id="RecRef"></a>[RecRef] The Epics Collaboration  <em>EPICS 3.14 Record Reference Manual Wiki</em>
+<a href="http://www.aps.anl.gov/epics/wiki/index.php/RRM_3-14">http://www.aps.anl.gov/epics/wiki/index.php/RRM_3-14</a>
+</p>
+</li>
+<li>
+<p>
+<a id="AppDev"></a>[AppDev] Marty Kraimer et al.  'EPICS Application Developer&#8217;s Guide '.
+<a href="http://www.aps.anl.gov/epics/base/R3-15/2-docs/AppDevGuide/">http://www.aps.anl.gov/epics/base/R3-15/2-docs/AppDevGuide/</a>
+</p>
+</li>
+</ul></div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr /></div>
+<div id="footer">
+<div id="footer-text">
+Version 3<br />
+Last updated
+ 2017-08-01 13:15:42 CEST
+</div>
+</div>
+</body>
+</html>

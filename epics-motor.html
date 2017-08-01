@@ -1,0 +1,1989 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.6.9" />
+<meta name="keywords" content="epics, motor, devsup" />
+<title>Motor Record Device Support</title>
+<style type="text/css">
+/* Shared CSS for AsciiDoc xhtml11 and html5 backends */
+
+/* Default font. */
+body {
+  font-family: Georgia,serif;
+}
+
+/* Title font. */
+h1, h2, h3, h4, h5, h6,
+div.title, caption.title,
+thead, p.table.header,
+#toctitle,
+#author, #revnumber, #revdate, #revremark,
+#footer {
+  font-family: Arial,Helvetica,sans-serif;
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: fuchsia;
+}
+
+em {
+  font-style: italic;
+  color: navy;
+}
+
+strong {
+  font-weight: bold;
+  color: #083194;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #527bbd;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1, h2, h3 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  padding-top: 0.5em;
+}
+h3 {
+  float: left;
+}
+h3 + * {
+  clear: left;
+}
+h5 {
+  font-size: 1.0em;
+}
+
+div.sectionbody {
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+ul, ol, li > p {
+  margin-top: 0;
+}
+ul > li     { color: #aaa; }
+ul > li > * { color: black; }
+
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
+  padding: 0;
+  margin: 0;
+}
+pre {
+  white-space: pre-wrap;
+}
+
+#author {
+  color: #527bbd;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+#email {
+}
+#revnumber, #revdate, #revremark {
+}
+
+#footer {
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+#preamble {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.0em;
+  margin-bottom: 2.0em;
+  margin-right: 10%;
+  color: #606060;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  color: #527bbd;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid #dddddd;
+  border-left: 4px solid #f0f0f0;
+  padding: 0.5em;
+}
+
+div.listingblock > div.content {
+  border: 1px solid #dddddd;
+  border-left: 5px solid #f0f0f0;
+  background: #f8f8f8;
+  padding: 0.5em;
+}
+
+div.quoteblock, div.verseblock {
+  padding-left: 1.0em;
+  margin-left: 1.0em;
+  margin-right: 10%;
+  border-left: 5px solid #f0f0f0;
+  color: #888;
+}
+
+div.quoteblock > div.attribution {
+  padding-top: 0.5em;
+  text-align: right;
+}
+
+div.verseblock > pre.content {
+  font-family: inherit;
+  font-size: inherit;
+}
+div.verseblock > div.attribution {
+  padding-top: 0.75em;
+  text-align: left;
+}
+/* DEPRECATED: Pre version 8.2.7 verse style literal block. */
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #527bbd;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 3px solid #dddddd;
+}
+
+div.exampleblock > div.content {
+  border-left: 3px solid #dddddd;
+  padding-left: 0.5em;
+}
+
+div.imageblock div.content { padding-left: 0; }
+span.image img { border-style: none; vertical-align: text-bottom; }
+a.image:visited { color: white; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: normal;
+  color: navy;
+}
+dd > *:first-child {
+  margin-top: 0.1em;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.arabic {
+  list-style-type: decimal;
+}
+ol.loweralpha {
+  list-style-type: lower-alpha;
+}
+ol.upperalpha {
+  list-style-type: upper-alpha;
+}
+ol.lowerroman {
+  list-style-type: lower-roman;
+}
+ol.upperroman {
+  list-style-type: upper-roman;
+}
+
+div.compact ul, div.compact ol,
+div.compact p, div.compact p,
+div.compact div, div.compact div {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
+}
+
+tfoot {
+  font-weight: bold;
+}
+td > div.verse {
+  white-space: pre;
+}
+
+div.hdlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hdlist tr {
+  padding-bottom: 15px;
+}
+dt.hdlist1.strong, td.hdlist1.strong {
+  font-weight: bold;
+}
+td.hdlist1 {
+  vertical-align: top;
+  font-style: normal;
+  padding-right: 0.8em;
+  color: navy;
+}
+td.hdlist2 {
+  vertical-align: top;
+}
+div.hdlist.compact tr {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.comment {
+  background: yellow;
+}
+
+.footnote, .footnoteref {
+  font-size: 0.8em;
+}
+
+span.footnote, span.footnoteref {
+  vertical-align: super;
+}
+
+#footnotes {
+  margin: 20px 0 20px 0;
+  padding: 7px 0 0 0;
+}
+
+#footnotes div.footnote {
+  margin: 0 0 5px 0;
+}
+
+#footnotes hr {
+  border: none;
+  border-top: 1px solid silver;
+  height: 1px;
+  text-align: left;
+  margin-left: 0;
+  width: 20%;
+  min-width: 100px;
+}
+
+div.colist td {
+  padding-right: 0.5em;
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+div.colist td img {
+  margin-top: 0.3em;
+}
+
+@media print {
+  #footer-badges { display: none; }
+}
+
+#toc {
+  margin-bottom: 2.5em;
+}
+
+#toctitle {
+  color: #527bbd;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
+
+span.aqua { color: aqua; }
+span.black { color: black; }
+span.blue { color: blue; }
+span.fuchsia { color: fuchsia; }
+span.gray { color: gray; }
+span.green { color: green; }
+span.lime { color: lime; }
+span.maroon { color: maroon; }
+span.navy { color: navy; }
+span.olive { color: olive; }
+span.purple { color: purple; }
+span.red { color: red; }
+span.silver { color: silver; }
+span.teal { color: teal; }
+span.white { color: white; }
+span.yellow { color: yellow; }
+
+span.aqua-background { background: aqua; }
+span.black-background { background: black; }
+span.blue-background { background: blue; }
+span.fuchsia-background { background: fuchsia; }
+span.gray-background { background: gray; }
+span.green-background { background: green; }
+span.lime-background { background: lime; }
+span.maroon-background { background: maroon; }
+span.navy-background { background: navy; }
+span.olive-background { background: olive; }
+span.purple-background { background: purple; }
+span.red-background { background: red; }
+span.silver-background { background: silver; }
+span.teal-background { background: teal; }
+span.white-background { background: white; }
+span.yellow-background { background: yellow; }
+
+span.big { font-size: 2em; }
+span.small { font-size: 0.6em; }
+
+span.underline { text-decoration: underline; }
+span.overline { text-decoration: overline; }
+span.line-through { text-decoration: line-through; }
+
+div.unbreakable { page-break-inside: avoid; }
+
+
+/*
+ * xhtml11 specific
+ *
+ * */
+
+div.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead, p.table.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.table {
+  margin-top: 0;
+}
+/* Because the table frame attribute is overriden by CSS in most browsers. */
+div.tableblock > table[frame="void"] {
+  border-style: none;
+}
+div.tableblock > table[frame="hsides"] {
+  border-left-style: none;
+  border-right-style: none;
+}
+div.tableblock > table[frame="vsides"] {
+  border-top-style: none;
+  border-bottom-style: none;
+}
+
+
+/*
+ * html5 specific
+ *
+ * */
+
+table.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+thead, p.tableblock.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.tableblock {
+  margin-top: 0;
+}
+table.tableblock {
+  border-width: 3px;
+  border-spacing: 0px;
+  border-style: solid;
+  border-color: #527bbd;
+  border-collapse: collapse;
+}
+th.tableblock, td.tableblock {
+  border-width: 1px;
+  padding: 4px;
+  border-style: solid;
+  border-color: #527bbd;
+}
+
+table.tableblock.frame-topbot {
+  border-left-style: hidden;
+  border-right-style: hidden;
+}
+table.tableblock.frame-sides {
+  border-top-style: hidden;
+  border-bottom-style: hidden;
+}
+table.tableblock.frame-none {
+  border-style: hidden;
+}
+
+th.tableblock.halign-left, td.tableblock.halign-left {
+  text-align: left;
+}
+th.tableblock.halign-center, td.tableblock.halign-center {
+  text-align: center;
+}
+th.tableblock.halign-right, td.tableblock.halign-right {
+  text-align: right;
+}
+
+th.tableblock.valign-top, td.tableblock.valign-top {
+  vertical-align: top;
+}
+th.tableblock.valign-middle, td.tableblock.valign-middle {
+  vertical-align: middle;
+}
+th.tableblock.valign-bottom, td.tableblock.valign-bottom {
+  vertical-align: bottom;
+}
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+
+
+</style>
+<script type="text/javascript">
+/*<![CDATA[*/
+var asciidoc = {  // Namespace.
+
+/////////////////////////////////////////////////////////////////////
+// Table Of Contents generator
+/////////////////////////////////////////////////////////////////////
+
+/* Author: Mihai Bazon, September 2002
+ * http://students.infoiasi.ro/~mishoo
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+ /* modified by Stuart Rackham, 2006, 2009. License: GPL */
+
+// toclevels = 1..4.
+toc: function (toclevels) {
+
+  function getText(el) {
+    var text = "";
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 3 /* Node.TEXT_NODE */) // IE doesn't speak constants.
+        text += i.data;
+      else if (i.firstChild != null)
+        text += getText(i);
+    }
+    return text;
+  }
+
+  function TocEntry(el, text, toclevel) {
+    this.element = el;
+    this.text = text;
+    this.toclevel = toclevel;
+  }
+
+  function tocEntries(el, toclevels) {
+    var result = new Array;
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
+    // Function that scans the DOM tree for header elements (the DOM2
+    // nodeIterator API would be a better technique but not supported by all
+    // browsers).
+    var iterate = function (el) {
+      for (var i = el.firstChild; i != null; i = i.nextSibling) {
+        if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+          var mo = re.exec(i.tagName);
+          if (mo && (i.getAttribute("class") || i.getAttribute("className")) != "float") {
+            result[result.length] = new TocEntry(i, getText(i), mo[1]-1);
+          }
+          iterate(i);
+        }
+      }
+    }
+    iterate(el);
+    return result;
+  }
+
+  var toc = document.getElementById("toc");
+  if (!toc) {
+    return;
+  }
+
+  // Delete existing TOC entries in case we're reloading the TOC.
+  var tocEntriesToRemove = [];
+  var i;
+  for (i = 0; i < toc.childNodes.length; i++) {
+    var entry = toc.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div'
+     && entry.getAttribute("class")
+     && entry.getAttribute("class").match(/^toclevel/))
+      tocEntriesToRemove.push(entry);
+  }
+  for (i = 0; i < tocEntriesToRemove.length; i++) {
+    toc.removeChild(tocEntriesToRemove[i]);
+  }
+
+  // Rebuild TOC entries.
+  var entries = tocEntries(document.getElementById("content"), toclevels);
+  for (var i = 0; i < entries.length; ++i) {
+    var entry = entries[i];
+    if (entry.element.id == "")
+      entry.element.id = "_toc_" + i;
+    var a = document.createElement("a");
+    a.href = "#" + entry.element.id;
+    a.appendChild(document.createTextNode(entry.text));
+    var div = document.createElement("div");
+    div.appendChild(a);
+    div.className = "toclevel" + entry.toclevel;
+    toc.appendChild(div);
+  }
+  if (entries.length == 0)
+    toc.parentNode.removeChild(toc);
+},
+
+
+/////////////////////////////////////////////////////////////////////
+// Footnotes generator
+/////////////////////////////////////////////////////////////////////
+
+/* Based on footnote generation code from:
+ * http://www.brandspankingnew.net/archive/2005/07/format_footnote.html
+ */
+
+footnotes: function () {
+  // Delete existing footnote entries in case we're reloading the footnodes.
+  var i;
+  var noteholder = document.getElementById("footnotes");
+  if (!noteholder) {
+    return;
+  }
+  var entriesToRemove = [];
+  for (i = 0; i < noteholder.childNodes.length; i++) {
+    var entry = noteholder.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
+      entriesToRemove.push(entry);
+  }
+  for (i = 0; i < entriesToRemove.length; i++) {
+    noteholder.removeChild(entriesToRemove[i]);
+  }
+
+  // Rebuild footnote entries.
+  var cont = document.getElementById("content");
+  var spans = cont.getElementsByTagName("span");
+  var refs = {};
+  var n = 0;
+  for (i=0; i<spans.length; i++) {
+    if (spans[i].className == "footnote") {
+      n++;
+      var note = spans[i].getAttribute("data-note");
+      if (!note) {
+        // Use [\s\S] in place of . so multi-line matches work.
+        // Because JavaScript has no s (dotall) regex flag.
+        note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+        spans[i].innerHTML =
+          "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+        spans[i].setAttribute("data-note", note);
+      }
+      noteholder.innerHTML +=
+        "<div class='footnote' id='_footnote_" + n + "'>" +
+        "<a href='#_footnoteref_" + n + "' title='Return to text'>" +
+        n + "</a>. " + note + "</div>";
+      var id =spans[i].getAttribute("id");
+      if (id != null) refs["#"+id] = n;
+    }
+  }
+  if (n == 0)
+    noteholder.parentNode.removeChild(noteholder);
+  else {
+    // Process footnoterefs.
+    for (i=0; i<spans.length; i++) {
+      if (spans[i].className == "footnoteref") {
+        var href = spans[i].getElementsByTagName("a")[0].getAttribute("href");
+        href = href.match(/#.*/)[0];  // Because IE return full URL.
+        n = refs[href];
+        spans[i].innerHTML =
+          "[<a href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+      }
+    }
+  }
+},
+
+install: function(toclevels) {
+  var timerId;
+
+  function reinstall() {
+    asciidoc.footnotes();
+    if (toclevels) {
+      asciidoc.toc(toclevels);
+    }
+  }
+
+  function reinstallAndRemoveTimer() {
+    clearInterval(timerId);
+    reinstall();
+  }
+
+  timerId = setInterval(reinstall, 500);
+  if (document.addEventListener)
+    document.addEventListener("DOMContentLoaded", reinstallAndRemoveTimer, false);
+  else
+    window.onload = reinstallAndRemoveTimer;
+}
+
+}
+asciidoc.install(2);
+/*]]>*/
+</script>
+</head>
+<body class="article">
+<div id="header">
+<h1>Motor Record Device Support</h1>
+<span id="author">Michael_Davidsaver,_Daron_Chabot</span><br />
+<span id="email"><code>&lt;<a href="mailto:mdavidsaver@gmail.com, dchabot@bnl.gov">mdavidsaver@gmail.com, dchabot@bnl.gov</a>&gt;</code></span><br />
+<span id="revnumber">version 1,</span>
+<span id="revdate">February 2010</span>
+<div id="toc">
+  <div id="toctitle">Table of Contents</div>
+  <noscript><p><b>JavaScript must be enabled in your browser to display the table of contents.</b></p></noscript>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_introduction">1. Introduction</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The EPICS motorRecord is the most widely used of the special (application) record types.
+It is the most common interface for control of a single axis.
+This document will describe the device support interface of the motorRecord,
+ how the record uses it, and what it requires of a device support implementation.</p></div>
+<div class="paragraph"><p>The motorRecord is typically used in conjunction with the <em>common device support</em>,
+a library of functions of to help build device support.
+This library has been extended to work closely with the Asyn hardware access abstraction
+layer.
+However, it is a large body of code which contains no small amount of magic.
+The authors of this document must admit to not being able to understand and use this
+code base.</p></div>
+<div class="paragraph"><p>Consequently this document will present a minimal complete example of motorRecord device support
+without using the <em>common device support</em>.
+We hope that it will serve to illistrate what the motorRecord requires,
+and what the <em>common device support</em> must provide.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_hardware_model">2. Hardware Model</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The Motor record is built around the idea of a device which accepts commands
+ and returns responses serially.
+Status information may be polled or come asynchronously.
+Polling the device for status is a costly operation,
+ so the device may only be regularly polled when it is needed,
+ usually while the axis is in motion.</p></div>
+<div class="paragraph"><p>Historically a controller was a RS-232 or similar device with no asynchronous interrupts.
+Multiple axes shared the same link so bandwidth was an issue.</p></div>
+<div class="paragraph"><p>Functionally, the device is treated as a stepper motor.
+It is sent move commands as discrete steps and the device (or device support) is expected to
+ maintain a signed counter of the number of commanded steps since IOC initialization.
+Additionally, the device may provide an encoder for feedback.</p></div>
+<div class="paragraph"><p>Status for two limit switches and a home switch can be monitored.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_types_of_motion">3. Types of Motion</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The motor record supports several different kinds of motion: normal, backlash, home, and jog.
+All controllers will support normal motions.
+Backlash motion is implemented by the record as a normal motion so no additional effort is required.
+Home and Jog motions require that device support implement the required commands.</p></div>
+<div class="sect2">
+<h3 id="_normal">3.1. Normal</h3>
+<div class="paragraph"><p>Moves a finite number of steps to a user commanded destination
+ which is known before the move begins.</p></div>
+<div class="paragraph"><p>Required commands: MOVE_ABS, MOVE_REL</p></div>
+<div class="paragraph"><p>Optional commands: SET_VEL_BASE, SET_VELOCITY, SET_ACCEL</p></div>
+</div>
+<div class="sect2">
+<h3 id="_jog">3.2. Jog</h3>
+<div class="paragraph"><p>This is a constant velocity move for a user determined length of time
+ which is not known when the move begins.</p></div>
+<div class="paragraph"><p>Required commands: JOG, STOP_AXIS, JOG_VELOCITY</p></div>
+</div>
+<div class="sect2">
+<h3 id="_backlash">3.3. Backlash</h3>
+<div class="paragraph"><p>The motor record will keep track of the direction of the last move.
+Following the next normal or jog move in the opposite direction,
+ a backlash move is initialized.
+The backlash moves an additional fixed number of steps (TODO direction?) which are not added to the record&#8217;s position counter.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_home">3.4. Home</h3>
+<div class="paragraph"><p>A homing motion moves in the selected direction until the home switch is activated.
+No backlash motion is used after a homing move.</p></div>
+<div class="paragraph"><p>Required commands: HOME_FOR, HOME_REV</p></div>
+<div class="paragraph"><p>Optional commands: SET_VEL_BASE, SET_VELOCITY, SET_ACCEL</p></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_processing">4. Processing</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>In general an EPICS record will only process on one condition: timer, IRQ, event, or external.
+However, the Motor record is designed to process on several conditions: timer/IRQ and external.
+It must respond to external commands, especially <em>STOP</em> with low latency,
+ while at the same time providing status updates while it motion.</p></div>
+<div class="paragraph"><p>This is accomplished by requiring that the <em>SCAN</em> field always be set to <em>Passive</em>
+ to ensure that external actions (CA puts) cause immediate processing.
+It also requires that device support should provide a timer or interrupt handler which will
+ triggers processing.
+This is left to device support because the implementation will be device dependent.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_device_support">5. Device Support</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The device support entry table, or dset, for the motor-record contains the standard dset (see "base/include/devSup.h"),
+ plus four fields for pointers to functions that are particular to that record-type.
+The C-structure therefore appears as defined in "motorApp/MotorSrc/motor.h":</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-style: italic"><span style="color: #9A1900">/* device support entry table */</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">motor_dset</span>
+<span style="color: #FF0000">{</span>
+    <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">dset</span> base<span style="color: #990000">;</span>
+    <span style="font-weight: bold"><span style="color: #000000">CALLBACK_VALUE</span></span> <span style="color: #990000">(*</span>update_values<span style="color: #990000">)</span> <span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">motorRecord</span> <span style="color: #990000">*);</span>
+    <span style="color: #009900">long</span> <span style="color: #990000">(*</span>start_trans<span style="color: #990000">)</span> <span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">motorRecord</span> <span style="color: #990000">*);</span>
+    <span style="font-weight: bold"><span style="color: #000000">RTN_STATUS</span></span> <span style="color: #990000">(*</span>build_trans<span style="color: #990000">)</span> <span style="color: #990000">(</span>motor_cmnd<span style="color: #990000">,</span> <span style="color: #009900">double</span> <span style="color: #990000">*,</span> <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">motorRecord</span> <span style="color: #990000">*);</span>
+    <span style="font-weight: bold"><span style="color: #000000">RTN_STATUS</span></span> <span style="color: #990000">(*</span>end_trans<span style="color: #990000">)</span> <span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">motorRecord</span> <span style="color: #990000">*);</span>
+<span style="color: #FF0000">}</span><span style="color: #990000">;</span></tt></pre></div></div>
+<div class="paragraph"><p>The Motor record requires four additional device support functions.
+Three to construct and send command sequences (<em>transactions</em>), and one to receive updates.
+Communication from the record to the device support is handled through the <em>transaction</em> functions,
+ while communication from device support to the record is handled through the update function.</p></div>
+<div class="sect2">
+<h3 id="_commands">5.1. Commands</h3>
+<div class="paragraph"><p>Constructing commands involves the <em>start_trans</em>, <em>build_trans</em>, and <em>end_trans</em> functions.
+These &#8220;transactions&#8221; are compound command sequences created from a set of primitive
+ actions.
+The Motor record will first call <em>start_trans</em> to clear any previously unsent commands.
+This is followed by several calls to <em>build_trans</em>.
+At this point the Motor record will either call <em>end_trans</em> to &#8220;commit&#8221; the transaction
+ by sending it to hardware, or call <em>start_trans</em> again to abort it.</p></div>
+<div class="paragraph"><p>The following is an incomplete example of what a motor record transaction will look like.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #009900">double</span> arg<span style="color: #990000">=</span>vel<span style="color: #990000">;</span>
+<span style="font-weight: bold"><span style="color: #000000">start_trans</span></span><span style="color: #990000">(</span>pmr<span style="color: #990000">);</span>
+<span style="font-weight: bold"><span style="color: #000000">build_trans</span></span><span style="color: #990000">(</span>SET_VELOCITY<span style="color: #990000">,</span> <span style="color: #990000">&amp;</span>arg<span style="color: #990000">,</span> pmr<span style="color: #990000">);</span>
+<span style="font-weight: bold"><span style="color: #0000FF">if</span></span><span style="color: #990000">(</span>use_relative<span style="color: #990000">)</span><span style="color: #FF0000">{</span>
+  arg<span style="color: #990000">=</span>dest<span style="color: #990000">-</span>cur<span style="color: #990000">;</span>
+  <span style="font-weight: bold"><span style="color: #000000">build_trans</span></span><span style="color: #990000">(</span>MOVE_REL<span style="color: #990000">,</span> <span style="color: #990000">&amp;</span>arg<span style="color: #990000">,</span> pmr<span style="color: #990000">);</span>
+<span style="color: #FF0000">}</span><span style="font-weight: bold"><span style="color: #0000FF">else</span></span><span style="color: #FF0000">{</span>
+  arg<span style="color: #990000">=</span>dest<span style="color: #990000">;</span>
+  <span style="font-weight: bold"><span style="color: #000000">build_trans</span></span><span style="color: #990000">(</span>MOVE_ABS<span style="color: #990000">,</span> <span style="color: #990000">&amp;</span>arg<span style="color: #990000">,</span> pmr<span style="color: #990000">);</span>
+<span style="color: #FF0000">}</span>
+<span style="font-weight: bold"><span style="color: #000000">build_trans</span></span><span style="color: #990000">(</span>GO<span style="color: #990000">,</span> <span style="color: #993399">0</span><span style="color: #990000">,</span> pmr<span style="color: #990000">);</span>
+<span style="font-weight: bold"><span style="color: #000000">end_trans</span></span><span style="color: #990000">(</span>pmr<span style="color: #990000">);</span></tt></pre></div></div>
+<div class="paragraph"><p>Historically this process was used to construct an ascii string.
+Successive calls to <em>build_trans</em> append to a string buffer,
+ and end_trans sends it to the device.
+Register based controllers may map the primitive actions as individual register interactions.
+However, it is important that <em>build_trans</em> not perform any I/O operations,
+ only <em>end_trans</em>.
+The record may omit a call to <em>end_trans</em> so that the next call to <em>start_trans</em>
+will clear the pending actions with no effect.</p></div>
+<div class="paragraph"><p>This can be accomplished by maintaining an in memory list of actions to be performed.
+The example below demonstrates a simple and effective way of implementing this.</p></div>
+<div class="paragraph"><p>The motor command codes are defined by the <em>motor_cmnd</em> enum in "motor.h".
+The value argument of <em>build_trans</em> is a double pointer.
+This can be an array, but is usually a pointer to a scalar value (position, velocity, &#8230;).</p></div>
+<div class="paragraph"><p>If a particular command is not meaningful for a controller it should be ignored.</p></div>
+<div class="sect3">
+<h4 id="_moves_move_abs_move_rel">5.1.1. Moves: MOVE_ABS, MOVE_REL</h4>
+<div class="paragraph"><p>The motor record can use either relative and absolute move commands.
+Relative moves are used in the presence of an encoder.
+If the controller does not support both types of moves, then it is fairly simple
+for software to implement one in terms of the other.</p></div>
+<div class="paragraph"><p>Argument: 1</p></div>
+</div>
+<div class="sect3">
+<h4 id="_homing_home_for_home_rev">5.1.2. Homing: HOME_FOR, HOME_REV</h4>
+<div class="paragraph"><p>Trigger a move in either direction which will stop when the home switch is activated.</p></div>
+<div class="paragraph"><p>Argument: 1 (but value always 0.0)</p></div>
+</div>
+<div class="sect3">
+<h4 id="_set_position_counter_load_pos">5.1.3. Set Position Counter: LOAD_POS</h4>
+<div class="paragraph"><p>This command is used to manually set/reset the controller&#8217;s internal absolute position
+ count (if applicable), and the RMP (raw motor position) field.</p></div>
+<div class="paragraph"><p>Argument: 1</p></div>
+</div>
+<div class="sect3">
+<h4 id="_profiled_motion_set_vel_base_set_velocity_set_accel">5.1.4. Profiled Motion: SET_VEL_BASE, SET_VELOCITY, SET_ACCEL</h4>
+<div class="paragraph"><p>Many controllers use a parametrized profile when moving.
+A controller can use whichever of these parameters is appropriate.
+If a controller supports a single velocity parameter then it must use <em>SET_VELOCITY</em> for this.</p></div>
+<div class="paragraph"><p>Argument: 1</p></div>
+</div>
+<div class="sect3">
+<h4 id="_start_motion_go">5.1.5. Start Motion: GO</h4>
+<div class="paragraph"><p>This command is the last issued as part of a transaction which will cause motion.</p></div>
+<div class="paragraph"><p>Argument: 0</p></div>
+</div>
+<div class="sect3">
+<h4 id="_configuration_set_resolution_set_enc_ratio">5.1.6. Configuration: SET_RESOLUTION, SET_ENC_RATIO</h4>
+<div class="paragraph"><p>TODO</p></div>
+<div class="paragraph"><p>Argument: 1</p></div>
+</div>
+<div class="sect3">
+<h4 id="_request_update_get_info">5.1.7. Request Update: GET_INFO</h4>
+<div class="paragraph"><p>Sent by record support when it desires an immediate status update from device support.
+This may be called once at the end of the record processing.</p></div>
+<div class="paragraph"><p>Argument: 0</p></div>
+</div>
+<div class="sect3">
+<h4 id="_immediate_stop_stop_axis">5.1.8. Immediate Stop: STOP_AXIS</h4>
+<div class="paragraph"><p>Commands the controller to immediately stop all motion on this axis.</p></div>
+<div class="paragraph"><p>Argument: 0</p></div>
+</div>
+<div class="sect3">
+<h4 id="_jogging_jog_jog_velocity">5.1.9. Jogging: JOG, JOG_VELOCITY</h4>
+<div class="paragraph"><p>Start a constant velocity move.
+The sign of the arguement to <em>JOG_VELOCITY</em> indicates direction.</p></div>
+<div class="paragraph"><p>Argument: 0 (JOG), 1 (JOG_VELOCITY)</p></div>
+</div>
+<div class="sect3">
+<h4 id="_pid_parameters_set_pgain_set_igain_set_dgain">5.1.10. PID parameters: SET_PGAIN, SET_IGAIN, SET_DGAIN</h4>
+<div class="paragraph"><p>Can be implemented if the controller supports closed loop control.</p></div>
+<div class="paragraph"><p>Argument: 1</p></div>
+</div>
+<div class="sect3">
+<h4 id="_closed_loop_control_enable_torque_disabl_torque">5.1.11. Closed Loop Control: ENABLE_TORQUE, DISABL_TORQUE</h4>
+<div class="paragraph"><p>Used to enable/disable closed loop control.</p></div>
+<div class="paragraph"><p>Argument: 0</p></div>
+</div>
+<div class="sect3">
+<h4 id="_primitive">5.1.12. PRIMITIVE</h4>
+<div class="paragraph"><p>Send a raw command string to the controller.
+No longer used by motor record.</p></div>
+<div class="paragraph"><p>Initialization and configuration actions should be implmented as IOC shell functions.</p></div>
+<div class="paragraph"><p>Argument: ?</p></div>
+</div>
+<div class="sect3">
+<h4 id="_controller_soft_limits_set_high_limit_set_low_limit">5.1.13. Controller Soft Limits: SET_HIGH_LIMIT, SET_LOW_LIMIT</h4>
+<div class="paragraph"><p>If the controller support software limits.
+Soft limits are completely independent of the hardware limit switches.</p></div>
+<div class="paragraph"><p>Argument: 1</p></div>
+</div>
+<div class="sect3">
+<h4 id="_required_commands">5.1.14. Required Commands</h4>
+<div class="paragraph"><p>At a minimum, device support must implement the following commands:
+ MOVE_ABS, MOVE_REL, LOAD_POS, GO, and STOP_AXIS.</p></div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_status_updates">5.2. Status Updates</h3>
+<div class="paragraph"><p>The <em>update_values</em> device support function is used by device support as a callback into device support.
+It is called by the motor record as soon as it is processed.
+The function may then update certain fields in the record, or not.
+If any fields is changed then <em>update_values</em> must return <em>CALLBACK_DATA</em>,
+ or <em>NOTHING_DONE</em> otherwise.
+This allows the record to correctly detect which fields have been changed and to
+ react accordingly (post monitors).</p></div>
+<div class="paragraph"><p><em>update_values</em> allows the Motor record to poll device support for status updates when the record processes.
+However, since device support can (and should) trigger processing when it wants the record to be updated,
+this really allows for periodic and/or interrupt driven status updates from device support.</p></div>
+<div class="paragraph"><p>While there is no technical limitation on which fields can be changed by <em>update_values</em>, it
+is only safe to modify fields: <em>RMP</em>, <em>REP</em>, and <em>MSTA</em>.</p></div>
+<div class="sect3">
+<h4 id="_rmp_raw_motor_position">5.2.1. RMP Raw Motor Position</h4>
+<div class="paragraph"><p>This field is the absolute absolute position counter, the number of commanded steps.
+It is a signed 32-bit integer.  Use of this field is required.</p></div>
+</div>
+<div class="sect3">
+<h4 id="_rep_raw_encoder_position">5.2.2. REP Raw Encoder Position</h4>
+<div class="paragraph"><p>If an encoder readback is available it should be placed in this field, otherwise if should not be modified.
+This field is a signed 32-bit integer.</p></div>
+</div>
+<div class="sect3">
+<h4 id="_msta_motor_status">5.2.3. MSTA Motor Status</h4>
+<div class="paragraph"><p>This field is a bit array for indicating controller status, some bits are required, while others are optional.</p></div>
+<div class="paragraph"><p>The <em>msta_field</em> union defined in <em>motor.h</em> must be used when filling this field.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">typedef</span></span> <span style="font-weight: bold"><span style="color: #0000FF">union</span></span>
+<span style="color: #FF0000">{</span>
+    <span style="color: #009900">unsigned</span> <span style="color: #009900">long</span> All<span style="color: #990000">;</span>
+    <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #FF0000">{</span>
+      <span style="color: #009900">unsigned</span> <span style="color: #009900">int</span> na               <span style="color: #990000">:</span><span style="color: #993399">17</span><span style="color: #990000">;</span><span style="font-style: italic"><span style="color: #9A1900">/* N/A bits  */</span></span>
+      <span style="color: #009900">unsigned</span> <span style="color: #009900">int</span> RA_HOMED       <span style="color: #990000">:</span><span style="color: #993399">1</span><span style="color: #990000">;</span> <span style="font-style: italic"><span style="color: #9A1900">/* Axis has been homed.*/</span></span>
+        <span style="color: #009900">unsigned</span> <span style="color: #009900">int</span> RA_MINUS_LS    <span style="color: #990000">:</span><span style="color: #993399">1</span><span style="color: #990000">;</span> <span style="font-style: italic"><span style="color: #9A1900">/* minus limit switch has been hit */</span></span>
+        <span style="color: #009900">unsigned</span> <span style="color: #009900">int</span> CNTRL_COMM_ERR <span style="color: #990000">:</span><span style="color: #993399">1</span><span style="color: #990000">;</span> <span style="font-style: italic"><span style="color: #9A1900">/* Controller communication error. */</span></span>
+        <span style="color: #009900">unsigned</span> <span style="color: #009900">int</span> GAIN_SUPPORT   <span style="color: #990000">:</span><span style="color: #993399">1</span><span style="color: #990000">;</span> <span style="font-style: italic"><span style="color: #9A1900">/* Motor supports closed-loop position control. */</span></span>
+        <span style="color: #009900">unsigned</span> <span style="color: #009900">int</span> RA_MOVING      <span style="color: #990000">:</span><span style="color: #993399">1</span><span style="color: #990000">;</span> <span style="font-style: italic"><span style="color: #9A1900">/* non-zero velocity present */</span></span>
+        <span style="color: #009900">unsigned</span> <span style="color: #009900">int</span> RA_PROBLEM     <span style="color: #990000">:</span><span style="color: #993399">1</span><span style="color: #990000">;</span> <span style="font-style: italic"><span style="color: #9A1900">/* driver stopped polling */</span></span>
+        <span style="color: #009900">unsigned</span> <span style="color: #009900">int</span> EA_PRESENT     <span style="color: #990000">:</span><span style="color: #993399">1</span><span style="color: #990000">;</span> <span style="font-style: italic"><span style="color: #9A1900">/* encoder is present */</span></span>
+        <span style="color: #009900">unsigned</span> <span style="color: #009900">int</span> EA_HOME        <span style="color: #990000">:</span><span style="color: #993399">1</span><span style="color: #990000">;</span> <span style="font-style: italic"><span style="color: #9A1900">/* encoder home signal on */</span></span>
+        <span style="color: #009900">unsigned</span> <span style="color: #009900">int</span> EA_SLIP_STALL  <span style="color: #990000">:</span><span style="color: #993399">1</span><span style="color: #990000">;</span> <span style="font-style: italic"><span style="color: #9A1900">/* slip/stall detected */</span></span>
+        <span style="color: #009900">unsigned</span> <span style="color: #009900">int</span> EA_POSITION    <span style="color: #990000">:</span><span style="color: #993399">1</span><span style="color: #990000">;</span> <span style="font-style: italic"><span style="color: #9A1900">/* position maintenence enabled */</span></span>
+        <span style="color: #009900">unsigned</span> <span style="color: #009900">int</span> EA_SLIP        <span style="color: #990000">:</span><span style="color: #993399">1</span><span style="color: #990000">;</span> <span style="font-style: italic"><span style="color: #9A1900">/* encoder slip enabled */</span></span>
+        <span style="color: #009900">unsigned</span> <span style="color: #009900">int</span> RA_HOME        <span style="color: #990000">:</span><span style="color: #993399">1</span><span style="color: #990000">;</span> <span style="font-style: italic"><span style="color: #9A1900">/* The home signal is on */</span></span>
+        <span style="color: #009900">unsigned</span> <span style="color: #009900">int</span> RA_PLUS_LS     <span style="color: #990000">:</span><span style="color: #993399">1</span><span style="color: #990000">;</span> <span style="font-style: italic"><span style="color: #9A1900">/* plus limit switch has been hit */</span></span>
+        <span style="color: #009900">unsigned</span> <span style="color: #009900">int</span> RA_DONE        <span style="color: #990000">:</span><span style="color: #993399">1</span><span style="color: #990000">;</span> <span style="font-style: italic"><span style="color: #9A1900">/* a motion is complete */</span></span>
+        <span style="color: #009900">unsigned</span> <span style="color: #009900">int</span> RA_DIRECTION   <span style="color: #990000">:</span><span style="color: #993399">1</span><span style="color: #990000">;</span> <span style="font-style: italic"><span style="color: #9A1900">/* (last) 0=Negative, 1=Positive */</span></span>d
+    <span style="color: #FF0000">}</span> Bits<span style="color: #990000">;</span>
+<span style="color: #FF0000">}</span> msta_field<span style="color: #990000">;</span></tt></pre></div></div>
+<div class="paragraph"><p>Note: The above representation corresponds to a big-endian IOC. See "motorApp/MotorSrc/motor.h" for details.</p></div>
+<div class="paragraph"><p>The <em>RA_DONE</em>, <em>RA_DIRECTION</em>, <em>RA_PLUS_LS</em>, and <em>RA_MINUS_LS</em> bits will be used by all device support.</p></div>
+<div class="sect4">
+<h5 id="_ra_direction">RA_DIRECTION</h5>
+<div class="paragraph"><p>Used to compute the TDIR (direction of travel) field.
+Not used internally.</p></div>
+<div class="paragraph"><p>Value: 0 - Positive, 1 - Negative</p></div>
+</div>
+<div class="sect4">
+<h5 id="_ra_done">RA_DONE</h5>
+<div class="paragraph"><p>Used to compute the MOVN (moving) field.
+This field is used internally to indicate if the axis is in motion.
+This should be cleared when the axis begins moving, and set when it has stopped.</p></div>
+<div class="paragraph"><p>Must be initialized to 1.</p></div>
+<div class="paragraph"><p>Value: 0 - Moving, 1 - Stopped</p></div>
+</div>
+<div class="sect4">
+<h5 id="_ra_plus_ls">RA_PLUS_LS</h5>
+<div class="paragraph"><p>Indicates limit switch status in the raw positive direction.</p></div>
+<div class="paragraph"><p>Value: 0 - Normal, 1 - At limit</p></div>
+</div>
+<div class="sect4">
+<h5 id="_ra_home">RA_HOME</h5>
+<div class="paragraph"><p>Used to set the ATHM (at home) field if no encoder is present, or it is not used.</p></div>
+<div class="paragraph"><p>Value: 0 - Normal, 1 - At home</p></div>
+</div>
+<div class="sect4">
+<h5 id="_ea_slip">EA_SLIP</h5>
+<div class="paragraph"><p>Not used.</p></div>
+</div>
+<div class="sect4">
+<h5 id="_ea_position">EA_POSITION</h5>
+<div class="paragraph"><p>Indicates status of closed loop control (position maintenance).</p></div>
+<div class="paragraph"><p>Value: 0 - Open loop, 1 - Closed loop</p></div>
+</div>
+<div class="sect4">
+<h5 id="_ea_slip_stall">EA_SLIP_STALL</h5>
+<div class="paragraph"><p>Used to signal an axis slip or stall, if supported by the controller.
+Causes a Major alarm on the record.</p></div>
+<div class="paragraph"><p>Value: 0 - Normal, 1 - Alarm</p></div>
+</div>
+<div class="sect4">
+<h5 id="_ea_home">EA_HOME</h5>
+<div class="paragraph"><p>Used to set the ATHM (at home) field if an encoder is present, and it is used.</p></div>
+<div class="paragraph"><p>Value: 0 - Normal, 1 - At home</p></div>
+</div>
+<div class="sect4">
+<h5 id="_ea_present">EA_PRESENT</h5>
+<div class="paragraph"><p>If the controller reports an encoder position in the REP (raw encoder position) field it must also set this flag.</p></div>
+<div class="paragraph"><p>Value: 0 - No encoder, 1 - Encoder present</p></div>
+</div>
+<div class="sect4">
+<h5 id="_ra_problem">RA_PROBLEM</h5>
+<div class="paragraph"><p>Used to signal a failure effecting the motor.
+Causes a Major alarm on the record and resets axis status to stopped.
+If this flag is set, it is assumed that the controller has attempted to stop the axis.</p></div>
+<div class="paragraph"><p>Value: 0 - Normal, 1 - Alarm</p></div>
+</div>
+<div class="sect4">
+<h5 id="_ra_moving">RA_MOVING</h5>
+<div class="paragraph"><p>Not used.  (See RA_DONE).</p></div>
+</div>
+<div class="sect4">
+<h5 id="_gain_support">GAIN_SUPPORT</h5>
+<div class="paragraph"><p>Set to indicate support for closed loop control.</p></div>
+<div class="paragraph"><p>Value: 0 - Not supported, 1 - Closed loop available</p></div>
+</div>
+<div class="sect4">
+<h5 id="_cntrl_comm_err">CNTRL_COMM_ERR</h5>
+<div class="paragraph"><p>Used to signal a failure in communications with the motor.
+Causes an Invalid alarm on the record.</p></div>
+<div class="paragraph"><p>Value: 0 - Normal, 1 - Alarm</p></div>
+</div>
+<div class="sect4">
+<h5 id="_ra_minus_ls">RA_MINUS_LS</h5>
+<div class="paragraph"><p>Indicates limit switch status in the raw negative direction.</p></div>
+<div class="paragraph"><p>Value: 0 - Normal, 1 - At limit</p></div>
+</div>
+<div class="sect4">
+<h5 id="_ra_homed">RA_HOMED</h5>
+<div class="paragraph"><p>Not used.</p></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_criticism">6. Criticism</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>There are several problematic points in the design of the motorRecord which should be pointed
+out.</p></div>
+<div class="sect2">
+<h3 id="_multiple_coordinate_systems">6.1. Multiple Coordinate Systems</h3>
+<div class="paragraph"><p>The motor record contains fields with position values in no less then four coordinate systems:
+raw motor, raw encoder, dial, and user.
+This in turn necessitates three sets of parameters to control the coordinate transforms.
+At the same time it restricts the form these transforms to simple linear relations.</p></div>
+<div class="paragraph"><p>However, device support is only allowed to see that raw (integer) coordinates.
+This makes it difficult to create synthetic axes which appear as normal motors.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_processing_ambiguity">6.2. Processing Ambiguity</h3>
+<div class="paragraph"><p>In order to be responsive to both internal (hardware) and external (channel access)
+events the motorRecord must process in unusual ways.
+To be responsive to user requests it must use passive processing.
+However, to provide updates during motion it must process periodically.</p></div>
+<div class="paragraph"><p>To accomplish both it assumes that device support will trigger processing internally.
+The result of the <em>update_values</em> device support function to defermine which condition caused
+processing.
+Different actions are taken for each case.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_device_support_interface">6.3. Device Support Interface</h3>
+<div class="paragraph"><p>The motorRecord device support functions reflect its bidirectional nature.
+It has both write (<em>start_trans</em>, <em>build_trans</em>, and <em>end_trans</em>)
+as well as read (<em>update_values</em>) functions.</p></div>
+<div class="paragraph"><p>The transaction based interface of the <em>*_trans</em> functions is a much more general interface
+then what is needed to impliment the transactions currently defined.
+Also, the (almost) unused abort transaction mechanism adds significant complexity when interactioning
+with register based devices.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_one_record_per_axis">6.4. One Record per Axis</h3>
+<div class="paragraph"><p>Most of the inflexibility and strange behaviors of the motorRecord come from the decision
+to place all the logic for an axis in a single record.
+The decision has lead to an attempt to create a one-size-fits-all solution with little expandability
+in the cases (eg multi-axis motion) where it does not fit.</p></div>
+<div class="paragraph"><p>Additionally, providing access through fields instead of seperate records has lead to a sort of
+lock-in.
+Client software working with <em>rec.DVAL</em> and <em>rec.VAL</em> must always interact with the same record.
+It is not possible to use a calcRecord or other mechanisms in the process database to modify
+these values.</p></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_debugging">7. Debugging</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The following points may be useful in debugging mis-behaving motor device support:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+To enable debugging print-messages add the following line to "motorApp/MotorSrc/Makefile":
+</p>
+</li>
+</ul></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>USR_CPPFLAGS += =-DDEBUG</code></pre>
+</div></div>
+<div class="ulist"><ul>
+<li>
+<p>
+When using the standard IOC shell add the following to the application&#8217;s startup script:
+</p>
+</li>
+</ul></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>var(motorRecordDebug,6)</code></pre>
+</div></div>
+<div class="ulist"><ul>
+<li>
+<p>
+Those using the RTEMS Cexp shell will instead add the following:
+</p>
+</li>
+</ul></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>motorRecordDebug=6</code></pre>
+</div></div>
+<div class="ulist"><ul>
+<li>
+<p>
+Set the Motor Record&#8217;s field, RTRY (number of retries), to zero.
+This will prevent the record-support from "hunting" for the correct position, should device support be misbehaving.
+</p>
+</li>
+<li>
+<p>
+Set the Motor Record&#8217;s field, BDST (backlash distance) to zero.
+Initially this will only confuse the situation.
+</p>
+</li>
+</ul></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_an_example">8. An Example</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;stdlib.h&gt;</span>
+<span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;stdio.h&gt;</span>
+<span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;math.h&gt;</span>
+
+<span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;dbDefs.h&gt;</span>
+<span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;ellLib.h&gt;</span>
+<span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;devSup.h&gt;</span>
+<span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;recSup.h&gt;</span>
+<span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;recGbl.h&gt;</span>
+<span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;callback.h&gt;</span>
+<span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;initHooks.h&gt;</span>
+<span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;dbAccess.h&gt;</span>
+<span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;epicsExport.h&gt;</span>
+<span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;cantProceed.h&gt;</span>
+<span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;devLib.h&gt;</span>
+<span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;iocsh.h&gt;</span>
+<span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;epicsTime.h&gt;</span>
+
+<span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;motorRecord.h&gt;</span>
+<span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;motor.h&gt;</span></tt></pre></div></div>
+<div class="sect2">
+<h3 id="_data_structures">8.1. Data Structures</h3>
+<div class="paragraph"><p>This example will use a simulated motor.
+It is a linear stage which moves at a constant rate with zero acceleration time.
+The simulated "controller" implements an absolute position counter,
+and positive and negative limit switches.
+However, it was no home switch or encoder, and does not support additional soft limits.</p></div>
+<div class="paragraph"><p>The position of the limit switches with respect to the motorRecord soft limits is arbitrary.
+However, normal operation the record soft limits would be inside the bounds of the limit switches.</p></div>
+<div class="sect3">
+<h4 id="_simulation_state">8.1.1. Simulation State</h4>
+<div class="paragraph"><p>The <em>hardware</em> structure is the state of this simulation.
+It must hold the motor&#8217;s settings and its current state.
+State includes the motor&#8217;s current position and the position of the hard limits.
+These are distinct from what is represented in the motorRecord itself.
+It also holds the number of steps to move (signed), and the velocity.</p></div>
+<div class="paragraph"><p>In order to simplify this example the motor simulation will not run
+concurrently.  Its state will instead be updated when the motorRecord
+polls its state.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">hardware</span> <span style="color: #FF0000">{</span>
+  <span style="color: #008080">epicsInt32</span> pos<span style="color: #990000">;</span> <span style="font-style: italic"><span style="color: #9A1900">/* signed */</span></span>
+  <span style="color: #009900">double</span> vel<span style="color: #990000">;</span>
+
+  <span style="color: #008080">epicsInt32</span> lim_h_val<span style="color: #990000">;</span>
+  <span style="color: #008080">epicsInt32</span> lim_l_val<span style="color: #990000">;</span>
+  <span style="color: #009900">int</span> lim_h<span style="color: #990000">:</span><span style="color: #993399">1</span><span style="color: #990000">;</span>
+  <span style="color: #009900">int</span> lim_l<span style="color: #990000">:</span><span style="color: #993399">1</span><span style="color: #990000">;</span>
+
+  <span style="color: #009900">int</span> moving<span style="color: #990000">:</span><span style="color: #993399">1</span><span style="color: #990000">;</span>
+  <span style="color: #008080">epicsInt32</span> remaining<span style="color: #990000">;</span>
+
+  <span style="color: #008080">epicsTimeStamp</span> last<span style="color: #990000">;</span>
+<span style="color: #FF0000">}</span><span style="color: #990000">;</span></tt></pre></div></div>
+<div class="paragraph"><p>Both counts remaining and velocity will have the same sign.</p></div>
+</div>
+<div class="sect3">
+<h4 id="_transactions">8.1.2. Transactions</h4>
+<div class="paragraph"><p>The motorRecord sends commands to the axis as transactions.
+These are sets of primitive commands assembled and committed (sent) in groups.
+Historically these were ascii strings (ie <em>VEL4.2;ACC0.2;REL4000;GO</em>).</p></div>
+<div class="paragraph"><p>Since our simulated motor does not deal in ascii strings we will instead keep
+a list of actions to be performed when the transaction is committed.
+This will simply be a list of actions (function pointers) values for them.</p></div>
+<div class="paragraph"><p>Currently the motorRecord does not use actions with more then two arguments.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">enum</span></span> <span style="color: #FF0000">{</span>max_targs<span style="color: #990000">=</span><span style="color: #993399">2</span><span style="color: #FF0000">}</span><span style="color: #990000">;</span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">typedef</span></span> <span style="color: #009900">void</span> <span style="color: #990000">(*</span>trans_proc_t<span style="color: #990000">)();</span>
+
+<span style="font-style: italic"><span style="color: #9A1900">/* List entry to hold transactions */</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">trans</span> <span style="color: #FF0000">{</span>
+  <span style="color: #008080">ELLNODE</span> node<span style="color: #990000">;</span> <span style="font-style: italic"><span style="color: #9A1900">/* Must be first */</span></span>
+  <span style="color: #008080">size_t</span> nargs<span style="color: #990000">;</span>
+  <span style="color: #009900">double</span> args<span style="color: #990000">[</span>max_targs<span style="color: #990000">];</span>
+
+  <span style="color: #008080">trans_proc_t</span> trans_proc<span style="color: #990000">;</span>
+<span style="color: #FF0000">}</span><span style="color: #990000">;</span></tt></pre></div></div>
+</div>
+<div class="sect3">
+<h4 id="_device_support_private">8.1.3. Device Support Private</h4>
+<div class="paragraph"><p>Now we come to the device support private structure for motorRecord.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">devsim</span> <span style="color: #FF0000">{</span>
+  <span style="color: #008080">ELLNODE</span> node<span style="color: #990000">;</span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">hardware</span> hw<span style="color: #990000">;</span></tt></pre></div></div>
+<div class="paragraph"><p>A IOC global list of device support instances will be needed later.  Also the "hidden" state for the simulation.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>  <span style="color: #009900">int</span> id<span style="color: #990000">;</span></tt></pre></div></div>
+<div class="paragraph"><p>A IOC global unique identifier marking this instance of the device support.
+Used to match an instance created with a IOCsh function to a record.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>  <span style="color: #009900">double</span> rate<span style="color: #990000">;</span> <span style="font-style: italic"><span style="color: #9A1900">/* poll rate */</span></span>
+
+  <span style="color: #009900">int</span> updateReady<span style="color: #990000">;</span>
+  <span style="color: #008080">CALLBACK</span> updatecb<span style="color: #990000">;</span></tt></pre></div></div>
+<div class="paragraph"><p>A callback used to implement the internal polling of device state.
+This will be timer running at a fixed rate.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>
+  <span style="color: #008080">ELLLIST</span> transaction<span style="color: #990000">;</span> <span style="font-style: italic"><span style="color: #9A1900">/* list of struct trans */</span></span>
+<span style="color: #FF0000">}</span><span style="color: #990000">;</span></tt></pre></div></div>
+<div class="paragraph"><p>The list of uncommitted transactions for this motor.</p></div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_simulation">8.2. Simulation</h3>
+<div class="paragraph"><p>When the simulation is running we will periodically advance the state.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">static</span></span>
+<span style="color: #009900">void</span> <span style="font-weight: bold"><span style="color: #000000">update_motor</span></span><span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">hardware</span> <span style="color: #990000">*</span>hw<span style="color: #990000">)</span>
+<span style="color: #FF0000">{</span>
+  <span style="color: #008080">epicsTimeStamp</span> now<span style="color: #990000">;</span>
+  <span style="color: #009900">double</span> ellapsed<span style="color: #990000">,</span> moved<span style="color: #990000">;</span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">if</span></span><span style="color: #990000">(</span>hw<span style="color: #990000">-&gt;</span>moving<span style="color: #990000">)</span><span style="color: #FF0000">{</span>
+
+    <span style="font-weight: bold"><span style="color: #000000">epicsTimeGetCurrent</span></span><span style="color: #990000">(&amp;</span>now<span style="color: #990000">);</span>
+
+    ellapsed <span style="color: #990000">=</span> <span style="font-weight: bold"><span style="color: #000000">epicsTimeDiffInSeconds</span></span><span style="color: #990000">(&amp;</span>now<span style="color: #990000">,</span> <span style="color: #990000">&amp;</span>hw<span style="color: #990000">-&gt;</span>last<span style="color: #990000">);</span>
+
+    moved <span style="color: #990000">=</span> ellapsed <span style="color: #990000">*</span> hw<span style="color: #990000">-&gt;</span>vel<span style="color: #990000">;</span></tt></pre></div></div>
+<div class="paragraph"><p>By looking at the time since the last update, determine how far the motor
+has moved.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>
+    <span style="font-weight: bold"><span style="color: #0000FF">if</span></span><span style="color: #990000">(</span> <span style="font-weight: bold"><span style="color: #000000">fabs</span></span><span style="color: #990000">(</span>moved<span style="color: #990000">)</span> <span style="color: #990000">&gt;=</span> <span style="font-weight: bold"><span style="color: #000000">fabs</span></span><span style="color: #990000">(</span>hw<span style="color: #990000">-&gt;</span>remaining<span style="color: #990000">)</span> <span style="color: #990000">)</span><span style="color: #FF0000">{</span>
+      moved <span style="color: #990000">=</span> hw<span style="color: #990000">-&gt;</span>remaining<span style="color: #990000">;</span>
+      hw<span style="color: #990000">-&gt;</span>moving <span style="color: #990000">=</span> <span style="color: #993399">0</span><span style="color: #990000">;</span>
+    <span style="color: #FF0000">}</span></tt></pre></div></div>
+<div class="paragraph"><p>The simulated motor is well behaved.
+It will always stop after moving exactly the requested number of steps.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>    hw<span style="color: #990000">-&gt;</span>pos <span style="color: #990000">+=</span> <span style="color: #990000">(</span>epicsInt32<span style="color: #990000">)</span>moved<span style="color: #990000">;</span>
+    hw<span style="color: #990000">-&gt;</span>remaining <span style="color: #990000">-=</span> <span style="color: #990000">(</span>epicsInt32<span style="color: #990000">)</span>moved<span style="color: #990000">;</span>
+  <span style="color: #FF0000">}</span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">if</span></span><span style="color: #990000">(</span>hw<span style="color: #990000">-&gt;</span>pos <span style="color: #990000">&gt;=</span> hw<span style="color: #990000">-&gt;</span>lim_h_val<span style="color: #990000">)</span> <span style="color: #FF0000">{</span>
+    hw<span style="color: #990000">-&gt;</span>pos <span style="color: #990000">=</span> hw<span style="color: #990000">-&gt;</span>lim_h_val<span style="color: #990000">;</span>
+    hw<span style="color: #990000">-&gt;</span>lim_h<span style="color: #990000">=</span><span style="color: #993399">1</span><span style="color: #990000">;</span>
+  <span style="color: #FF0000">}</span><span style="font-weight: bold"><span style="color: #0000FF">else</span></span>
+    hw<span style="color: #990000">-&gt;</span>lim_h<span style="color: #990000">=</span><span style="color: #993399">0</span><span style="color: #990000">;</span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">if</span></span><span style="color: #990000">(</span>hw<span style="color: #990000">-&gt;</span>pos <span style="color: #990000">&lt;=</span> hw<span style="color: #990000">-&gt;</span>lim_l_val<span style="color: #990000">)</span> <span style="color: #FF0000">{</span>
+    hw<span style="color: #990000">-&gt;</span>pos <span style="color: #990000">=</span> hw<span style="color: #990000">-&gt;</span>lim_l_val<span style="color: #990000">;</span>
+    hw<span style="color: #990000">-&gt;</span>lim_l<span style="color: #990000">=</span><span style="color: #993399">1</span><span style="color: #990000">;</span>
+  <span style="color: #FF0000">}</span><span style="font-weight: bold"><span style="color: #0000FF">else</span></span>
+    hw<span style="color: #990000">-&gt;</span>lim_l<span style="color: #990000">=</span><span style="color: #993399">0</span><span style="color: #990000">;</span>
+<span style="color: #FF0000">}</span></tt></pre></div></div>
+<div class="paragraph"><p>Update the internal position and limit state.
+Clip the position if it would haved exceed the limits.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_convenience">8.3. Convenience</h3>
+<div class="paragraph"><p>A helper function for searching for device support instances by global id number.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">static</span></span>
+<span style="color: #008080">ELLLIST</span> devices <span style="color: #990000">=</span> <span style="color: #FF0000">{{</span>NULL<span style="color: #990000">,</span>NULL<span style="color: #FF0000">}</span><span style="color: #990000">,</span><span style="color: #993399">0</span><span style="color: #FF0000">}</span><span style="color: #990000">;</span> <span style="font-style: italic"><span style="color: #9A1900">/* list of struct devsim */</span></span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">static</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">devsim</span> <span style="color: #990000">*</span><span style="font-weight: bold"><span style="color: #000000">getDev</span></span><span style="color: #990000">(</span><span style="color: #009900">int</span> id<span style="color: #990000">)</span>
+<span style="color: #FF0000">{</span>
+  <span style="color: #008080">ELLNODE</span> <span style="color: #990000">*</span>node<span style="color: #990000">;</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">devsim</span> <span style="color: #990000">*</span>cur<span style="color: #990000">;</span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">for</span></span><span style="color: #990000">(</span>node<span style="color: #990000">=</span><span style="font-weight: bold"><span style="color: #000000">ellFirst</span></span><span style="color: #990000">(&amp;</span>devices<span style="color: #990000">);</span> node<span style="color: #990000">;</span> node<span style="color: #990000">=</span><span style="font-weight: bold"><span style="color: #000000">ellNext</span></span><span style="color: #990000">(</span>node<span style="color: #990000">))</span>
+  <span style="color: #FF0000">{</span>
+    cur<span style="color: #990000">=(</span><span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">devsim</span><span style="color: #990000">*)</span>node<span style="color: #990000">;</span> <span style="font-style: italic"><span style="color: #9A1900">/* Use CONTAINER() in 3.14.11 */</span></span>
+    <span style="font-weight: bold"><span style="color: #0000FF">if</span></span><span style="color: #990000">(</span>cur<span style="color: #990000">-&gt;</span>id<span style="color: #990000">==</span>id<span style="color: #990000">)</span>
+      <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> cur<span style="color: #990000">;</span>
+  <span style="color: #FF0000">}</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> NULL<span style="color: #990000">;</span>
+<span style="color: #FF0000">}</span></tt></pre></div></div>
+</div>
+<div class="sect2">
+<h3 id="_initialization">8.4. Initialization</h3>
+<div class="paragraph"><p>Device support instances will be created from the IOCsh.
+Here we specify the real positions of the hard limit switches.</p></div>
+<div class="paragraph"><p>In a real world example we would also give the hardware address
+of the controller.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">static</span></span>
+<span style="color: #009900">void</span> <span style="font-weight: bold"><span style="color: #000000">timercb</span></span><span style="color: #990000">(</span>CALLBACK<span style="color: #990000">*</span> cb<span style="color: #990000">);</span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">static</span></span>
+<span style="color: #009900">void</span> <span style="font-weight: bold"><span style="color: #000000">addmsim</span></span><span style="color: #990000">(</span><span style="color: #009900">int</span> id<span style="color: #990000">,</span> <span style="color: #009900">int</span> llim<span style="color: #990000">,</span> <span style="color: #009900">int</span> hlim<span style="color: #990000">,</span> <span style="color: #009900">double</span> rate<span style="color: #990000">)</span>
+<span style="color: #FF0000">{</span>
+        <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">devsim</span> <span style="color: #990000">*</span>priv<span style="color: #990000">=</span><span style="font-weight: bold"><span style="color: #000000">getDev</span></span><span style="color: #990000">(</span>id<span style="color: #990000">);</span>
+
+        <span style="font-weight: bold"><span style="color: #0000FF">if</span></span><span style="color: #990000">(!!</span>priv<span style="color: #990000">)</span><span style="color: #FF0000">{</span>
+                <span style="font-weight: bold"><span style="color: #000000">printf</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"Id already in use</span><span style="color: #CC33CC">\n</span><span style="color: #FF0000">"</span><span style="color: #990000">);</span>
+                <span style="font-weight: bold"><span style="color: #0000FF">return</span></span><span style="color: #990000">;</span>
+        <span style="color: #FF0000">}</span>
+
+        priv<span style="color: #990000">=</span><span style="font-weight: bold"><span style="color: #000000">calloc</span></span><span style="color: #990000">(</span><span style="color: #993399">1</span><span style="color: #990000">,</span><span style="font-weight: bold"><span style="color: #0000FF">sizeof</span></span><span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">devsim</span><span style="color: #990000">));</span>
+
+        <span style="font-weight: bold"><span style="color: #0000FF">if</span></span><span style="color: #990000">(!</span>priv<span style="color: #990000">)</span><span style="color: #FF0000">{</span>
+                <span style="font-weight: bold"><span style="color: #000000">printf</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"Allocation failed</span><span style="color: #CC33CC">\n</span><span style="color: #FF0000">"</span><span style="color: #990000">);</span>
+                <span style="font-weight: bold"><span style="color: #0000FF">return</span></span><span style="color: #990000">;</span>
+        <span style="color: #FF0000">}</span>
+
+        priv<span style="color: #990000">-&gt;</span>id<span style="color: #990000">=</span>id<span style="color: #990000">;</span>
+
+        <span style="font-weight: bold"><span style="color: #000000">callbackSetCallback</span></span><span style="color: #990000">(</span>timercb<span style="color: #990000">,</span> <span style="color: #990000">&amp;</span>priv<span style="color: #990000">-&gt;</span>updatecb<span style="color: #990000">);</span>
+        <span style="font-weight: bold"><span style="color: #000000">callbackSetPriority</span></span><span style="color: #990000">(</span>priorityHigh<span style="color: #990000">,</span> <span style="color: #990000">&amp;</span>priv<span style="color: #990000">-&gt;</span>updatecb<span style="color: #990000">);</span>
+
+        priv<span style="color: #990000">-&gt;</span>rate<span style="color: #990000">=</span>rate<span style="color: #990000">;</span>
+
+        priv<span style="color: #990000">-&gt;</span>hw<span style="color: #990000">.</span>lim_h_val<span style="color: #990000">=</span>hlim<span style="color: #990000">;</span>
+        priv<span style="color: #990000">-&gt;</span>hw<span style="color: #990000">.</span>lim_l_val<span style="color: #990000">=</span>llim<span style="color: #990000">;</span>
+
+        <span style="font-weight: bold"><span style="color: #000000">ellAdd</span></span><span style="color: #990000">(&amp;</span>devices<span style="color: #990000">,</span> <span style="color: #990000">&amp;</span>priv<span style="color: #990000">-&gt;</span>node<span style="color: #990000">);</span>
+<span style="color: #FF0000">}</span></tt></pre></div></div>
+<div class="sect3">
+<h4 id="_init_record">8.4.1. init_record</h4>
+<div class="paragraph"><p>Here we match the record and device support instances by matching
+the number given to the IOCsh function with the record OUT link.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">static</span></span>
+<span style="color: #009900">long</span> <span style="font-weight: bold"><span style="color: #000000">init_record</span></span><span style="color: #990000">(</span><span style="color: #008080">motorRecord</span> <span style="color: #990000">*</span>pmr<span style="color: #990000">)</span>
+<span style="color: #FF0000">{</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">motor_dset</span> <span style="color: #990000">*</span>dset<span style="color: #990000">=(</span><span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">motor_dset</span><span style="color: #990000">*)(</span>pmr<span style="color: #990000">-&gt;</span>dset<span style="color: #990000">);</span>
+  <span style="color: #008080">msta_field</span> stat<span style="color: #990000">;</span>
+  <span style="color: #009900">double</span> val<span style="color: #990000">;</span>
+  <span style="color: #009900">long</span> ret<span style="color: #990000">=</span><span style="color: #993399">0</span><span style="color: #990000">;</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">devsim</span> <span style="color: #990000">*</span>priv<span style="color: #990000">=</span><span style="font-weight: bold"><span style="color: #000000">getDev</span></span><span style="color: #990000">(</span>pmr<span style="color: #990000">-&gt;</span>out<span style="color: #990000">.</span>value<span style="color: #990000">.</span>vmeio<span style="color: #990000">.</span>card<span style="color: #990000">);</span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">if</span></span><span style="color: #990000">(!</span>priv<span style="color: #990000">)</span><span style="color: #FF0000">{</span>
+    <span style="font-weight: bold"><span style="color: #000000">printf</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"Invalid id %d</span><span style="color: #CC33CC">\n</span><span style="color: #FF0000">"</span><span style="color: #990000">,</span>pmr<span style="color: #990000">-&gt;</span>out<span style="color: #990000">.</span>value<span style="color: #990000">.</span>vmeio<span style="color: #990000">.</span>card<span style="color: #990000">);</span>
+    ret<span style="color: #990000">=</span>S_dev_noDevice<span style="color: #990000">;</span>
+    <span style="font-weight: bold"><span style="color: #0000FF">goto</span></span> error<span style="color: #990000">;</span>
+  <span style="color: #FF0000">}</span>
+  pmr<span style="color: #990000">-&gt;</span>dpvt<span style="color: #990000">=</span>priv<span style="color: #990000">;</span>
+
+  <span style="font-weight: bold"><span style="color: #000000">callbackSetUser</span></span><span style="color: #990000">(</span>pmr<span style="color: #990000">,</span> <span style="color: #990000">&amp;</span>priv<span style="color: #990000">-&gt;</span>updatecb<span style="color: #990000">);</span></tt></pre></div></div>
+<div class="paragraph"><p>Here we come upon the first of several quirks of the motorRecord.</p></div>
+<div class="paragraph"><p>If the RA_DONE flag is not initialized to 1 then the motor will immediately go
+into a moving state which can only be exited by a stop command.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>  stat<span style="color: #990000">.</span>All<span style="color: #990000">=</span><span style="color: #993399">0</span><span style="color: #990000">;</span>
+
+  stat<span style="color: #990000">.</span>Bits<span style="color: #990000">.</span>RA_DONE<span style="color: #990000">=</span><span style="color: #993399">1</span><span style="color: #990000">;</span>
+
+  pmr<span style="color: #990000">-&gt;</span>msta<span style="color: #990000">=</span>stat<span style="color: #990000">.</span>All<span style="color: #990000">;</span></tt></pre></div></div>
+<div class="paragraph"><p>The motor position stored by the autosave module is the DVAL field.
+At start we must explicitly convert this to raw counts and set the controller.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>  <span style="font-weight: bold"><span style="color: #0000FF">if</span></span><span style="color: #990000">(</span> pmr<span style="color: #990000">-&gt;</span>mres <span style="color: #990000">!=</span><span style="color: #993399">0.0</span> <span style="color: #990000">)</span><span style="color: #FF0000">{</span>
+    <span style="font-style: italic"><span style="color: #9A1900">/* Restore position counter.  Needed for autosave */</span></span>
+    val <span style="color: #990000">=</span> pmr<span style="color: #990000">-&gt;</span>dval <span style="color: #990000">/</span> pmr<span style="color: #990000">-&gt;</span>mres<span style="color: #990000">;</span>
+    <span style="color: #990000">(*</span>dset<span style="color: #990000">-&gt;</span>start_trans<span style="color: #990000">)(</span>pmr<span style="color: #990000">);</span>
+    <span style="color: #990000">(*</span>dset<span style="color: #990000">-&gt;</span>build_trans<span style="color: #990000">)(</span>LOAD_POS<span style="color: #990000">,</span> <span style="color: #990000">&amp;</span>val<span style="color: #990000">,</span> pmr<span style="color: #990000">);</span>
+    <span style="color: #990000">(*</span>dset<span style="color: #990000">-&gt;</span>end_trans<span style="color: #990000">)(</span>pmr<span style="color: #990000">);</span>
+  <span style="color: #FF0000">}</span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> <span style="color: #993399">0</span><span style="color: #990000">;</span>
+<span style="font-weight: bold"><span style="color: #008080">error:</span></span>
+  pmr<span style="color: #990000">-&gt;</span>pact<span style="color: #990000">=</span>TRUE<span style="color: #990000">;</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> ret<span style="color: #990000">;</span>
+<span style="color: #FF0000">}</span></tt></pre></div></div>
+</div>
+<div class="sect3">
+<h4 id="_start_polling">8.4.2. Start Polling</h4>
+<div class="paragraph"><p>Notice that the periodic update timer was not started in <em>init_record</em>.
+This is because the callback will cause record processing,
+ but this will fail unless <em>iocInit()</em> has completed.</p></div>
+<div class="paragraph"><p>To avoid this we use the IOC initialization hooks to start the timers
+as iocInit finishes.
+Note that the <em>initHookAtEnd</em> hook is called after autosave has completed as well.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">static</span></span>
+<span style="color: #009900">void</span> <span style="font-weight: bold"><span style="color: #000000">inithooks</span></span><span style="color: #990000">(</span><span style="color: #008080">initHookState</span> state<span style="color: #990000">)</span>
+<span style="color: #FF0000">{</span>
+        <span style="color: #008080">ELLNODE</span> <span style="color: #990000">*</span>node<span style="color: #990000">;</span>
+        <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">devsim</span> <span style="color: #990000">*</span>cur<span style="color: #990000">;</span>
+        <span style="font-style: italic"><span style="color: #9A1900">/* as of 3.14.11 initHookAtEnd is deprecated and initHookAfterIocRunning is proper */</span></span>
+        <span style="font-weight: bold"><span style="color: #0000FF">if</span></span><span style="color: #990000">(</span>state<span style="color: #990000">!=</span>initHookAtEnd<span style="color: #990000">)</span>
+                <span style="font-weight: bold"><span style="color: #0000FF">return</span></span><span style="color: #990000">;</span>
+
+        <span style="font-weight: bold"><span style="color: #0000FF">for</span></span><span style="color: #990000">(</span>node<span style="color: #990000">=</span><span style="font-weight: bold"><span style="color: #000000">ellFirst</span></span><span style="color: #990000">(&amp;</span>devices<span style="color: #990000">);</span> node<span style="color: #990000">;</span> node<span style="color: #990000">=</span><span style="font-weight: bold"><span style="color: #000000">ellNext</span></span><span style="color: #990000">(</span>node<span style="color: #990000">))</span>
+        <span style="color: #FF0000">{</span>
+                cur<span style="color: #990000">=(</span><span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">devsim</span><span style="color: #990000">*)</span>node<span style="color: #990000">;</span>
+
+                <span style="font-weight: bold"><span style="color: #000000">callbackRequestDelayed</span></span><span style="color: #990000">(&amp;</span>cur<span style="color: #990000">-&gt;</span>updatecb<span style="color: #990000">,</span> <span style="color: #993399">1.0</span><span style="color: #990000">/</span>cur<span style="color: #990000">-&gt;</span>rate<span style="color: #990000">);</span>
+        <span style="color: #FF0000">}</span>
+<span style="color: #FF0000">}</span></tt></pre></div></div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_poll_motor_state">8.5. Poll Motor State</h3>
+<div class="paragraph"><p>Polling the motor&#8217;s state happens in several parts.
+It may be caused by the periodic timer, or by a hardware interrupt.
+In either case the update flag will be set and then the record will process.</p></div>
+<div class="sect3">
+<h4 id="_update_callback">8.5.1. Update Callback</h4>
+<div class="paragraph"><p>The period timer does three things.  First it rearms itself, second it sets the <em>updateReady</em> flag,
+then it processes the record.</p></div>
+<div class="paragraph"><p>The <em>updateReady</em> flag exists to distinguish the two conditions which could cause the motorRecord to
+process.
+If it is not set then processing is the result of a user action.
+If it is set then processing is the result of a change in the hardware state.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">static</span></span>
+<span style="color: #009900">void</span> <span style="font-weight: bold"><span style="color: #000000">timercb</span></span><span style="color: #990000">(</span>CALLBACK<span style="color: #990000">*</span> cb<span style="color: #990000">)</span>
+<span style="color: #FF0000">{</span>
+        <span style="color: #008080">motorRecord</span> <span style="color: #990000">*</span>pmr<span style="color: #990000">=</span>NULL<span style="color: #990000">;</span>
+        <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">rset</span><span style="color: #990000">*</span> rset<span style="color: #990000">=</span>NULL<span style="color: #990000">;</span>
+        <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">devsim</span> <span style="color: #990000">*</span>priv<span style="color: #990000">=</span>NULL<span style="color: #990000">;</span>
+
+        <span style="font-weight: bold"><span style="color: #000000">callbackGetUser</span></span><span style="color: #990000">(</span>pmr<span style="color: #990000">,</span>cb<span style="color: #990000">);</span>
+        priv<span style="color: #990000">=</span>pmr<span style="color: #990000">-&gt;</span>dpvt<span style="color: #990000">;</span>
+        rset<span style="color: #990000">=(</span><span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">rset</span><span style="color: #990000">*)</span>pmr<span style="color: #990000">-&gt;</span>rset<span style="color: #990000">;</span>
+
+        <span style="font-weight: bold"><span style="color: #000000">dbScanLock</span></span><span style="color: #990000">((</span>dbCommon<span style="color: #990000">*)</span>pmr<span style="color: #990000">);</span>
+
+        <span style="font-weight: bold"><span style="color: #000000">callbackRequestDelayed</span></span><span style="color: #990000">(&amp;</span>priv<span style="color: #990000">-&gt;</span>updatecb<span style="color: #990000">,</span> <span style="color: #993399">1.0</span><span style="color: #990000">/</span>priv<span style="color: #990000">-&gt;</span>rate<span style="color: #990000">);</span>
+
+        <span style="font-weight: bold"><span style="color: #000000">update_motor</span></span><span style="color: #990000">(&amp;</span>priv<span style="color: #990000">-&gt;</span>hw<span style="color: #990000">);</span>
+        priv<span style="color: #990000">-&gt;</span>updateReady<span style="color: #990000">=</span><span style="color: #993399">1</span><span style="color: #990000">;</span>
+
+        <span style="color: #990000">(*</span>rset<span style="color: #990000">-&gt;</span>process<span style="color: #990000">)(</span>pmr<span style="color: #990000">);</span>
+
+        <span style="font-weight: bold"><span style="color: #000000">dbScanUnlock</span></span><span style="color: #990000">((</span>dbCommon<span style="color: #990000">*)</span>pmr<span style="color: #990000">);</span>
+<span style="color: #FF0000">}</span></tt></pre></div></div>
+<div class="paragraph"><p>Note that <em>update_motor</em> is called here so that it can be guarded by the record lock.
+This allows us to avoid threading issues.</p></div>
+</div>
+<div class="sect3">
+<h4 id="_update_values">8.5.2. update_values</h4>
+<div class="paragraph"><p>When the motorRecord is processed the first thing which occurs is a call to
+the <em>update_values</em> device support function.
+This is a test by the record to determine why it was processed.
+It also gives the record the opportunity to save a copy of the fields
+which can be changed so that monitors can be posted if a change
+does in fact occur.</p></div>
+<div class="paragraph"><p>The only fields which can be updated are <em>RMP</em>, <em>REP</em>, and <em>MSTA</em>.</p></div>
+<div class="paragraph"><p>This function exists to transfer data from the hardware into the record.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">static</span></span>
+<span style="color: #008080">CALLBACK_VALUE</span> <span style="font-weight: bold"><span style="color: #000000">update_values</span></span><span style="color: #990000">(</span><span style="color: #008080">motorRecord</span> <span style="color: #990000">*</span>pmr<span style="color: #990000">)</span>
+<span style="color: #FF0000">{</span>
+        <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">devsim</span> <span style="color: #990000">*</span>priv<span style="color: #990000">=</span>pmr<span style="color: #990000">-&gt;</span>dpvt<span style="color: #990000">;</span>
+        <span style="color: #008080">msta_field</span> modsts<span style="color: #990000">;</span>
+
+        <span style="font-weight: bold"><span style="color: #0000FF">if</span></span><span style="color: #990000">(!</span>priv<span style="color: #990000">-&gt;</span>updateReady<span style="color: #990000">)</span>
+                <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> NOTHING_DONE<span style="color: #990000">;</span>
+        priv<span style="color: #990000">-&gt;</span>updateReady<span style="color: #990000">=</span><span style="color: #993399">0</span><span style="color: #990000">;</span>
+
+        modsts<span style="color: #990000">.</span>All<span style="color: #990000">=</span>pmr<span style="color: #990000">-&gt;</span>msta<span style="color: #990000">;</span>
+
+        modsts<span style="color: #990000">.</span>Bits<span style="color: #990000">.</span>RA_PLUS_LS <span style="color: #990000">=</span> priv<span style="color: #990000">-&gt;</span>hw<span style="color: #990000">.</span>lim_h<span style="color: #990000">;</span>
+        modsts<span style="color: #990000">.</span>Bits<span style="color: #990000">.</span>RA_MINUS_LS <span style="color: #990000">=</span> priv<span style="color: #990000">-&gt;</span>hw<span style="color: #990000">.</span>lim_l<span style="color: #990000">;</span>
+        modsts<span style="color: #990000">.</span>Bits<span style="color: #990000">.</span>RA_DONE <span style="color: #990000">=</span> <span style="color: #990000">!</span>priv<span style="color: #990000">-&gt;</span>hw<span style="color: #990000">.</span>moving<span style="color: #990000">;</span>
+
+        pmr<span style="color: #990000">-&gt;</span>msta<span style="color: #990000">=</span>modsts<span style="color: #990000">.</span>All<span style="color: #990000">;</span>
+
+        pmr<span style="color: #990000">-&gt;</span>rmp <span style="color: #990000">=</span> <span style="color: #990000">(</span><span style="color: #009900">double</span><span style="color: #990000">)</span>priv<span style="color: #990000">-&gt;</span>hw<span style="color: #990000">.</span>pos<span style="color: #990000">;</span>
+
+        <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> CALLBACK_DATA<span style="color: #990000">;</span>
+<span style="color: #FF0000">}</span></tt></pre></div></div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_command_transactions">8.6. Command Transactions</h3>
+<div class="paragraph"><p>Commands are built and sent to the device through three functions: start, build, and end transaction.</p></div>
+<div class="sect3">
+<h4 id="_start_trans">8.6.1. start_trans</h4>
+<div class="paragraph"><p>This function begins a new transaction by aborting any previous uncommitted transaction.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">static</span></span>
+<span style="color: #009900">long</span> <span style="font-weight: bold"><span style="color: #000000">start_trans</span></span><span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">motorRecord</span> <span style="color: #990000">*</span>pmr<span style="color: #990000">)</span>
+<span style="color: #FF0000">{</span>
+        <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">devsim</span> <span style="color: #990000">*</span>priv<span style="color: #990000">=</span>pmr<span style="color: #990000">-&gt;</span>dpvt<span style="color: #990000">;</span>
+        <span style="color: #008080">ELLNODE</span> <span style="color: #990000">*</span>node<span style="color: #990000">,</span> <span style="color: #990000">*</span>next<span style="color: #990000">;</span>
+        <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">trans</span> <span style="color: #990000">*</span>cur<span style="color: #990000">;</span>
+
+        <span style="font-weight: bold"><span style="color: #0000FF">for</span></span><span style="color: #990000">(</span>node<span style="color: #990000">=</span><span style="font-weight: bold"><span style="color: #000000">ellFirst</span></span><span style="color: #990000">(&amp;</span>priv<span style="color: #990000">-&gt;</span>transaction<span style="color: #990000">),</span> next <span style="color: #990000">=</span> node <span style="color: #990000">?</span> <span style="font-weight: bold"><span style="color: #000000">ellNext</span></span><span style="color: #990000">(</span>node<span style="color: #990000">)</span> <span style="color: #990000">:</span> NULL<span style="color: #990000">;</span>
+                node<span style="color: #990000">;</span>
+                node<span style="color: #990000">=</span>next<span style="color: #990000">,</span> next<span style="color: #990000">=</span>next <span style="color: #990000">?</span> <span style="font-weight: bold"><span style="color: #000000">ellNext</span></span><span style="color: #990000">(</span>next<span style="color: #990000">)</span> <span style="color: #990000">:</span> NULL <span style="color: #990000">)</span>
+        <span style="color: #FF0000">{</span>
+                cur<span style="color: #990000">=(</span><span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">trans</span><span style="color: #990000">*)</span>node<span style="color: #990000">;</span>
+
+                <span style="font-weight: bold"><span style="color: #000000">ellDelete</span></span><span style="color: #990000">(&amp;</span>priv<span style="color: #990000">-&gt;</span>transaction<span style="color: #990000">,</span>node<span style="color: #990000">);</span>
+                <span style="font-weight: bold"><span style="color: #000000">free</span></span><span style="color: #990000">(</span>cur<span style="color: #990000">);</span>
+        <span style="color: #FF0000">}</span>
+
+        <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> <span style="color: #993399">0</span><span style="color: #990000">;</span>
+<span style="color: #FF0000">}</span></tt></pre></div></div>
+</div>
+<div class="sect3">
+<h4 id="_actions">8.6.2. Actions</h4>
+<div class="paragraph"><p>Now we will look at some of the primitive actions which can go into a transaction.</p></div>
+<div class="paragraph"><p>The best (only) way to gain an understanding of what groups of primitives are actually
+used is to review the source for the motorRecord record support.</p></div>
+<div class="sect4">
+<h5 id="_position">Position</h5>
+<div class="paragraph"><p>A relative move is commanded if the axis has an encoder present.
+Otherwise absolute moves are used.
+It is always necessary to implement both move types.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">static</span></span>
+<span style="color: #009900">void</span> <span style="font-weight: bold"><span style="color: #000000">move_rel</span></span><span style="color: #990000">(</span><span style="color: #008080">motorRecord</span> <span style="color: #990000">*</span>pmr<span style="color: #990000">,</span> <span style="color: #009900">double</span> rel<span style="color: #990000">)</span>
+<span style="color: #FF0000">{</span>
+        <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">devsim</span> <span style="color: #990000">*</span>priv<span style="color: #990000">=</span>pmr<span style="color: #990000">-&gt;</span>dpvt<span style="color: #990000">;</span>
+
+        priv<span style="color: #990000">-&gt;</span>hw<span style="color: #990000">.</span>remaining <span style="color: #990000">=</span> <span style="color: #990000">(</span>epicsInt32<span style="color: #990000">)</span>rel<span style="color: #990000">;</span>
+<span style="color: #FF0000">}</span></tt></pre></div></div>
+<div class="paragraph"><p>Implement an absolute move in terms of a relative move.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">static</span></span>
+<span style="color: #009900">void</span> <span style="font-weight: bold"><span style="color: #000000">move_abs</span></span><span style="color: #990000">(</span><span style="color: #008080">motorRecord</span> <span style="color: #990000">*</span>pmr<span style="color: #990000">,</span> <span style="color: #009900">double</span> newpos<span style="color: #990000">)</span>
+<span style="color: #FF0000">{</span>
+        <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">devsim</span> <span style="color: #990000">*</span>priv<span style="color: #990000">=</span>pmr<span style="color: #990000">-&gt;</span>dpvt<span style="color: #990000">;</span>
+
+        newpos <span style="color: #990000">-=</span> <span style="color: #990000">(</span><span style="color: #009900">double</span><span style="color: #990000">)</span>priv<span style="color: #990000">-&gt;</span>hw<span style="color: #990000">.</span>pos<span style="color: #990000">;</span>
+
+        <span style="font-weight: bold"><span style="color: #000000">move_rel</span></span><span style="color: #990000">(</span>pmr<span style="color: #990000">,</span> newpos<span style="color: #990000">);</span>
+<span style="color: #FF0000">}</span></tt></pre></div></div>
+<div class="paragraph"><p>Restore the internal position counter from an external source.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">static</span></span>
+<span style="color: #009900">void</span> <span style="font-weight: bold"><span style="color: #000000">load_pos</span></span><span style="color: #990000">(</span><span style="color: #008080">motorRecord</span> <span style="color: #990000">*</span>pmr<span style="color: #990000">,</span> <span style="color: #009900">double</span> newpos<span style="color: #990000">)</span>
+<span style="color: #FF0000">{</span>
+        <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">devsim</span> <span style="color: #990000">*</span>priv<span style="color: #990000">=</span>pmr<span style="color: #990000">-&gt;</span>dpvt<span style="color: #990000">;</span>
+
+        priv<span style="color: #990000">-&gt;</span>hw<span style="color: #990000">.</span>pos <span style="color: #990000">=</span> <span style="color: #990000">(</span>epicsInt32<span style="color: #990000">)</span>newpos<span style="color: #990000">;</span>
+<span style="color: #FF0000">}</span></tt></pre></div></div>
+</div>
+<div class="sect4">
+<h5 id="_velocity">Velocity</h5>
+<div class="paragraph"><p>Set the move velocity.
+The motion profile used by the motorRecord has two velocities,
+we need only one and chose to ignore the base velocity.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">static</span></span>
+<span style="color: #009900">void</span> <span style="font-weight: bold"><span style="color: #000000">set_velocity</span></span><span style="color: #990000">(</span><span style="color: #008080">motorRecord</span> <span style="color: #990000">*</span>pmr<span style="color: #990000">,</span> <span style="color: #009900">double</span> vel<span style="color: #990000">)</span>
+<span style="color: #FF0000">{</span>
+        <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">devsim</span> <span style="color: #990000">*</span>priv<span style="color: #990000">=</span>pmr<span style="color: #990000">-&gt;</span>dpvt<span style="color: #990000">;</span>
+
+        priv<span style="color: #990000">-&gt;</span>hw<span style="color: #990000">.</span>vel <span style="color: #990000">=</span> vel<span style="color: #990000">;</span>
+<span style="color: #FF0000">}</span></tt></pre></div></div>
+</div>
+<div class="sect4">
+<h5 id="_immediate">Immediate</h5>
+<div class="paragraph"><p>This both commands motion, and notes the time for use by the simulation.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">static</span></span>
+<span style="color: #009900">void</span> <span style="font-weight: bold"><span style="color: #000000">go</span></span><span style="color: #990000">(</span><span style="color: #008080">motorRecord</span> <span style="color: #990000">*</span>pmr<span style="color: #990000">)</span>
+<span style="color: #FF0000">{</span>
+        <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">devsim</span> <span style="color: #990000">*</span>priv<span style="color: #990000">=</span>pmr<span style="color: #990000">-&gt;</span>dpvt<span style="color: #990000">;</span>
+
+        <span style="font-style: italic"><span style="color: #9A1900">/* Simulation start */</span></span>
+
+        <span style="font-weight: bold"><span style="color: #0000FF">if</span></span><span style="color: #990000">(!</span>priv<span style="color: #990000">-&gt;</span>hw<span style="color: #990000">.</span>remaining<span style="color: #990000">)</span>
+                <span style="font-weight: bold"><span style="color: #0000FF">return</span></span><span style="color: #990000">;</span>
+
+        <span style="font-weight: bold"><span style="color: #0000FF">if</span></span><span style="color: #990000">(!</span>priv<span style="color: #990000">-&gt;</span>hw<span style="color: #990000">.</span>vel<span style="color: #990000">)</span>
+                <span style="font-weight: bold"><span style="color: #0000FF">return</span></span><span style="color: #990000">;</span>
+
+        <span style="font-style: italic"><span style="color: #9A1900">/* make the sign of the velocity match remaining */</span></span>
+        priv<span style="color: #990000">-&gt;</span>hw<span style="color: #990000">.</span>vel <span style="color: #990000">=</span> <span style="font-weight: bold"><span style="color: #000000">copysign</span></span><span style="color: #990000">(</span>priv<span style="color: #990000">-&gt;</span>hw<span style="color: #990000">.</span>vel<span style="color: #990000">,</span> priv<span style="color: #990000">-&gt;</span>hw<span style="color: #990000">.</span>remaining<span style="color: #990000">);</span>
+
+        priv<span style="color: #990000">-&gt;</span>hw<span style="color: #990000">.</span>moving<span style="color: #990000">=</span><span style="color: #993399">1</span><span style="color: #990000">;</span>
+        <span style="font-weight: bold"><span style="color: #000000">epicsTimeGetCurrent</span></span><span style="color: #990000">(&amp;</span>priv<span style="color: #990000">-&gt;</span>hw<span style="color: #990000">.</span>last<span style="color: #990000">);</span>
+
+        <span style="font-style: italic"><span style="color: #9A1900">/* update record */</span></span>
+        <span style="font-weight: bold"><span style="color: #000000">callbackRequest</span></span><span style="color: #990000">(&amp;</span>priv<span style="color: #990000">-&gt;</span>updatecb<span style="color: #990000">);</span>
+<span style="color: #FF0000">}</span></tt></pre></div></div>
+<div class="paragraph"><p>Cause an immediate halt.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">static</span></span>
+<span style="color: #009900">void</span> <span style="font-weight: bold"><span style="color: #000000">stop</span></span><span style="color: #990000">(</span><span style="color: #008080">motorRecord</span> <span style="color: #990000">*</span>pmr<span style="color: #990000">)</span>
+<span style="color: #FF0000">{</span>
+        <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">devsim</span> <span style="color: #990000">*</span>priv<span style="color: #990000">=</span>pmr<span style="color: #990000">-&gt;</span>dpvt<span style="color: #990000">;</span>
+
+        <span style="font-style: italic"><span style="color: #9A1900">/* Simulation stop */</span></span>
+
+        <span style="font-weight: bold"><span style="color: #0000FF">if</span></span><span style="color: #990000">(!</span>priv<span style="color: #990000">-&gt;</span>hw<span style="color: #990000">.</span>moving<span style="color: #990000">)</span>
+                <span style="font-weight: bold"><span style="color: #0000FF">return</span></span><span style="color: #990000">;</span>
+
+        priv<span style="color: #990000">-&gt;</span>hw<span style="color: #990000">.</span>moving<span style="color: #990000">=</span><span style="color: #993399">0</span><span style="color: #990000">;</span>
+        priv<span style="color: #990000">-&gt;</span>hw<span style="color: #990000">.</span>remaining<span style="color: #990000">=</span><span style="color: #993399">0</span><span style="color: #990000">;</span>
+
+        <span style="font-style: italic"><span style="color: #9A1900">/* update record */</span></span>
+        <span style="font-weight: bold"><span style="color: #000000">callbackRequest</span></span><span style="color: #990000">(&amp;</span>priv<span style="color: #990000">-&gt;</span>updatecb<span style="color: #990000">);</span>
+<span style="color: #FF0000">}</span></tt></pre></div></div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_build_trans">8.6.3. build_trans</h4>
+<div class="paragraph"><p>Stores a transaction in the device support transaction list.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">static</span></span>
+<span style="color: #008080">RTN_STATUS</span> <span style="font-weight: bold"><span style="color: #000000">build_trans</span></span><span style="color: #990000">(</span><span style="color: #008080">motor_cmnd</span> cmd<span style="color: #990000">,</span> <span style="color: #009900">double</span> <span style="color: #990000">*</span>val<span style="color: #990000">,</span> <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">motorRecord</span> <span style="color: #990000">*</span>pmr<span style="color: #990000">)</span>
+<span style="color: #FF0000">{</span>
+        <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">devsim</span> <span style="color: #990000">*</span>priv<span style="color: #990000">=</span>pmr<span style="color: #990000">-&gt;</span>dpvt<span style="color: #990000">;</span>
+        <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">trans</span> <span style="color: #990000">*</span>t<span style="color: #990000">=</span><span style="font-weight: bold"><span style="color: #000000">callocMustSucceed</span></span><span style="color: #990000">(</span><span style="color: #993399">1</span><span style="color: #990000">,</span><span style="font-weight: bold"><span style="color: #0000FF">sizeof</span></span><span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">trans</span><span style="color: #990000">),</span> <span style="color: #FF0000">"build_trans"</span><span style="color: #990000">);</span>
+
+        <span style="font-weight: bold"><span style="color: #0000FF">switch</span></span><span style="color: #990000">(</span>cmd<span style="color: #990000">)</span><span style="color: #FF0000">{</span>
+        <span style="font-weight: bold"><span style="color: #0000FF">case</span></span> MOVE_ABS<span style="color: #990000">:</span>
+                t<span style="color: #990000">-&gt;</span>nargs<span style="color: #990000">=</span><span style="color: #993399">1</span><span style="color: #990000">;</span>
+                t<span style="color: #990000">-&gt;</span>args<span style="color: #990000">[</span><span style="color: #993399">0</span><span style="color: #990000">]=*</span>val<span style="color: #990000">;</span>
+                t<span style="color: #990000">-&gt;</span>trans_proc<span style="color: #990000">=&amp;</span>move_abs<span style="color: #990000">;</span>
+                <span style="font-weight: bold"><span style="color: #0000FF">break</span></span><span style="color: #990000">;</span>
+        <span style="font-weight: bold"><span style="color: #0000FF">case</span></span> MOVE_REL<span style="color: #990000">:</span>
+                t<span style="color: #990000">-&gt;</span>nargs<span style="color: #990000">=</span><span style="color: #993399">1</span><span style="color: #990000">;</span>
+                t<span style="color: #990000">-&gt;</span>args<span style="color: #990000">[</span><span style="color: #993399">0</span><span style="color: #990000">]=*</span>val<span style="color: #990000">;</span>
+                t<span style="color: #990000">-&gt;</span>trans_proc<span style="color: #990000">=&amp;</span>move_rel<span style="color: #990000">;</span>
+                <span style="font-weight: bold"><span style="color: #0000FF">break</span></span><span style="color: #990000">;</span>
+        <span style="font-weight: bold"><span style="color: #0000FF">case</span></span> LOAD_POS<span style="color: #990000">:</span>
+                t<span style="color: #990000">-&gt;</span>nargs<span style="color: #990000">=</span><span style="color: #993399">1</span><span style="color: #990000">;</span>
+                t<span style="color: #990000">-&gt;</span>args<span style="color: #990000">[</span><span style="color: #993399">0</span><span style="color: #990000">]=*</span>val<span style="color: #990000">;</span>
+                t<span style="color: #990000">-&gt;</span>trans_proc<span style="color: #990000">=&amp;</span>load_pos<span style="color: #990000">;</span>
+                <span style="font-weight: bold"><span style="color: #0000FF">break</span></span><span style="color: #990000">;</span>
+        <span style="font-weight: bold"><span style="color: #0000FF">case</span></span> SET_VELOCITY<span style="color: #990000">:</span>
+                t<span style="color: #990000">-&gt;</span>nargs<span style="color: #990000">=</span><span style="color: #993399">1</span><span style="color: #990000">;</span>
+                t<span style="color: #990000">-&gt;</span>args<span style="color: #990000">[</span><span style="color: #993399">0</span><span style="color: #990000">]=*</span>val<span style="color: #990000">;</span>
+                t<span style="color: #990000">-&gt;</span>trans_proc<span style="color: #990000">=&amp;</span>set_velocity<span style="color: #990000">;</span>
+                <span style="font-weight: bold"><span style="color: #0000FF">break</span></span><span style="color: #990000">;</span>
+        <span style="font-weight: bold"><span style="color: #0000FF">case</span></span> GO<span style="color: #990000">:</span>
+                t<span style="color: #990000">-&gt;</span>nargs<span style="color: #990000">=</span><span style="color: #993399">0</span><span style="color: #990000">;</span>
+                t<span style="color: #990000">-&gt;</span>trans_proc<span style="color: #990000">=&amp;</span>go<span style="color: #990000">;</span>
+                <span style="font-weight: bold"><span style="color: #0000FF">break</span></span><span style="color: #990000">;</span>
+        <span style="font-weight: bold"><span style="color: #0000FF">case</span></span> STOP_AXIS<span style="color: #990000">:</span>
+                t<span style="color: #990000">-&gt;</span>nargs<span style="color: #990000">=</span><span style="color: #993399">0</span><span style="color: #990000">;</span>
+                t<span style="color: #990000">-&gt;</span>trans_proc<span style="color: #990000">=&amp;</span>stop<span style="color: #990000">;</span>
+                <span style="font-weight: bold"><span style="color: #0000FF">break</span></span><span style="color: #990000">;</span>
+        <span style="font-weight: bold"><span style="color: #0000FF">case</span></span> SET_HIGH_LIMIT<span style="color: #990000">:</span>
+        <span style="font-weight: bold"><span style="color: #0000FF">case</span></span> SET_LOW_LIMIT<span style="color: #990000">:</span>
+                <span style="font-style: italic"><span style="color: #9A1900">/* </span></span><span style="font-weight: bold"><span style="background-color: #66FFFF">TODO</span></span><span style="font-style: italic"><span style="color: #9A1900"> */</span></span>
+        <span style="font-weight: bold"><span style="color: #0000FF">case</span></span> SET_VEL_BASE<span style="color: #990000">:</span>
+        <span style="font-weight: bold"><span style="color: #0000FF">case</span></span> GET_INFO<span style="color: #990000">:</span>
+                <span style="font-weight: bold"><span style="color: #000000">free</span></span><span style="color: #990000">(</span>t<span style="color: #990000">);</span>
+                <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> OK<span style="color: #990000">;</span>
+<span style="font-weight: bold"><span style="color: #008080">        default:</span></span>
+                <span style="font-weight: bold"><span style="color: #000000">printf</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"Unknown command %d</span><span style="color: #CC33CC">\n</span><span style="color: #FF0000">"</span><span style="color: #990000">,</span>cmd<span style="color: #990000">);</span>
+                <span style="font-weight: bold"><span style="color: #000000">free</span></span><span style="color: #990000">(</span>t<span style="color: #990000">);</span>
+                <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> OK<span style="color: #990000">;</span>
+        <span style="color: #FF0000">}</span>
+
+        <span style="font-weight: bold"><span style="color: #000000">ellAdd</span></span><span style="color: #990000">(&amp;</span>priv<span style="color: #990000">-&gt;</span>transaction<span style="color: #990000">,</span> <span style="color: #990000">&amp;</span>t<span style="color: #990000">-&gt;</span>node<span style="color: #990000">);</span>
+
+        <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> OK<span style="color: #990000">;</span>
+<span style="color: #FF0000">}</span></tt></pre></div></div>
+</div>
+<div class="sect3">
+<h4 id="_end_trans">8.6.4. end_trans</h4>
+<div class="paragraph"><p>Here we simply iterate through the list of transaction and execute the actions.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">static</span></span>
+<span style="color: #008080">RTN_STATUS</span> <span style="font-weight: bold"><span style="color: #000000">end_trans</span></span><span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">motorRecord</span> <span style="color: #990000">*</span>pmr<span style="color: #990000">)</span>
+<span style="color: #FF0000">{</span>
+        <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">devsim</span> <span style="color: #990000">*</span>priv<span style="color: #990000">=</span>pmr<span style="color: #990000">-&gt;</span>dpvt<span style="color: #990000">;</span>
+        <span style="color: #008080">ELLNODE</span> <span style="color: #990000">*</span>node<span style="color: #990000">,</span> <span style="color: #990000">*</span>next<span style="color: #990000">;</span>
+        <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">trans</span> <span style="color: #990000">*</span>cur<span style="color: #990000">;</span>
+
+        <span style="font-weight: bold"><span style="color: #0000FF">for</span></span><span style="color: #990000">(</span>node<span style="color: #990000">=</span><span style="font-weight: bold"><span style="color: #000000">ellFirst</span></span><span style="color: #990000">(&amp;</span>priv<span style="color: #990000">-&gt;</span>transaction<span style="color: #990000">),</span> next <span style="color: #990000">=</span> node <span style="color: #990000">?</span> <span style="font-weight: bold"><span style="color: #000000">ellNext</span></span><span style="color: #990000">(</span>node<span style="color: #990000">)</span> <span style="color: #990000">:</span> NULL<span style="color: #990000">;</span>
+                node<span style="color: #990000">;</span>
+                node<span style="color: #990000">=</span>next<span style="color: #990000">,</span> next<span style="color: #990000">=</span> next <span style="color: #990000">?</span> <span style="font-weight: bold"><span style="color: #000000">ellNext</span></span><span style="color: #990000">(</span>next<span style="color: #990000">)</span> <span style="color: #990000">:</span> NULL <span style="color: #990000">)</span>
+        <span style="color: #FF0000">{</span>
+                cur<span style="color: #990000">=(</span><span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">trans</span><span style="color: #990000">*)</span>node<span style="color: #990000">;</span>
+
+                <span style="font-weight: bold"><span style="color: #0000FF">switch</span></span><span style="color: #990000">(</span>cur<span style="color: #990000">-&gt;</span>nargs<span style="color: #990000">)</span><span style="color: #FF0000">{</span>
+                <span style="font-weight: bold"><span style="color: #0000FF">case</span></span> <span style="color: #993399">0</span><span style="color: #990000">:</span>
+                        <span style="color: #990000">(*</span>cur<span style="color: #990000">-&gt;</span>trans_proc<span style="color: #990000">)(</span>pmr<span style="color: #990000">);</span>
+                        <span style="font-weight: bold"><span style="color: #0000FF">break</span></span><span style="color: #990000">;</span>
+                <span style="font-weight: bold"><span style="color: #0000FF">case</span></span> <span style="color: #993399">1</span><span style="color: #990000">:</span>
+                        <span style="color: #990000">(*</span>cur<span style="color: #990000">-&gt;</span>trans_proc<span style="color: #990000">)(</span>pmr<span style="color: #990000">,</span>
+                                cur<span style="color: #990000">-&gt;</span>args<span style="color: #990000">[</span><span style="color: #993399">0</span><span style="color: #990000">]);</span>
+                        <span style="font-weight: bold"><span style="color: #0000FF">break</span></span><span style="color: #990000">;</span>
+                <span style="font-weight: bold"><span style="color: #0000FF">case</span></span> <span style="color: #993399">2</span><span style="color: #990000">:</span>
+                        <span style="color: #990000">(*</span>cur<span style="color: #990000">-&gt;</span>trans_proc<span style="color: #990000">)(</span>pmr<span style="color: #990000">,</span>
+                                cur<span style="color: #990000">-&gt;</span>args<span style="color: #990000">[</span><span style="color: #993399">0</span><span style="color: #990000">],</span>
+                                cur<span style="color: #990000">-&gt;</span>args<span style="color: #990000">[</span><span style="color: #993399">1</span><span style="color: #990000">]);</span>
+<span style="font-weight: bold"><span style="color: #008080">                default:</span></span>
+                        <span style="font-weight: bold"><span style="color: #000000">printf</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"Internal Logic error: too many arguments</span><span style="color: #CC33CC">\n</span><span style="color: #FF0000">"</span><span style="color: #990000">);</span>
+                        <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> ERROR<span style="color: #990000">;</span>
+                <span style="color: #FF0000">}</span>
+
+                <span style="font-weight: bold"><span style="color: #000000">ellDelete</span></span><span style="color: #990000">(&amp;</span>priv<span style="color: #990000">-&gt;</span>transaction<span style="color: #990000">,</span> node<span style="color: #990000">);</span>
+                <span style="font-weight: bold"><span style="color: #000000">free</span></span><span style="color: #990000">(</span>cur<span style="color: #990000">);</span>
+        <span style="color: #FF0000">}</span>
+
+        <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> OK<span style="color: #990000">;</span>
+<span style="color: #FF0000">}</span></tt></pre></div></div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_boiler_plate">8.7. Boiler Plate</h3>
+<div class="paragraph"><p>Standard code export the IOC shell function and device support.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">motor_dset</span> devMSIM <span style="color: #990000">=</span> <span style="color: #FF0000">{</span>
+        <span style="color: #FF0000">{</span>
+         <span style="color: #993399">8</span><span style="color: #990000">,</span>
+         NULL<span style="color: #990000">,</span> <span style="font-style: italic"><span style="color: #9A1900">/* report */</span></span>
+         NULL<span style="color: #990000">,</span> <span style="font-style: italic"><span style="color: #9A1900">/* init */</span></span>
+         <span style="color: #990000">(</span>DEVSUPFUN<span style="color: #990000">)</span> init_record<span style="color: #990000">,</span>
+         NULL <span style="font-style: italic"><span style="color: #9A1900">/* get_ioint_info */</span></span>
+        <span style="color: #FF0000">}</span><span style="color: #990000">,</span>
+        update_values<span style="color: #990000">,</span>
+        start_trans<span style="color: #990000">,</span>
+        build_trans<span style="color: #990000">,</span>
+        end_trans
+<span style="color: #FF0000">}</span><span style="color: #990000">;</span>
+<span style="font-weight: bold"><span style="color: #000000">epicsExportAddress</span></span><span style="color: #990000">(</span>dset<span style="color: #990000">,</span> devMSIM<span style="color: #990000">);</span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">static</span></span> <span style="font-weight: bold"><span style="color: #0000FF">const</span></span> <span style="color: #008080">iocshArg</span> addmsimArg0 <span style="color: #990000">=</span> <span style="color: #FF0000">{</span> <span style="color: #FF0000">"id#"</span><span style="color: #990000">,</span> iocshArgInt <span style="color: #FF0000">}</span><span style="color: #990000">;</span>
+<span style="font-weight: bold"><span style="color: #0000FF">static</span></span> <span style="font-weight: bold"><span style="color: #0000FF">const</span></span> <span style="color: #008080">iocshArg</span> addmsimArg1 <span style="color: #990000">=</span> <span style="color: #FF0000">{</span> <span style="color: #FF0000">"Low limit"</span><span style="color: #990000">,</span> iocshArgInt <span style="color: #FF0000">}</span><span style="color: #990000">;</span>
+<span style="font-weight: bold"><span style="color: #0000FF">static</span></span> <span style="font-weight: bold"><span style="color: #0000FF">const</span></span> <span style="color: #008080">iocshArg</span> addmsimArg2 <span style="color: #990000">=</span> <span style="color: #FF0000">{</span> <span style="color: #FF0000">"High limit"</span><span style="color: #990000">,</span> iocshArgInt <span style="color: #FF0000">}</span><span style="color: #990000">;</span>
+<span style="font-weight: bold"><span style="color: #0000FF">static</span></span> <span style="font-weight: bold"><span style="color: #0000FF">const</span></span> <span style="color: #008080">iocshArg</span> addmsimArg3 <span style="color: #990000">=</span> <span style="color: #FF0000">{</span> <span style="color: #FF0000">"Update Rate"</span><span style="color: #990000">,</span> iocshArgDouble <span style="color: #FF0000">}</span><span style="color: #990000">;</span>
+<span style="font-weight: bold"><span style="color: #0000FF">static</span></span> <span style="font-weight: bold"><span style="color: #0000FF">const</span></span> iocshArg <span style="color: #990000">*</span> <span style="font-weight: bold"><span style="color: #0000FF">const</span></span> addmsimArgs<span style="color: #990000">[</span><span style="color: #993399">4</span><span style="color: #990000">]</span> <span style="color: #990000">=</span>
+<span style="color: #FF0000">{</span> <span style="color: #990000">&amp;</span>addmsimArg0<span style="color: #990000">,</span> <span style="color: #990000">&amp;</span>addmsimArg1<span style="color: #990000">,</span> <span style="color: #990000">&amp;</span>addmsimArg2<span style="color: #990000">,</span> <span style="color: #990000">&amp;</span>addmsimArg3 <span style="color: #FF0000">}</span><span style="color: #990000">;</span>
+<span style="font-weight: bold"><span style="color: #0000FF">static</span></span> <span style="font-weight: bold"><span style="color: #0000FF">const</span></span> <span style="color: #008080">iocshFuncDef</span> addmsimFuncDef <span style="color: #990000">=</span>
+<span style="color: #FF0000">{</span> <span style="color: #FF0000">"addmsim"</span><span style="color: #990000">,</span> <span style="color: #993399">4</span><span style="color: #990000">,</span> addmsimArgs <span style="color: #FF0000">}</span><span style="color: #990000">;</span>
+<span style="font-weight: bold"><span style="color: #0000FF">static</span></span> <span style="color: #009900">void</span> <span style="font-weight: bold"><span style="color: #000000">addmsimCallFunc</span></span><span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">const</span></span> <span style="color: #008080">iocshArgBuf</span> <span style="color: #990000">*</span>args<span style="color: #990000">)</span>
+<span style="color: #FF0000">{</span>
+  <span style="font-weight: bold"><span style="color: #000000">addmsim</span></span><span style="color: #990000">(</span>args<span style="color: #990000">[</span><span style="color: #993399">0</span><span style="color: #990000">].</span>ival<span style="color: #990000">,</span>args<span style="color: #990000">[</span><span style="color: #993399">1</span><span style="color: #990000">].</span>ival<span style="color: #990000">,</span>args<span style="color: #990000">[</span><span style="color: #993399">2</span><span style="color: #990000">].</span>ival<span style="color: #990000">,</span>args<span style="color: #990000">[</span><span style="color: #993399">3</span><span style="color: #990000">].</span>dval<span style="color: #990000">);</span>
+<span style="color: #FF0000">}</span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">static</span></span>
+<span style="color: #009900">void</span> <span style="font-weight: bold"><span style="color: #000000">msimreg</span></span><span style="color: #990000">(</span><span style="color: #009900">void</span><span style="color: #990000">)</span>
+<span style="color: #FF0000">{</span>
+        <span style="font-weight: bold"><span style="color: #000000">initHookRegister</span></span><span style="color: #990000">(&amp;</span>inithooks<span style="color: #990000">);</span>
+        <span style="font-weight: bold"><span style="color: #000000">iocshRegister</span></span><span style="color: #990000">(&amp;</span>addmsimFuncDef<span style="color: #990000">,</span> addmsimCallFunc<span style="color: #990000">);</span>
+<span style="color: #FF0000">}</span>
+<span style="font-weight: bold"><span style="color: #000000">epicsExportRegistrar</span></span><span style="color: #990000">(</span>msimreg<span style="color: #990000">);</span></tt></pre></div></div>
+<div class="paragraph"><p>Also the database definition.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>variable(motorRecordDebug)
+device(motor, VME_IO, devMSIM, "Moter Simple Sim")
+registrar(msimreg)</code></pre>
+</div></div>
+</div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr /></div>
+<div id="footer">
+<div id="footer-text">
+Version 1<br />
+Last updated
+ 2016-12-01 00:02:11 CET
+</div>
+</div>
+</body>
+</html>

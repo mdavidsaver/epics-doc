@@ -1,0 +1,1418 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.6.9" />
+<meta name="keywords" content="epics, edm, ioc" />
+<title>Getting Started with EPICS</title>
+<style type="text/css">
+/* Shared CSS for AsciiDoc xhtml11 and html5 backends */
+
+/* Default font. */
+body {
+  font-family: Georgia,serif;
+}
+
+/* Title font. */
+h1, h2, h3, h4, h5, h6,
+div.title, caption.title,
+thead, p.table.header,
+#toctitle,
+#author, #revnumber, #revdate, #revremark,
+#footer {
+  font-family: Arial,Helvetica,sans-serif;
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: fuchsia;
+}
+
+em {
+  font-style: italic;
+  color: navy;
+}
+
+strong {
+  font-weight: bold;
+  color: #083194;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #527bbd;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1, h2, h3 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  padding-top: 0.5em;
+}
+h3 {
+  float: left;
+}
+h3 + * {
+  clear: left;
+}
+h5 {
+  font-size: 1.0em;
+}
+
+div.sectionbody {
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+ul, ol, li > p {
+  margin-top: 0;
+}
+ul > li     { color: #aaa; }
+ul > li > * { color: black; }
+
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
+  padding: 0;
+  margin: 0;
+}
+pre {
+  white-space: pre-wrap;
+}
+
+#author {
+  color: #527bbd;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+#email {
+}
+#revnumber, #revdate, #revremark {
+}
+
+#footer {
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+#preamble {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.0em;
+  margin-bottom: 2.0em;
+  margin-right: 10%;
+  color: #606060;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  color: #527bbd;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid #dddddd;
+  border-left: 4px solid #f0f0f0;
+  padding: 0.5em;
+}
+
+div.listingblock > div.content {
+  border: 1px solid #dddddd;
+  border-left: 5px solid #f0f0f0;
+  background: #f8f8f8;
+  padding: 0.5em;
+}
+
+div.quoteblock, div.verseblock {
+  padding-left: 1.0em;
+  margin-left: 1.0em;
+  margin-right: 10%;
+  border-left: 5px solid #f0f0f0;
+  color: #888;
+}
+
+div.quoteblock > div.attribution {
+  padding-top: 0.5em;
+  text-align: right;
+}
+
+div.verseblock > pre.content {
+  font-family: inherit;
+  font-size: inherit;
+}
+div.verseblock > div.attribution {
+  padding-top: 0.75em;
+  text-align: left;
+}
+/* DEPRECATED: Pre version 8.2.7 verse style literal block. */
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #527bbd;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 3px solid #dddddd;
+}
+
+div.exampleblock > div.content {
+  border-left: 3px solid #dddddd;
+  padding-left: 0.5em;
+}
+
+div.imageblock div.content { padding-left: 0; }
+span.image img { border-style: none; vertical-align: text-bottom; }
+a.image:visited { color: white; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: normal;
+  color: navy;
+}
+dd > *:first-child {
+  margin-top: 0.1em;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.arabic {
+  list-style-type: decimal;
+}
+ol.loweralpha {
+  list-style-type: lower-alpha;
+}
+ol.upperalpha {
+  list-style-type: upper-alpha;
+}
+ol.lowerroman {
+  list-style-type: lower-roman;
+}
+ol.upperroman {
+  list-style-type: upper-roman;
+}
+
+div.compact ul, div.compact ol,
+div.compact p, div.compact p,
+div.compact div, div.compact div {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
+}
+
+tfoot {
+  font-weight: bold;
+}
+td > div.verse {
+  white-space: pre;
+}
+
+div.hdlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hdlist tr {
+  padding-bottom: 15px;
+}
+dt.hdlist1.strong, td.hdlist1.strong {
+  font-weight: bold;
+}
+td.hdlist1 {
+  vertical-align: top;
+  font-style: normal;
+  padding-right: 0.8em;
+  color: navy;
+}
+td.hdlist2 {
+  vertical-align: top;
+}
+div.hdlist.compact tr {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.comment {
+  background: yellow;
+}
+
+.footnote, .footnoteref {
+  font-size: 0.8em;
+}
+
+span.footnote, span.footnoteref {
+  vertical-align: super;
+}
+
+#footnotes {
+  margin: 20px 0 20px 0;
+  padding: 7px 0 0 0;
+}
+
+#footnotes div.footnote {
+  margin: 0 0 5px 0;
+}
+
+#footnotes hr {
+  border: none;
+  border-top: 1px solid silver;
+  height: 1px;
+  text-align: left;
+  margin-left: 0;
+  width: 20%;
+  min-width: 100px;
+}
+
+div.colist td {
+  padding-right: 0.5em;
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+div.colist td img {
+  margin-top: 0.3em;
+}
+
+@media print {
+  #footer-badges { display: none; }
+}
+
+#toc {
+  margin-bottom: 2.5em;
+}
+
+#toctitle {
+  color: #527bbd;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
+
+span.aqua { color: aqua; }
+span.black { color: black; }
+span.blue { color: blue; }
+span.fuchsia { color: fuchsia; }
+span.gray { color: gray; }
+span.green { color: green; }
+span.lime { color: lime; }
+span.maroon { color: maroon; }
+span.navy { color: navy; }
+span.olive { color: olive; }
+span.purple { color: purple; }
+span.red { color: red; }
+span.silver { color: silver; }
+span.teal { color: teal; }
+span.white { color: white; }
+span.yellow { color: yellow; }
+
+span.aqua-background { background: aqua; }
+span.black-background { background: black; }
+span.blue-background { background: blue; }
+span.fuchsia-background { background: fuchsia; }
+span.gray-background { background: gray; }
+span.green-background { background: green; }
+span.lime-background { background: lime; }
+span.maroon-background { background: maroon; }
+span.navy-background { background: navy; }
+span.olive-background { background: olive; }
+span.purple-background { background: purple; }
+span.red-background { background: red; }
+span.silver-background { background: silver; }
+span.teal-background { background: teal; }
+span.white-background { background: white; }
+span.yellow-background { background: yellow; }
+
+span.big { font-size: 2em; }
+span.small { font-size: 0.6em; }
+
+span.underline { text-decoration: underline; }
+span.overline { text-decoration: overline; }
+span.line-through { text-decoration: line-through; }
+
+div.unbreakable { page-break-inside: avoid; }
+
+
+/*
+ * xhtml11 specific
+ *
+ * */
+
+div.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead, p.table.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.table {
+  margin-top: 0;
+}
+/* Because the table frame attribute is overriden by CSS in most browsers. */
+div.tableblock > table[frame="void"] {
+  border-style: none;
+}
+div.tableblock > table[frame="hsides"] {
+  border-left-style: none;
+  border-right-style: none;
+}
+div.tableblock > table[frame="vsides"] {
+  border-top-style: none;
+  border-bottom-style: none;
+}
+
+
+/*
+ * html5 specific
+ *
+ * */
+
+table.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+thead, p.tableblock.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.tableblock {
+  margin-top: 0;
+}
+table.tableblock {
+  border-width: 3px;
+  border-spacing: 0px;
+  border-style: solid;
+  border-color: #527bbd;
+  border-collapse: collapse;
+}
+th.tableblock, td.tableblock {
+  border-width: 1px;
+  padding: 4px;
+  border-style: solid;
+  border-color: #527bbd;
+}
+
+table.tableblock.frame-topbot {
+  border-left-style: hidden;
+  border-right-style: hidden;
+}
+table.tableblock.frame-sides {
+  border-top-style: hidden;
+  border-bottom-style: hidden;
+}
+table.tableblock.frame-none {
+  border-style: hidden;
+}
+
+th.tableblock.halign-left, td.tableblock.halign-left {
+  text-align: left;
+}
+th.tableblock.halign-center, td.tableblock.halign-center {
+  text-align: center;
+}
+th.tableblock.halign-right, td.tableblock.halign-right {
+  text-align: right;
+}
+
+th.tableblock.valign-top, td.tableblock.valign-top {
+  vertical-align: top;
+}
+th.tableblock.valign-middle, td.tableblock.valign-middle {
+  vertical-align: middle;
+}
+th.tableblock.valign-bottom, td.tableblock.valign-bottom {
+  vertical-align: bottom;
+}
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+
+
+</style>
+<script type="text/javascript">
+/*<![CDATA[*/
+var asciidoc = {  // Namespace.
+
+/////////////////////////////////////////////////////////////////////
+// Table Of Contents generator
+/////////////////////////////////////////////////////////////////////
+
+/* Author: Mihai Bazon, September 2002
+ * http://students.infoiasi.ro/~mishoo
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+ /* modified by Stuart Rackham, 2006, 2009. License: GPL */
+
+// toclevels = 1..4.
+toc: function (toclevels) {
+
+  function getText(el) {
+    var text = "";
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 3 /* Node.TEXT_NODE */) // IE doesn't speak constants.
+        text += i.data;
+      else if (i.firstChild != null)
+        text += getText(i);
+    }
+    return text;
+  }
+
+  function TocEntry(el, text, toclevel) {
+    this.element = el;
+    this.text = text;
+    this.toclevel = toclevel;
+  }
+
+  function tocEntries(el, toclevels) {
+    var result = new Array;
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
+    // Function that scans the DOM tree for header elements (the DOM2
+    // nodeIterator API would be a better technique but not supported by all
+    // browsers).
+    var iterate = function (el) {
+      for (var i = el.firstChild; i != null; i = i.nextSibling) {
+        if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+          var mo = re.exec(i.tagName);
+          if (mo && (i.getAttribute("class") || i.getAttribute("className")) != "float") {
+            result[result.length] = new TocEntry(i, getText(i), mo[1]-1);
+          }
+          iterate(i);
+        }
+      }
+    }
+    iterate(el);
+    return result;
+  }
+
+  var toc = document.getElementById("toc");
+  if (!toc) {
+    return;
+  }
+
+  // Delete existing TOC entries in case we're reloading the TOC.
+  var tocEntriesToRemove = [];
+  var i;
+  for (i = 0; i < toc.childNodes.length; i++) {
+    var entry = toc.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div'
+     && entry.getAttribute("class")
+     && entry.getAttribute("class").match(/^toclevel/))
+      tocEntriesToRemove.push(entry);
+  }
+  for (i = 0; i < tocEntriesToRemove.length; i++) {
+    toc.removeChild(tocEntriesToRemove[i]);
+  }
+
+  // Rebuild TOC entries.
+  var entries = tocEntries(document.getElementById("content"), toclevels);
+  for (var i = 0; i < entries.length; ++i) {
+    var entry = entries[i];
+    if (entry.element.id == "")
+      entry.element.id = "_toc_" + i;
+    var a = document.createElement("a");
+    a.href = "#" + entry.element.id;
+    a.appendChild(document.createTextNode(entry.text));
+    var div = document.createElement("div");
+    div.appendChild(a);
+    div.className = "toclevel" + entry.toclevel;
+    toc.appendChild(div);
+  }
+  if (entries.length == 0)
+    toc.parentNode.removeChild(toc);
+},
+
+
+/////////////////////////////////////////////////////////////////////
+// Footnotes generator
+/////////////////////////////////////////////////////////////////////
+
+/* Based on footnote generation code from:
+ * http://www.brandspankingnew.net/archive/2005/07/format_footnote.html
+ */
+
+footnotes: function () {
+  // Delete existing footnote entries in case we're reloading the footnodes.
+  var i;
+  var noteholder = document.getElementById("footnotes");
+  if (!noteholder) {
+    return;
+  }
+  var entriesToRemove = [];
+  for (i = 0; i < noteholder.childNodes.length; i++) {
+    var entry = noteholder.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
+      entriesToRemove.push(entry);
+  }
+  for (i = 0; i < entriesToRemove.length; i++) {
+    noteholder.removeChild(entriesToRemove[i]);
+  }
+
+  // Rebuild footnote entries.
+  var cont = document.getElementById("content");
+  var spans = cont.getElementsByTagName("span");
+  var refs = {};
+  var n = 0;
+  for (i=0; i<spans.length; i++) {
+    if (spans[i].className == "footnote") {
+      n++;
+      var note = spans[i].getAttribute("data-note");
+      if (!note) {
+        // Use [\s\S] in place of . so multi-line matches work.
+        // Because JavaScript has no s (dotall) regex flag.
+        note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+        spans[i].innerHTML =
+          "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+        spans[i].setAttribute("data-note", note);
+      }
+      noteholder.innerHTML +=
+        "<div class='footnote' id='_footnote_" + n + "'>" +
+        "<a href='#_footnoteref_" + n + "' title='Return to text'>" +
+        n + "</a>. " + note + "</div>";
+      var id =spans[i].getAttribute("id");
+      if (id != null) refs["#"+id] = n;
+    }
+  }
+  if (n == 0)
+    noteholder.parentNode.removeChild(noteholder);
+  else {
+    // Process footnoterefs.
+    for (i=0; i<spans.length; i++) {
+      if (spans[i].className == "footnoteref") {
+        var href = spans[i].getElementsByTagName("a")[0].getAttribute("href");
+        href = href.match(/#.*/)[0];  // Because IE return full URL.
+        n = refs[href];
+        spans[i].innerHTML =
+          "[<a href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+      }
+    }
+  }
+},
+
+install: function(toclevels) {
+  var timerId;
+
+  function reinstall() {
+    asciidoc.footnotes();
+    if (toclevels) {
+      asciidoc.toc(toclevels);
+    }
+  }
+
+  function reinstallAndRemoveTimer() {
+    clearInterval(timerId);
+    reinstall();
+  }
+
+  timerId = setInterval(reinstall, 500);
+  if (document.addEventListener)
+    document.addEventListener("DOMContentLoaded", reinstallAndRemoveTimer, false);
+  else
+    window.onload = reinstallAndRemoveTimer;
+}
+
+}
+asciidoc.install(2);
+/*]]>*/
+</script>
+</head>
+<body class="article">
+<div id="header">
+<h1>Getting Started with EPICS</h1>
+<span id="author">Michael Davidsaver</span><br />
+<span id="email"><code>&lt;<a href="mailto:mdavidsaver@gmail.com">mdavidsaver@gmail.com</a>&gt;</code></span><br />
+<span id="revnumber">version 4,</span>
+<span id="revdate">September 2015</span>
+<div id="toc">
+  <div id="toctitle">Table of Contents</div>
+  <noscript><p><b>JavaScript must be enabled in your browser to display the table of contents.</b></p></noscript>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_introduction">1. Introduction</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>This article describes how to build and run a simple software IOC
+and the EDM display manager.  The goal is to provide the reader
+a basic functional system with which to further explore the EPICS
+control system.</p></div>
+<div class="paragraph"><p>The intended audience is anyone with an interest
+in setting up a standalone EPICS system for development, testing,
+or just to try something new.  Some familiarity with a Bourne shell
+and with building software in a Unix(like) environment
+is assumed.  No knowledge of programming or
+the C/C++ languages is assumed as none is required to understand
+the examples presented here.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_environment">2. Environment</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The EPICS build system carries some assumptions about the layout of
+its source code tree.
+We will be building the EPICS Base package along with several
+extension packages (EDM and ALM).
+For the remainder of this document it is assumed that the following
+directory structure is present under a base directory <em>$HOME/myepics</em>.
+This name can be replaced with an arbitrary directory.
+No privileged operations are used.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>- myepics
+  - base
+  - extensions
+     - configure
+     - src
+       - edm
+     - etc
+  - caqtdm
+  - cs-studio</code></pre>
+</div></div>
+<div class="paragraph"><p>Several environment variables must also be set when building and using
+EPICS.  They will be set when appropriate in the following sections.</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+EPICS_BASE
+</dt>
+<dd>
+<p>
+  $HOME/myepics/base
+</p>
+<div class="literalblock">
+<div class="content">
+<pre><code>By convention the location of the EPICS Base tree.
+Used to reference executables, headers, libraries, and other built files.</code></pre>
+</div></div>
+</dd>
+<dt class="hdlist1">
+EPICS_EXTENSIONS
+</dt>
+<dd>
+<p>
+  $HOME/myepics/extensions
+</p>
+<div class="literalblock">
+<div class="content">
+<pre><code>Home of the various addons to the Base package including EDM.
+Also contains separate build infrastructure with potentially different settings.</code></pre>
+</div></div>
+</dd>
+<dt class="hdlist1">
+EPICS_HOST_ARCH
+</dt>
+<dd>
+<p>
+  linux-x86, solaris-sparc-gnu, win32-x86-mingw, etc.
+</p>
+<div class="literalblock">
+<div class="content">
+<pre><code>The identifier for the build host.
+Unix users can run the 'EpicsHostArch' script found in '$EPICS_BASE/startup'</code></pre>
+</div></div>
+</dd>
+<dt class="hdlist1">
+EDMOBJECTS
+</dt>
+<dd>
+<p>
+  $EPICS_EXTENSIONS/etc
+</p>
+<div class="literalblock">
+<div class="content">
+<pre><code>Directory containing edmObjects</code></pre>
+</div></div>
+</dd>
+<dt class="hdlist1">
+EDMPVOBJECTS
+</dt>
+<dd>
+<p>
+  $EPICS_EXTENSIONS/etc
+</p>
+<div class="literalblock">
+<div class="content">
+<pre><code>Directory containing edmPvObjects</code></pre>
+</div></div>
+</dd>
+<dt class="hdlist1">
+EDMFILES
+</dt>
+<dd>
+<p>
+  $EPICS_EXTENSIONS/src/edm/edmMain
+</p>
+<div class="literalblock">
+<div class="content">
+<pre><code>Directory containing misc EDM configuration.</code></pre>
+</div></div>
+</dd>
+<dt class="hdlist1">
+EDMHELPFILES
+</dt>
+<dd>
+<p>
+  $EPICS_EXTENSIONS/src/edm/helpFiles
+</p>
+<div class="literalblock">
+<div class="content">
+<pre><code>Location of EDM online help data.</code></pre>
+</div></div>
+</dd>
+<dt class="hdlist1">
+EDMLIBS
+</dt>
+<dd>
+<p>
+  $EPICS_EXTENSIONS/lib/$EPICS_HOST_ARCH
+</p>
+<div class="literalblock">
+<div class="content">
+<pre><code>Location of EDM plugin libraries.</code></pre>
+</div></div>
+</dd>
+</dl></div>
+<div class="paragraph"><p>The following are used to ensure that this example remain self-contained even
+if run on a machine attached to a network with Channel Access traffic.
+Their meanings are discussed below, and explained fully in the
+<em>Channel Access Reference Manual</em> <a href="#CAref">[CAref]</a>.</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+EPICS_CA_ADDR_LIST
+</dt>
+<dd>
+<p>
+  127.255.255.255
+</p>
+</dd>
+<dt class="hdlist1">
+EPICS_CA_AUTO_ADDR_LIST
+</dt>
+<dd>
+<p>
+  NO
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_getting_the_source">3. Getting the Source</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The source for most EPICS software can be found at or through the
+<a href="http://www.aps.anl.gov/epics/">EPICS Home Page</a>.
+The specific versions listed below were used when writing this document.</p></div>
+<div class="tableblock">
+<table rules="all"
+width="100%"
+frame="border"
+cellspacing="0" cellpadding="4">
+<caption class="title">Table 1. EPICS Components</caption>
+<col width="16%" />
+<col width="33%" />
+<col width="50%" />
+<thead>
+<tr>
+<th align="left" valign="top">Name</th>
+<th align="left" valign="top">File</th>
+<th align="left" valign="top">Download</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left" valign="top"><p class="table">Base</p></td>
+<td align="left" valign="top"><p class="table">base-3.15.2.tar.gz</p></td>
+<td align="left" valign="top"><p class="table"><a href="http://www.aps.anl.gov/epics/base/R3-15/2.php">http://www.aps.anl.gov/epics/base/R3-15/2.php</a></p></td>
+</tr>
+<tr>
+<td align="left" valign="top"><p class="table">Extensions</p></td>
+<td align="left" valign="top"><p class="table">extensionsTop_201210904.tar.gz</p></td>
+<td align="left" valign="top"><p class="table"><a href="http://www.aps.anl.gov/epics/extensions/configure/index.php">http://www.aps.anl.gov/epics/extensions/configure/index.php</a></p></td>
+</tr>
+<tr>
+<td align="left" valign="top"><p class="table">EDM</p></td>
+<td align="left" valign="top"><p class="table">edm-1-12-101.tgz</p></td>
+<td align="left" valign="top"><p class="table"><a href="http://ics-web.sns.ornl.gov/edm/">http://ics-web.sns.ornl.gov/edm/</a></p></td>
+</tr>
+<tr>
+<td align="left" valign="top"><p class="table">caQtDM</p></td>
+<td align="left" valign="top"><p class="table">V3.9.4.tar.gz</p></td>
+<td align="left" valign="top"><p class="table"><a href="http://epics.web.psi.ch/software/caqtdm/">http://epics.web.psi.ch/software/caqtdm/</a></p></td>
+</tr>
+<tr>
+<td align="left" valign="top"><p class="table">cs-studio</p></td>
+<td align="left" valign="top"><p class="table">CSS-NSLSII-linux64-3.2.16a.zip</p></td>
+<td align="left" valign="top"><p class="table"><a href="http://cs-studio.sourceforge.net/">http://cs-studio.sourceforge.net/</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="paragraph"><p>Download all the files listed in components table into <em>$HOME/myepics</em>.
+First unpack Base and Extensions.  Either rename or symlink <em>base-3.15.2</em> to <em>base</em>.
+Create the directory <em>extensions/etc</em>
+Now unpack EDM in the <em>extensions/src</em> directory.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_building">4. Building</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_base">4.1. Base</h3>
+<div class="paragraph"><p>Before starting the compile it is worth mentioning that there are
+several files which contain user options which effect the build
+process.
+<em>CONFIG_SITE</em> and <em>RELEASE</em> in <em>$EPICS_BASE/configure</em>.
+In particular <em>CONFIG_SITE</em> is where the cross-build
+targets would be specified.</p></div>
+<div class="paragraph"><p>Now simply switch to the base directory and issue the <code>make</code> command.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>cd $EPICS_BASE
+make</code></pre>
+</div></div>
+<div class="paragraph"><p>More information on compiling EPICS Base can be found in <em>base/documentation/README.html</em>
+or online at <a href="http://www.aps.anl.gov/epics/base/R3-15/2-docs/README.html">http://www.aps.anl.gov/epics/base/R3-15/2-docs/README.html</a>.</p></div>
+<div class="paragraph"><p>Before leaving this directory, determine the host target name, and set the <code>EPICS_HOST_ARCH</code> environment variable.
+Several scripts in the startup/ directory can help with this.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>export EPICS_HOST_ARCH=`./startup/EpicsHostArch`</code></pre>
+</div></div>
+</div>
+<div class="sect2">
+<h3 id="_cs_studio">4.2. cs-studio</h3>
+<div class="paragraph"><p>While the source for the cs-studio client tools is available,
+the build process is quite complex.
+It is recommended to use a pre-compiled version <a href="http://cs-studio.sourceforge.net/">http://cs-studio.sourceforge.net/</a>.</p></div>
+<div class="paragraph"><p>The latest stable NSLS2 version is suggested
+<a href="http://cs-studio.sourceforge.net/nsls2/nsls2.html">http://cs-studio.sourceforge.net/nsls2/nsls2.html</a>
+Although any site&#8217;s version will suffice for the examples given below.</p></div>
+<div class="paragraph"><p>Fetch the .zip and extract intos <em>$HOME/myepics</em>.
+This should create an executable <em>$HOME/myepics/css-nsls2/css-nsls2</em>,
+which is the entry point.</p></div>
+<div class="paragraph"><p>When run it will ask for the location of a workspace,
+the default will suffice, or <em>$HOME/myepics/workspace</em>.</p></div>
+<div class="paragraph"><p>Files should be placed under the workspace directory to be visible.
+When started for the first time a sub-directory <em>CSS</em> is created.
+The .opi file(s) mentioned in this guide should be placed here,
+then either refresh the workspace (F5) or restart cs-studio.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_caqtdm">4.3. caQtDM</h3>
+<div class="paragraph"><p>This package requires Qt, Qwt, and python to be available on the host system.</p></div>
+<div class="paragraph"><p>Once unpacked, set the appropriate environment variables, or edit the file <code>caQtDM_Env</code>.</p></div>
+<div class="paragraph"><p>Set &#8216;EPICS_BASE` to the full path `$HOME/myepics/base&#8217;.</p></div>
+<div class="paragraph"><p>It may be necessary to change other variables (eg. <em>PYTHONVERSION</em>) depending on the host.</p></div>
+<div class="paragraph"><p>Build it</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>./caQtDM_BuildAll</code></pre>
+</div></div>
+<div class="paragraph"><p>The result can be started with the <em>startDM_Local</em> and <em>qtdesigner</em> wrapper scripts
+which respectively run and edit .ui files.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_extensions">4.4. Extensions</h3>
+<div class="paragraph"><p>The <code>extensions</code> build files come pre-configured to expect that EPICS Base is installed along side them.
+This can be changed by changing the <code>EPICS_BASE</code> line in <code>extensions/configure/RELEASE</code>.</p></div>
+<div class="paragraph"><p>You may also need to edit <code>extensions/configure/os/CONFIG_SITE.${EPICS_HOST_ARCH}.${EPICS_HOST_ARCH}</code>
+and change <code>X11_LIB</code> and <code>MOTIF_LIB</code> to the directory where these libraries are found
+(eg. <em>/usr/lib</em> or <em>/usr/lib/x86_64-linux-gnu</em>)</p></div>
+</div>
+<div class="sect2">
+<h3 id="_edm">4.5. EDM</h3>
+<div class="paragraph"><p>Building the EDM display manager can be complicated.
+It has many dependencies in addition to Motif including
+libgif, libpng, and many X11 libraries (X11, Xm, Xau, etc.).
+These are assumed to be present and the build system does not
+check that they are.
+If a compile or link fails look for messages indicating missing
+headers or libraries and install the appropriate package.
+More information of building EDM can be found in the EDM User Manual <a href="#EDMman">[EDMman]</a>.</p></div>
+<div class="paragraph"><p>On Debian Linux (and derivative) these are</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>apt-get install libgif-dev libpng-dev libz-dev libmotif-dev\
+ libx11-dev libxp-dev libxmu-dev libxtst-dev x11proto-print-dev</code></pre>
+</div></div>
+<div class="paragraph"><p>Now build EDM.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>cd ${EPICS_EXTENSIONS}/src/edm
+make</code></pre>
+</div></div>
+<div class="paragraph"><p>The GIF plugin needs to link against the ungif library which may not
+be available, and has been unnecessary for some time.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>sed -i -e 's| ungif||g' giflib/Makefile*
+make</code></pre>
+</div></div>
+<div class="sect3">
+<h4 id="_generate_plugin_config_files">4.5.1. Generate Plugin Config Files</h4>
+<div class="paragraph"><p>EDM depends on several configuration files.
+The two files which list the locations of various plugins must be generated.</p></div>
+<div class="paragraph"><p>The following is a simpleminded way to do this which takes advantage
+of the fact that EDM can recognize if a library is a valid plugin
+and which type it is.
+It will only add valid plugins to the list files.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>cd ${EPICS_EXTENSIONS}/lib/${EPICS_HOST_ARCH}
+export EDMOBJECTS=$PWD
+export EDMPVOBJECTS=$PWD
+export EDM=${EPICS_EXTENSIONS}/bin/${EPICS_HOST_ARCH}/edm
+for pv in Epics Calc Log Loc;do $EDM -addpv $PWD/lib$pv.so;done
+for ff in lib*.so;do ${EDM} -add $PWD/$ff; done
+sed -i -e "s|$PWD|"'$(EDMLIBS)|' edmObjects edmPvObjects
+rm edmObjects~ edmPvObjects~
+unset EDMOBJECTS EDMPVOBJECTS EDM
+install -d ${EPICS_EXTENSIONS}/etc
+mv edmObjects edmPvObjects ${EPICS_EXTENSIONS}/etc/</code></pre>
+</div></div>
+<div class="paragraph"><p>The additional step of replacing the absolute paths with <em>$(EDMLIBS)</em> is
+taken to allow the built tree to be relocated without requiring modifications
+to these files.
+It may be omitted, and the <code>EDMOBJECTS</code> and <code>EDMPVOBJECTS</code> environment variables left unset.</p></div>
+</div>
+<div class="sect3">
+<h4 id="_additional_environment">4.5.2. Additional Environment</h4>
+<div class="paragraph"><p>Several more environment variables are required to run EDM.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>export EDMOBJECTS=$EPICS_EXTENSIONS/etc
+export EDMPVOBJECTS=$EPICS_EXTENSIONS/etc
+export EDMFILES=$EPICS_EXTENSIONS/src/edm/edmMain
+export EDMHELPFILES=$EPICS_EXTENSIONS/src/edm/helpFiles
+export EDMLIBS=$EPICS_EXTENSIONS/lib/$EPICS_HOST_ARCH</code></pre>
+</div></div>
+<div class="paragraph"><p>EDM can now be executed, but it can&#8217;t show anything interesting, yet.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>export PATH="${EPICS_EXTENSIONS}/bin/${EPICS_HOST_ARCH}:${PATH}"
+edm</code></pre>
+</div></div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_testing">5. Testing</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The remainder of this document will be devoted to creating a trivial
+IOC which will then be used to demonstrate the functionality of
+EDM.</p></div>
+<div class="paragraph"><p>It is assumed that this example is being executed on a disconnected
+system, or at least on a system which sees no EPICS traffic and
+hosts no IOCs.
+In the interest of safety the following will prevent clients
+on the local system from connecting to IOCs on other systems.
+However, remote clients may connect to local IOCs.
+Complete isolation requires a firewall set to block
+TCP and UDP traffic on ports 5064 and 5065.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>export EPICS_CA_AUTO_ADDR_LIST=NO
+export EPICS_CA_ADDR_LIST=127.255.255.255</code></pre>
+</div></div>
+<div class="paragraph"><p>So in summary, the environment constructed for the following examples is:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>export EPICS_BASE="${HOME}/myepics/base"
+export EPICS_EXTENSIONS="${HOME}/myepics/extensions"
+export EPICS_HOST_ARCH=`${EPICS_BASE}/startup/EpicsHostArch`
+export PATH="${EPICS_BASE}/bin/${EPICS_HOST_ARCH}:${PATH}"
+export PATH="${EPICS_EXTENSIONS}/bin/${EPICS_HOST_ARCH}:${PATH}"
+export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${EPICS_BASE}/lib/${EPICS_HOST_ARCH}"
+export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${EPICS_EXTENSIONS}/lib/${EPICS_HOST_ARCH}"
+export EDMOBJECTS=$EPICS_EXTENSIONS/etc
+export EDMPVOBJECTS=$EPICS_EXTENSIONS/etc
+export EDMFILES=$EPICS_EXTENSIONS/src/edm/edmMain
+export EDMHELPFILES=$EPICS_EXTENSIONS/src/edm/helpFiles
+export EDMLIBS=$EPICS_EXTENSIONS/lib/$EPICS_HOST_ARCH
+export EPICS_CA_AUTO_ADDR_LIST=NO
+export EPICS_CA_ADDR_LIST=127.255.255.255</code></pre>
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_softioc">6. SoftIoc</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Now we will construct a IOC which will run on the host machine.
+This will be done without compiling any additional code through
+the use of the softIoc executable.</p></div>
+<div class="paragraph"><p>The IOC will have only tree Process Variables (PVs).
+One will be automatically fill with the sum of the other two.
+That is if PV A is 1 and PV B is set to 2 then PV SUM will be
+set to 3.</p></div>
+<div class="paragraph"><p>Create the two short files: sum.db and sum-start.cmd.
+Then start the IOC in the directory containing them.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>mkdir $HOME/myepics/myioc
+cd $HOME/myepics/myioc</code></pre>
+</div></div>
+<div class="sect2">
+<h3 id="_sum_db">6.1. sum.db</h3>
+<div class="paragraph"><p><a href="https://github.com/mdavidsaver/epics-doc/raw/master/starting/sum.db">https://github.com/mdavidsaver/epics-doc/raw/master/starting/sum.db</a></p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>record(ao,"$(INST):a"){
+  field(DTYP,"Soft Channel")
+  field(VAL,0)
+  field(UDF,1)
+  field(FLNK,"$(INST):sum")
+}
+record(ao,"$(INST):b"){
+  field(DTYP,"Soft Channel")
+  field(VAL,0)
+  field(UDF,1)
+  field(FLNK,"$(INST):sum")
+}
+record(calc,"$(INST):sum"){
+  field(INPA,"$(INST):a")
+  field(INPB,"$(INST):b")
+  field(CALC,"A + B")
+}</code></pre>
+</div></div>
+<div class="paragraph"><p>This file will be used to create several process variables
+in the database of the softIoc instance.
+They consists of two Soft Analog Output records and a Calculated
+record.
+The <em>$(INST)</em> will be replaced with an actual prefix string
+when loaded at runtime.</p></div>
+<div class="paragraph"><p>sum.cmd</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>https://github.com/mdavidsaver/epics-doc/raw/master/starting/sum.cmd[https://github.com/mdavidsaver/epics-doc/raw/master/starting/sum.cmd]
+
+-----------------------------------
+dbLoadRecords("sum.db","INST=calc")
+iocInit
+-----------------------------------
+
+Here we have a start script containing commands to be
+given to the IOC shell.
+It simply sets several environment variables, loads the
+records previously defined, with the given prefix,
+and starts running.
+
+The same db file could be loaded again with a different
+prefix.
+
+Running</code></pre>
+</div></div>
+<div class="paragraph"><p>Now start the IOC.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>softIoc sum.cmd</code></pre>
+</div></div>
+<div class="paragraph"><p>When running it provides three PVs: calc:a, calc:b, calc:sum.</p></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_pv_access_from_a_shell">7. PV Access from a Shell</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>EPICS Base provides several utilities for reading and modifying
+Process Variables from command shell.  Here <em>caget</em> and <em>caput</em> are
+demonstrated by accessing our softIoc (running in another shell).</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ caget calc:a calc:b calc:sum
+calc:a                         0
+calc:b                         0
+calc:sum                       0
+$ caput calc:a 2
+Old : calc:a                         0
+New : calc:a                         2
+$ caget calc:a calc:b calc:sum
+calc:a                         2
+calc:b                         0
+calc:sum                       2
+$ caput calc:b 3
+Old : calc:b                         0
+New : calc:b                         3
+$ caget calc:a calc:b calc:sum
+calc:a                         2
+calc:b                         3
+calc:sum                       5</code></pre>
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_pv_access_with_edm">8. PV Access with EDM</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Run EDM.  First place two <em>Text Control</em> s and one <em>Text Monitor</em> widgets.
+In each one set the PV to one of the three PVs from our IOC.
+Also set <em>Null Condition</em> to <em>Disabled</em> and check <em>Editable</em>,
+<em>Keypad</em>, <em>Alarm Sensitive</em>, and <em>Alarm Border</em>.</p></div>
+<div class="paragraph"><p>The file <code>sum.edl</code> is provided as a starting point.</p></div>
+<div class="paragraph"><p><a href="https://github.com/mdavidsaver/epics-doc/raw/master/starting/sum.edl">https://github.com/mdavidsaver/epics-doc/raw/master/starting/sum.edl</a></p></div>
+<div class="paragraph"><p>Execute the display and try setting the three fields.
+Try setting A and B so that the sum exceeds 15.
+Also try using slider controls for A and B.</p></div>
+<div class="paragraph"><p>To open in edit mode.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>edm -m 'INST=calc' sum.edl</code></pre>
+</div></div>
+<div class="paragraph"><p>To go directly to run mode add <em>-x</em>.
+Switching between edit and run modes can also be done from the context menu (middle mouse button).</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>edm -x -m 'INST=calc' sum.edl</code></pre>
+</div></div>
+<div class="paragraph"><p>Check EDM&#8217;s <em>Help</em> menu for more information.
+EDM has a decent on-line help/reference.</p></div>
+<div class="sect2">
+<h3 id="_alarms">8.1. Alarms</h3>
+<div class="paragraph"><p>We will revisit the record specification file <em>sum.db</em> and add several fields.
+Some of these additional fields are used by EDM to determine how records
+should be displayed.  Others are used by the IOC for alarming.</p></div>
+<div class="paragraph"><p>Same the new file <em>sum-alarm.db</em>.</p></div>
+<div class="paragraph"><p>Stop and restart the softIoc, either by editing <em>sum.cmd</em>, or by giving the macro definition
+and .db files as arguments (two ways to achieve the same result).</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>softIoc -m 'INST=calc', -d sum-alarm.db</code></pre>
+</div></div>
+<div class="paragraph"><p>Now set <em>calc:a</em> and <em>calc:b</em> so that the sum exceeds 15.
+The border of the sum widget should change color (the alarm sensitive/border properties).</p></div>
+</div>
+<div class="sect2">
+<h3 id="_sum_alarm_db">8.2. sum-alarm.db</h3>
+<div class="paragraph"><p><a href="https://github.com/mdavidsaver/epics-doc/raw/master/starting/sum-alarm.db">https://github.com/mdavidsaver/epics-doc/raw/master/starting/sum-alarm.db</a></p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>record(ao,"$(INST):a"){
+  field(DESC,"Input A")
+  field(DTYP,"Soft Channel")
+  field(PREC,1)
+  field(DRVH,10)
+  field(HOPR,10)
+  field(VAL,0)
+  field(LOPR,-10)
+  field(DRVL,-10)
+  field(UDF,1)
+  field(FLNK,"$(INST):sum")
+}
+record(ao,"$(INST):b"){
+  field(DESC,"Input B")
+  field(DTYP,"Soft Channel")
+  field(PREC,1)
+  field(DRVH,10)
+  field(HOPR,10)
+  field(VAL,0)
+  field(LOPR,-10)
+  field(DRVL,-10)
+  field(UDF,1)
+  field(FLNK,"$(INST):sum")
+}
+record(calc,"$(INST):sum"){
+  field(DESC,"Sum")
+  field(PREC,1)
+  field(INPA,"$(INST):a")
+  field(INPB,"$(INST):b")
+  field(CALC,"A + B")
+  field(HOPR,20)
+  field(HIHI,18)
+  field(HIGH,15)
+  field(LOW,-15)
+  field(LOLO,-18)
+  field(LOPR,-20)
+  field(HHSV,"MAJOR")
+  field(HSV,"MINOR")
+  field(LSV,"MINOR")
+  field(LLSV,"MAJOR")
+}</code></pre>
+</div></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_pv_access_with_caqtdm">9. PV Access with caQtDM</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Where EDM uses .edl files, caQtDM uses .ui files.
+These are created using QT Designer using plugins provided by caQtDM.
+These will not appear unless the appropriate environment variables are set
+(see the <em>qtdesigner</em> wrapper script).</p></div>
+<div class="paragraph"><p>Run</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>./startDM_Local -macro 'INST=calc' sum.ui</code></pre>
+</div></div>
+<div class="paragraph"><p><a href="https://github.com/mdavidsaver/epics-doc/raw/master/starting/sum.ui">https://github.com/mdavidsaver/epics-doc/raw/master/starting/sum.ui</a></p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_pv_access_with_cs_studio">10. PV Access with cs-studio</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre><code>./cs-studio --launcher.openFile /CSS/sum.opi</code></pre>
+</div></div>
+<div class="paragraph"><p><a href="https://github.com/mdavidsaver/epics-doc/raw/master/starting/sum.opi">https://github.com/mdavidsaver/epics-doc/raw/master/starting/sum.opi</a></p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_have_fun">11. Have Fun</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>For more information on record types see the <em>Record Reference Manual</em>
+in the EPICS wiki <a href="http://www.aps.anl.gov/epics/wiki/index.php/RRM_3-14">http://www.aps.anl.gov/epics/wiki/index.php/RRM_3-14</a>.
+Information on writing more functionality for IOCs can be found in the Developer&#8217;s guide <a href="#AppDev">[AppDev]</a>.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_references">12. References</h2>
+<div class="sectionbody">
+<div class="ulist bibliography"><ul>
+<li>
+<p>
+<a id="CAref"></a>[CAref] Jeffrey O. Hill &amp; Ralph Lange. <em>Channel Access Reference Manual</em>. <a href="http://www.aps.anl.gov/epics/base/R3-15/2-docs/CAref.html">http://www.aps.anl.gov/epics/base/R3-15/2-docs/CAref.html</a>
+</p>
+</li>
+<li>
+<p>
+<a id="AppDev"></a>[AppDev] Marty Kraimer et al.  'EPICS Application Developer&#8217;s Guide '. <a href="http://www.aps.anl.gov/epics/base/R3-15/2-docs/AppDevGuide/">http://www.aps.anl.gov/epics/base/R3-15/2-docs/AppDevGuide/</a>
+</p>
+</li>
+<li>
+<p>
+<a id="EpicsRTEMS"></a>[EpicsRTEMS] W. Eric Norum. <em>Getting started with EPICS on RTEMS</em>. <a href="http://www.aps.anl.gov/epics/base/RTEMS/tutorial/">http://www.aps.anl.gov/epics/base/RTEMS/tutorial/</a>
+</p>
+</li>
+<li>
+<p>
+<a id="EDMman"></a>[EDMman] John  Sinclair. <em>Extensible Display Manager</em>.  <a href="http://ics-web.sns.ornl.gov/edm/edmUserManual/index.html">http://ics-web.sns.ornl.gov/edm/edmUserManual/index.html</a>
+</p>
+</li>
+</ul></div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr /></div>
+<div id="footer">
+<div id="footer-text">
+Version 4<br />
+Last updated
+ 2016-12-01 00:02:11 CET
+</div>
+</div>
+</body>
+</html>

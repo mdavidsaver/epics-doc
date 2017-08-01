@@ -1,0 +1,1477 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.6.9" />
+<meta name="keywords" content="epics, ioc" />
+<title>Hardware Links and Driver Support</title>
+<style type="text/css">
+/* Shared CSS for AsciiDoc xhtml11 and html5 backends */
+
+/* Default font. */
+body {
+  font-family: Georgia,serif;
+}
+
+/* Title font. */
+h1, h2, h3, h4, h5, h6,
+div.title, caption.title,
+thead, p.table.header,
+#toctitle,
+#author, #revnumber, #revdate, #revremark,
+#footer {
+  font-family: Arial,Helvetica,sans-serif;
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: fuchsia;
+}
+
+em {
+  font-style: italic;
+  color: navy;
+}
+
+strong {
+  font-weight: bold;
+  color: #083194;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #527bbd;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1, h2, h3 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  padding-top: 0.5em;
+}
+h3 {
+  float: left;
+}
+h3 + * {
+  clear: left;
+}
+h5 {
+  font-size: 1.0em;
+}
+
+div.sectionbody {
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+ul, ol, li > p {
+  margin-top: 0;
+}
+ul > li     { color: #aaa; }
+ul > li > * { color: black; }
+
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
+  padding: 0;
+  margin: 0;
+}
+pre {
+  white-space: pre-wrap;
+}
+
+#author {
+  color: #527bbd;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+#email {
+}
+#revnumber, #revdate, #revremark {
+}
+
+#footer {
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+#preamble {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.0em;
+  margin-bottom: 2.0em;
+  margin-right: 10%;
+  color: #606060;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  color: #527bbd;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid #dddddd;
+  border-left: 4px solid #f0f0f0;
+  padding: 0.5em;
+}
+
+div.listingblock > div.content {
+  border: 1px solid #dddddd;
+  border-left: 5px solid #f0f0f0;
+  background: #f8f8f8;
+  padding: 0.5em;
+}
+
+div.quoteblock, div.verseblock {
+  padding-left: 1.0em;
+  margin-left: 1.0em;
+  margin-right: 10%;
+  border-left: 5px solid #f0f0f0;
+  color: #888;
+}
+
+div.quoteblock > div.attribution {
+  padding-top: 0.5em;
+  text-align: right;
+}
+
+div.verseblock > pre.content {
+  font-family: inherit;
+  font-size: inherit;
+}
+div.verseblock > div.attribution {
+  padding-top: 0.75em;
+  text-align: left;
+}
+/* DEPRECATED: Pre version 8.2.7 verse style literal block. */
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #527bbd;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 3px solid #dddddd;
+}
+
+div.exampleblock > div.content {
+  border-left: 3px solid #dddddd;
+  padding-left: 0.5em;
+}
+
+div.imageblock div.content { padding-left: 0; }
+span.image img { border-style: none; vertical-align: text-bottom; }
+a.image:visited { color: white; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: normal;
+  color: navy;
+}
+dd > *:first-child {
+  margin-top: 0.1em;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.arabic {
+  list-style-type: decimal;
+}
+ol.loweralpha {
+  list-style-type: lower-alpha;
+}
+ol.upperalpha {
+  list-style-type: upper-alpha;
+}
+ol.lowerroman {
+  list-style-type: lower-roman;
+}
+ol.upperroman {
+  list-style-type: upper-roman;
+}
+
+div.compact ul, div.compact ol,
+div.compact p, div.compact p,
+div.compact div, div.compact div {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
+}
+
+tfoot {
+  font-weight: bold;
+}
+td > div.verse {
+  white-space: pre;
+}
+
+div.hdlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hdlist tr {
+  padding-bottom: 15px;
+}
+dt.hdlist1.strong, td.hdlist1.strong {
+  font-weight: bold;
+}
+td.hdlist1 {
+  vertical-align: top;
+  font-style: normal;
+  padding-right: 0.8em;
+  color: navy;
+}
+td.hdlist2 {
+  vertical-align: top;
+}
+div.hdlist.compact tr {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.comment {
+  background: yellow;
+}
+
+.footnote, .footnoteref {
+  font-size: 0.8em;
+}
+
+span.footnote, span.footnoteref {
+  vertical-align: super;
+}
+
+#footnotes {
+  margin: 20px 0 20px 0;
+  padding: 7px 0 0 0;
+}
+
+#footnotes div.footnote {
+  margin: 0 0 5px 0;
+}
+
+#footnotes hr {
+  border: none;
+  border-top: 1px solid silver;
+  height: 1px;
+  text-align: left;
+  margin-left: 0;
+  width: 20%;
+  min-width: 100px;
+}
+
+div.colist td {
+  padding-right: 0.5em;
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+div.colist td img {
+  margin-top: 0.3em;
+}
+
+@media print {
+  #footer-badges { display: none; }
+}
+
+#toc {
+  margin-bottom: 2.5em;
+}
+
+#toctitle {
+  color: #527bbd;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
+
+span.aqua { color: aqua; }
+span.black { color: black; }
+span.blue { color: blue; }
+span.fuchsia { color: fuchsia; }
+span.gray { color: gray; }
+span.green { color: green; }
+span.lime { color: lime; }
+span.maroon { color: maroon; }
+span.navy { color: navy; }
+span.olive { color: olive; }
+span.purple { color: purple; }
+span.red { color: red; }
+span.silver { color: silver; }
+span.teal { color: teal; }
+span.white { color: white; }
+span.yellow { color: yellow; }
+
+span.aqua-background { background: aqua; }
+span.black-background { background: black; }
+span.blue-background { background: blue; }
+span.fuchsia-background { background: fuchsia; }
+span.gray-background { background: gray; }
+span.green-background { background: green; }
+span.lime-background { background: lime; }
+span.maroon-background { background: maroon; }
+span.navy-background { background: navy; }
+span.olive-background { background: olive; }
+span.purple-background { background: purple; }
+span.red-background { background: red; }
+span.silver-background { background: silver; }
+span.teal-background { background: teal; }
+span.white-background { background: white; }
+span.yellow-background { background: yellow; }
+
+span.big { font-size: 2em; }
+span.small { font-size: 0.6em; }
+
+span.underline { text-decoration: underline; }
+span.overline { text-decoration: overline; }
+span.line-through { text-decoration: line-through; }
+
+div.unbreakable { page-break-inside: avoid; }
+
+
+/*
+ * xhtml11 specific
+ *
+ * */
+
+div.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead, p.table.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.table {
+  margin-top: 0;
+}
+/* Because the table frame attribute is overriden by CSS in most browsers. */
+div.tableblock > table[frame="void"] {
+  border-style: none;
+}
+div.tableblock > table[frame="hsides"] {
+  border-left-style: none;
+  border-right-style: none;
+}
+div.tableblock > table[frame="vsides"] {
+  border-top-style: none;
+  border-bottom-style: none;
+}
+
+
+/*
+ * html5 specific
+ *
+ * */
+
+table.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+thead, p.tableblock.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.tableblock {
+  margin-top: 0;
+}
+table.tableblock {
+  border-width: 3px;
+  border-spacing: 0px;
+  border-style: solid;
+  border-color: #527bbd;
+  border-collapse: collapse;
+}
+th.tableblock, td.tableblock {
+  border-width: 1px;
+  padding: 4px;
+  border-style: solid;
+  border-color: #527bbd;
+}
+
+table.tableblock.frame-topbot {
+  border-left-style: hidden;
+  border-right-style: hidden;
+}
+table.tableblock.frame-sides {
+  border-top-style: hidden;
+  border-bottom-style: hidden;
+}
+table.tableblock.frame-none {
+  border-style: hidden;
+}
+
+th.tableblock.halign-left, td.tableblock.halign-left {
+  text-align: left;
+}
+th.tableblock.halign-center, td.tableblock.halign-center {
+  text-align: center;
+}
+th.tableblock.halign-right, td.tableblock.halign-right {
+  text-align: right;
+}
+
+th.tableblock.valign-top, td.tableblock.valign-top {
+  vertical-align: top;
+}
+th.tableblock.valign-middle, td.tableblock.valign-middle {
+  vertical-align: middle;
+}
+th.tableblock.valign-bottom, td.tableblock.valign-bottom {
+  vertical-align: bottom;
+}
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+
+
+</style>
+<script type="text/javascript">
+/*<![CDATA[*/
+var asciidoc = {  // Namespace.
+
+/////////////////////////////////////////////////////////////////////
+// Table Of Contents generator
+/////////////////////////////////////////////////////////////////////
+
+/* Author: Mihai Bazon, September 2002
+ * http://students.infoiasi.ro/~mishoo
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+ /* modified by Stuart Rackham, 2006, 2009. License: GPL */
+
+// toclevels = 1..4.
+toc: function (toclevels) {
+
+  function getText(el) {
+    var text = "";
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 3 /* Node.TEXT_NODE */) // IE doesn't speak constants.
+        text += i.data;
+      else if (i.firstChild != null)
+        text += getText(i);
+    }
+    return text;
+  }
+
+  function TocEntry(el, text, toclevel) {
+    this.element = el;
+    this.text = text;
+    this.toclevel = toclevel;
+  }
+
+  function tocEntries(el, toclevels) {
+    var result = new Array;
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
+    // Function that scans the DOM tree for header elements (the DOM2
+    // nodeIterator API would be a better technique but not supported by all
+    // browsers).
+    var iterate = function (el) {
+      for (var i = el.firstChild; i != null; i = i.nextSibling) {
+        if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+          var mo = re.exec(i.tagName);
+          if (mo && (i.getAttribute("class") || i.getAttribute("className")) != "float") {
+            result[result.length] = new TocEntry(i, getText(i), mo[1]-1);
+          }
+          iterate(i);
+        }
+      }
+    }
+    iterate(el);
+    return result;
+  }
+
+  var toc = document.getElementById("toc");
+  if (!toc) {
+    return;
+  }
+
+  // Delete existing TOC entries in case we're reloading the TOC.
+  var tocEntriesToRemove = [];
+  var i;
+  for (i = 0; i < toc.childNodes.length; i++) {
+    var entry = toc.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div'
+     && entry.getAttribute("class")
+     && entry.getAttribute("class").match(/^toclevel/))
+      tocEntriesToRemove.push(entry);
+  }
+  for (i = 0; i < tocEntriesToRemove.length; i++) {
+    toc.removeChild(tocEntriesToRemove[i]);
+  }
+
+  // Rebuild TOC entries.
+  var entries = tocEntries(document.getElementById("content"), toclevels);
+  for (var i = 0; i < entries.length; ++i) {
+    var entry = entries[i];
+    if (entry.element.id == "")
+      entry.element.id = "_toc_" + i;
+    var a = document.createElement("a");
+    a.href = "#" + entry.element.id;
+    a.appendChild(document.createTextNode(entry.text));
+    var div = document.createElement("div");
+    div.appendChild(a);
+    div.className = "toclevel" + entry.toclevel;
+    toc.appendChild(div);
+  }
+  if (entries.length == 0)
+    toc.parentNode.removeChild(toc);
+},
+
+
+/////////////////////////////////////////////////////////////////////
+// Footnotes generator
+/////////////////////////////////////////////////////////////////////
+
+/* Based on footnote generation code from:
+ * http://www.brandspankingnew.net/archive/2005/07/format_footnote.html
+ */
+
+footnotes: function () {
+  // Delete existing footnote entries in case we're reloading the footnodes.
+  var i;
+  var noteholder = document.getElementById("footnotes");
+  if (!noteholder) {
+    return;
+  }
+  var entriesToRemove = [];
+  for (i = 0; i < noteholder.childNodes.length; i++) {
+    var entry = noteholder.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
+      entriesToRemove.push(entry);
+  }
+  for (i = 0; i < entriesToRemove.length; i++) {
+    noteholder.removeChild(entriesToRemove[i]);
+  }
+
+  // Rebuild footnote entries.
+  var cont = document.getElementById("content");
+  var spans = cont.getElementsByTagName("span");
+  var refs = {};
+  var n = 0;
+  for (i=0; i<spans.length; i++) {
+    if (spans[i].className == "footnote") {
+      n++;
+      var note = spans[i].getAttribute("data-note");
+      if (!note) {
+        // Use [\s\S] in place of . so multi-line matches work.
+        // Because JavaScript has no s (dotall) regex flag.
+        note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+        spans[i].innerHTML =
+          "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+        spans[i].setAttribute("data-note", note);
+      }
+      noteholder.innerHTML +=
+        "<div class='footnote' id='_footnote_" + n + "'>" +
+        "<a href='#_footnoteref_" + n + "' title='Return to text'>" +
+        n + "</a>. " + note + "</div>";
+      var id =spans[i].getAttribute("id");
+      if (id != null) refs["#"+id] = n;
+    }
+  }
+  if (n == 0)
+    noteholder.parentNode.removeChild(noteholder);
+  else {
+    // Process footnoterefs.
+    for (i=0; i<spans.length; i++) {
+      if (spans[i].className == "footnoteref") {
+        var href = spans[i].getElementsByTagName("a")[0].getAttribute("href");
+        href = href.match(/#.*/)[0];  // Because IE return full URL.
+        n = refs[href];
+        spans[i].innerHTML =
+          "[<a href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+      }
+    }
+  }
+},
+
+install: function(toclevels) {
+  var timerId;
+
+  function reinstall() {
+    asciidoc.footnotes();
+    if (toclevels) {
+      asciidoc.toc(toclevels);
+    }
+  }
+
+  function reinstallAndRemoveTimer() {
+    clearInterval(timerId);
+    reinstall();
+  }
+
+  timerId = setInterval(reinstall, 500);
+  if (document.addEventListener)
+    document.addEventListener("DOMContentLoaded", reinstallAndRemoveTimer, false);
+  else
+    window.onload = reinstallAndRemoveTimer;
+}
+
+}
+asciidoc.install(2);
+/*]]>*/
+</script>
+</head>
+<body class="article">
+<div id="header">
+<h1>Hardware Links and Driver Support</h1>
+<span id="author">Michael Davidsaver</span><br />
+<span id="email"><code>&lt;<a href="mailto:mdavidsaver@gmail.com">mdavidsaver@gmail.com</a>&gt;</code></span><br />
+<span id="revnumber">version 1,</span>
+<span id="revdate">September 2009</span>
+<div id="toc">
+  <div id="toctitle">Table of Contents</div>
+  <noscript><p><b>JavaScript must be enabled in your browser to display the table of contents.</b></p></noscript>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_introduction">1. Introduction</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>In an EPICS control system the Input Output Controller (IOC) is the name given to the piece of software
+which sits between the network stack and the hardware devices whos inputs and outputs are of interest.
+The larger control system sees it as a set of Channels which can be read or written to.
+Inside the IOC a Channel is revealed to be an a field of a Record in the Process Database, a Process Variable (PV).
+Records can be associated with each other by creating Links.
+This allows information to flow between Records when they are processed.</p></div>
+<div class="paragraph"><p>This is the mile high view of an IOC and lacks several of the key details which enable one to take a new
+piece of hardware and create good EPICS support for it.
+In the following discussion we will start at the Process Database and move towards the hardware.
+The items to be discussed include: linking to hardware, how to represent complex devices,
+and the Full Crate.</p></div>
+<div class="imageblock" id="ioc_db">
+<div class="content">
+<img src="ioc-db.png" alt="ioc-db.png" />
+</div>
+<div class="title">Figure 1. An Example Process Database</div>
+</div>
+<div class="paragraph"><p>In the database pictured above there are five PVs.
+Four of the PVs have device support.
+These four PVs are linked to two separate but identical devices.
+The fifth PV might be of a record type which does not need device support, or which uses soft device support.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_linking_records_together">2. Linking Records Together</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>EPICS database links come in one of two kinds in three classes.
+The &#8216;kinds&#8217; are those which link together two records, and those which link a record to hardware.
+The three classes are: Input, Output, and Forward.
+Hardware links are either Input or Output links.</p></div>
+<div class="paragraph"><p>More attention is given to the first kind because chaining records together for processing
+is one of the core EPICS concepts.
+It is the second however, which we will focus on.</p></div>
+<div class="paragraph"><p>In <a href="#ioc_db">[ioc_db]</a> an example of linking two records together can be seen between the PVs <em>A:1</em> and <em>A:2</em>.
+This could be an input link by <em>A:2</em> to pull the value of <em>A:1</em>,
+it could be an output link by <em>A:1</em> to push a value into <em>A:2</em>,
+or it could be a forward link by <em>A:1</em> to <em>A:2</em>.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_linking_records_to_hardware">3. Linking Records To Hardware</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Hardware links serve to associate a record&#8217;s device support with a particular (virtual) device.
+In the figure above PV <em>A:2</em> has an hardware output link, and <em>A:3</em> has a hardware input link.</p></div>
+<div class="paragraph"><p>Unlike a link between two records, a hardware link is inherently local.
+Its depends on which physical machine and IOC process it is found in.
+It is given meaning by the device support, so the same hardware link string will mean two different things when used with two different device supports in the same IOC.</p></div>
+<div class="paragraph"><p>The 9 allowed hardware link types are listed in table <a href="#hw_types">[hw_types]</a>.</p></div>
+<div class="tableblock" id="hw_types">
+<table rules="all"
+frame="hsides"
+cellspacing="0" cellpadding="4">
+<caption class="title">TableHardware Link Types</caption>
+<col width="137" />
+<col width="320" />
+<thead>
+  <tr>
+    <th align="right">
+    Type
+    </th>
+    <th align="left">
+    Field format
+    </th>
+  </tr>
+</thead>
+<tbody valign="top">
+  <tr>
+    <td align="right">
+    VME_IO
+    </td>
+    <td align="left">
+    &#8216;#Cxx Syy @zzz&#8217;
+    </td>
+  </tr>
+  <tr>
+    <td align="right">
+    CAMAC_IO
+    </td>
+    <td align="left">
+    &#8216;#Bxx Cyy Nzz Att Fuu @vvv&#8217;
+    </td>
+  </tr>
+  <tr>
+    <td align="right">
+    AB_IO
+    </td>
+    <td align="left">
+    &#8216;#Lxx Ayy Czz Stt @uuu&#8217;
+    </td>
+  </tr>
+  <tr>
+    <td align="right">
+    GPIB_IO
+    </td>
+    <td align="left">
+    &#8216;#Lxx Ayy @zzz&#8217;
+    </td>
+  </tr>
+  <tr>
+    <td align="right">
+    BITBUS_IO
+    </td>
+    <td align="left">
+    &#8216;#Lxx Nyy Pzz Stt @uuu&#8217;
+    </td>
+  </tr>
+  <tr>
+    <td align="right">
+    INST_IO
+    </td>
+    <td align="left">
+    &#8216;@xxx&#8217;
+    </td>
+  </tr>
+  <tr>
+    <td align="right">
+    BBGPIB_IO
+    </td>
+    <td align="left">
+    &#8216;#Lxx Byy Gzz @ttt&#8217;
+    </td>
+  </tr>
+  <tr>
+    <td align="right">
+    RF_IO
+    </td>
+    <td align="left">
+    &#8216;#Rxx Myy Dzz Ett&#8217;
+    </td>
+  </tr>
+  <tr>
+    <td align="right">
+    VXI_IO
+    </td>
+    <td align="left">
+    &#8216;#Vxx Cyy Szz @ttt&#8217;
+    </td>
+  </tr>
+</tbody>
+</table>
+</div>
+<div class="paragraph"><p>There are two things to consider with hardware links.
+How they are implemented, and how they are intended to be used.</p></div>
+<div class="paragraph"><p>A HW link type name is just a label applied to one arm of a C union (defined in link.h).
+For example, a VME_IO link might be written &#8220;#C0x4000 S0x8 @signed&#8221;.
+This is parsed and placed in the appropriate arm of the union; which is itself a C structure with
+three members: card, signal, and parm.
+The first two members are short integers and the last is a string.
+After parsing no further action is taken.
+This is all that a hardware link is.</p></div>
+<div class="paragraph"><p>This collection of integers and a string is intended to be used as a way of addressing hardware.
+But since there is so much variation in the way different devices and buses are addressed the implementation must be very generic.
+The current scheme is a trade off to remove some parsing (ie atoi())
+and error checking code which would otherwise be replicated by every device support,
+and move it into the process database framework.</p></div>
+<div class="paragraph"><p>A link type like VME_IO is so named because it is often convenient to think of addressing a vme card by slot number and a function/channel code,
+with the string acting as a catch-all for any other information.
+VME cards do not need to use VME_IO type links and GPIB devices do not need to use GPIB_IO type links.
+Since VME_IO and GPIB_IO links store the same data (two short ints and a string) they are in fact functionally identical.
+They differ only in the names used in the two arms of the C union.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_when_a_hardware_link_is_not_enough">4. When a Hardware Link is Not Enough</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Hardware links are meant to pass small bits of information to device support.
+This breaks down when the information to be passed becomes large or when there is initialization to be performed.</p></div>
+<div class="paragraph"><p>It is difficult to handle initialization tasks, which must happen once and only once, in a hardware
+link which is duplicated in many records.
+It is tempting to think of giving one record a &#8216;special&#8217; link which tells device support when to
+initialize, but there is a better way.
+Hardware initialization can be done easily and cleanly in the IOC Shell.</p></div>
+<div class="paragraph"><p>A common pattern is for a Device Support to provide an IOC Shell function to accept and preprocess complex hardware addressing.
+This information is associated with an integer key and stored in a table or linked list.
+Device support hardware links pass the integer key to the Device Support for each Record,
+ which must individually preform a lookup to retrieve the complete addressing information.
+This lookup is usually done the Device Support <em>init_record</em> function.
+An example of this is given below in <a href="#ex2">[ex2]</a>.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_device_support_private_data">5. Device Support Private Data</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The use of hardware links implies some sort of lookup to get from
+a set of short integers and a string to a pointer to a memory mapped device,
+or a system file descriptor/socket for message based devices.</p></div>
+<div class="paragraph"><p>It would be inefficient to do this lookup every time the device must be accessed.
+For this reason the device support author is provided with the Device Support Private (dpvt)
+field, which is found in all record types.
+This field is a <em>void *</em> which may be used to reference any persistent state for individual records.
+It can not be access via Channel Access.</p></div>
+<div class="paragraph"><p>It could be used to store the cpu address which corrasponds to the base address of a memory mapped device.
+Most commonly it will store a pointer to a structure defined by the device support author.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_driver_support_and_the_virtual_device">6. Driver Support and the Virtual Device</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>EPICS Driver Support is not a well defined concept.
+It could be any of the following among others:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+A set of functions shared between several device supports.
+</p>
+</li>
+<li>
+<p>
+Involve IOC Shell functions for setup.
+</p>
+</li>
+<li>
+<p>
+An interface to an Operating System driver.
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>The &#8220;official&#8221; definition of Driver Support is in terms of the <em>drvet</em> structure defined in <em>drvSup.h</em>.
+It is a table of function pointers similar to the Device Support <em>dset</em> table.</p></div>
+<div class="paragraph"><p>It provides a way to define another layer of abstraction when it is needed.
+This could be used to abstract away the differences between varients of a card or
+even bus access method (VME vs. PCI).
+The abstract operations presented by this interface to Device Support are essentually a &#8216;Virtual Device&#8217;.</p></div>
+<div class="paragraph"><p>Driver support is not required.
+In many cases the extra abstraction it provides serve only to add complexity with no real benifit.
+Knowing when to use it is a skill which develops with time.</p></div>
+<div class="paragraph"><p>The example <a href="#ex4">[ex4]</a> below extends the PRNG device support developed in the <em>Basic EPICS Device Support</em> document
+to demonstrate a case where Driver Support can be useful.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_the_full_crate">7. The Full Crate</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>EPICS is a distributed control system and must be able to scale well,
+both in number of IOCs as well as the size of any one of these IOCS.</p></div>
+<div class="paragraph"><p>The concepts of Linking exists to enforce isolation between records (and associated Device Supports).
+The idea is that if records instances can only interact in well understood ways then it is easier
+to scale to an arbitrarily large number of records.
+Hardware linking allows this isolation to be broken to the extent necessary to deal the reality with complex devices.</p></div>
+<div class="paragraph"><p>When writing Device Support the author considers a device is layers.
+For example, first that an ADC card has a channel,
+then that it has many channels,
+and finally that it is one cards among many on the bus.
+It is important to consider that a Device Support will go into an IOC which many have many of its devices,
+and other devices which it should not interfere with.</p></div>
+<div class="paragraph"><p>Consider what will happen when someone puts 20 identical cards in one VME crate.
+How will resources be allocated?
+What base address should each card be assigned?
+Will all 20 cards interrupt the CPU (at the same time)?
+These are the types of questions which must be answered to create an IOC which can scale.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="ex1">8. Example 1</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Consider the following a concrete example of the <em>A:*</em> PVs in the database illistrated in figure <a href="#ioc_db">[ioc_db]</a>.</p></div>
+<div class="paragraph"><p>The hardware specific device support is defined in a database definition.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>device(ao, GPIB_IO, devAoMine, "My Device")
+device(ai, GPIB_IO, devAiMine, "My Device")</code></pre>
+</div></div>
+<div class="paragraph"><p>The hardware itself is a simple VME card with two registers <em>0x04</em> and <em>0x08</em>.
+Writing a value to <em>0x04</em> causes the value of <em>0x08</em> to change.
+Links of the type GPIB_IO are used to further illustrate that these names mean nothing.</p></div>
+<div class="paragraph"><p>The device support <em>devAoMine</em> takes the sum of the two integer parts of the
+hardware link and uses this as the VME address of the register it should operate on.
+The parm string is used to hold optional modifiers.</p></div>
+<div class="paragraph"><p>The record <em>A:1</em> exists to provide a separate linear scaling for the setting.</p></div>
+<div class="paragraph"><p>The forward link between <em>A:2</em> and <em>A:3</em> causes the <em>0x8</em> register to be read after
+the <em>0x4</em> register is written.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>record(ao,"A:1") {
+  field(DTYP, "Soft Channel")
+  field(OUT, "A:2")
+  field(PINI, "Yes")
+  field(UDF, 0)
+  field(VAL, 4.2)
+  field(CONV, "Linear")
+  field(ESLO, -2.0)
+  field(EOFF, 1.0)
+  field(EGU, "mm")
+  field(FLNK, "A:2")
+}
+
+record(ao,"A:2") {
+  field(DTYP, "My Device")
+  field(OUT, "#L0x4000 A0x04 @signed")
+  field(FLNK, "A:3")
+}
+
+record(ai,"A:3") {
+  field(DTYP, "My Device")
+  field(OUT, "#L0x4000 A0x08 @signed")
+}</code></pre>
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="ex2">9. Example 2</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Consider the same device seen above <a href="#ex1">[ex1]</a>.
+The device support writer makes the decision to create an IOC Shell function called <em>initMyDev(int,int,string)</em>
+and adds it to the IOC start script.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>dbLoadDatabase("dbd/mydevioc.dbd")
+mydevioc_registerRecordDeviceDriver(pdbase)
+
+initMyDev(0,0x4000,"signed")
+
+dbLoadRecords("db/mydev.db","prefix=A:,card=0")
+
+iocInit()</code></pre>
+</div></div>
+<div class="paragraph"><p>This associates the VME card with the A16 base address <em>0x4000</em> with the integer key <em>0</em>,
+which is passed as <em>$(card)</em> when the records are loaded.</p></div>
+<div class="paragraph"><p>The database then becomes the following:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>record(ao,"$(prefix)1") {
+  field(DTYP, "Soft Channel")
+  field(OUT, "A:2")
+  field(PINI, "Yes")
+  field(UDF, 0)
+  field(VAL, 4.2)
+  field(CONV, "Linear")
+  field(ESLO, -2.0)
+  field(EOFF, 1.0)
+  field(EGU, "mm")
+  field(FLNK, "A:2")
+}
+
+record(ao,"$(prefix)2") {
+  field(DTYP, "My Device")
+  field(OUT, "#L$(card) A0x04 @")
+  field(FLNK, "A:3")
+}
+
+record(ai,"$(prefix)3") {
+  field(DTYP, "My Device")
+  field(OUT, "#L$(card) A0x08 @")
+}</code></pre>
+</div></div>
+<div class="paragraph"><p>It this simple example we do not gain much for the trouble,
+but this approach is flexible in a way that hardware links alone are not.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="ex3">10. Example 3</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Let us expand on the previous example by adding four more cards.
+The <em>only</em> change required is in the IOC start script.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>dbLoadDatabase("dbd/mydevioc.dbd")
+mydevioc_registerRecordDeviceDriver(pdbase)
+
+initMyDev(0,0x4000,"signed")
+initMyDev(1,0x5000,"signed")
+initMyDev(2,0x6000,"signed")
+initMyDev(3,0x7000,"signed")
+initMyDev(4,0x8000,"signed")
+
+dbLoadRecords("db/mydev.db","prefix=A:,card=0")
+dbLoadRecords("db/mydev.db","prefix=B:,card=1")
+dbLoadRecords("db/mydev.db","prefix=C:,card=2")
+dbLoadRecords("db/mydev.db","prefix=D:,card=3")
+dbLoadRecords("db/mydev.db","prefix=E:,card=4")
+
+iocInit()</code></pre>
+</div></div>
+<div class="paragraph"><p>This will create five copies of the PVs defined in <em>db/mydev.db</em>,
+ each with a different prefix communicating with a different card.
+The fact that this can be done without modifying (or even recompiling) any of the
+Device Support code is what allows an EPICS IOC to quickly and easily scale to large
+numbers of devices.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="ex4">11. Example 4 (Full)</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Now for a full example of the topics discussed in this document.
+The device support for the pseudo-random number generator developed in the
+<em>Basic EPICS Device Support</em> document can be extended to make use of
+Driver Support.
+The drivers in this case will be used to select between two possible random number
+distributions.</p></div>
+<div class="sect2">
+<h3 id="_global_definitions">11.1. Global Definitions</h3>
+<div class="paragraph"><p>We begin by defining the Driver Support interface.
+This is the &#8216;Virtual Device&#8217; that our Device Support will use.
+In this case we have only two operations: <em>create</em> and <em>read</em>.
+The <em>create</em> operation refers to creating a &#8216;Virtual Device&#8217;,
+and could also be named <em>find</em>.</p></div>
+<div class="paragraph"><p>The &#8216;hardware address&#8217; in this example is the seed value for the pseudo random number generator.
+The <em>void*</em> returned by the create function must be used when the read function is called,
+and allowing the driver to hide its state.
+This pointer is effectively the <em>this</em> pointer of C++.</p></div>
+<div class="paragraph"><p>The following code should be placed in the file <em>prngApp/src/drvprngdist.h</em>.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">typedef</span></span> <span style="color: #009900">void</span><span style="color: #990000">*</span> <span style="color: #990000">(*</span>create_prng_fun<span style="color: #990000">)(</span><span style="color: #009900">unsigned</span> <span style="color: #009900">int</span> seed<span style="color: #990000">);</span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">typedef</span></span> <span style="color: #009900">int</span> <span style="color: #990000">(*</span>read_prng_fun<span style="color: #990000">)(</span><span style="color: #009900">void</span><span style="color: #990000">*</span> tok<span style="color: #990000">);</span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">drvPrngDist</span> <span style="color: #FF0000">{</span>
+  <span style="color: #008080">drvet</span> base<span style="color: #990000">;</span>
+  <span style="color: #008080">create_prng_fun</span> create_prng<span style="color: #990000">;</span>
+  <span style="color: #008080">read_prng_fun</span> read_prng<span style="color: #990000">;</span>
+<span style="color: #FF0000">}</span><span style="color: #990000">;</span></tt></pre></div></div>
+<div class="paragraph"><p>This definition must be shared between the Driver Support code and the Device Support(s)
+which will use it.</p></div>
+<div class="paragraph"><p>Now we define an additional structure which can be though of as the public data members
+of the <em>drvPrngDist</em> class.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">instancePrng</span> <span style="color: #FF0000">{</span>
+  <span style="color: #008080">ELLNODE</span> node<span style="color: #990000">;</span> <span style="font-style: italic"><span style="color: #9A1900">/* must be first */</span></span>
+  <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">drvPrngDist</span><span style="color: #990000">*</span> table<span style="color: #990000">;</span>
+  <span style="color: #009900">void</span><span style="color: #990000">*</span> token<span style="color: #990000">;</span>
+  <span style="color: #009900">int</span> id<span style="color: #990000">;</span>
+<span style="color: #FF0000">}</span><span style="color: #990000">;</span></tt></pre></div></div>
+<div class="paragraph"><p>A <em>ELLNODE</em> is also included as a convinience for the <em>lookupPrng</em> function;
+which will be used by Device Support to locate a specific instance of <em>drvPrngDist</em>
+based on the <em>id</em> number passed to it in a hardware link.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">instancePrng</span><span style="color: #990000">*</span> <span style="font-weight: bold"><span style="color: #000000">lookupPrng</span></span><span style="color: #990000">(</span><span style="color: #009900">short</span> N<span style="color: #990000">);</span></tt></pre></div></div>
+</div>
+<div class="sect2">
+<h3 id="_dbd">11.2. DBD</h3>
+<div class="paragraph"><p>At this point we should create the database definition as <em>prngApp/src/prngdist.dbd</em>.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>device(ai, VME_IO, devAiPrngDist, "Random Distribution")
+driver(drvPrngUniform)
+driver(drvPrngGaussian)
+registrar(prngDist)</code></pre>
+</div></div>
+</div>
+<div class="sect2">
+<h3 id="_ioc_shell_functions">11.3. IOC Shell Functions</h3>
+<div class="paragraph"><p>Creating instance of PRNG &#8216;Virtual Devices&#8217; will be accomplished with an IOC Shell function
+called <em>createPrng</em> in the file <em>prngApp/iocshdist.c</em>.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">static</span></span> <span style="color: #008080">ELLLIST</span> devices<span style="color: #990000">=</span><span style="color: #FF0000">{{</span>NULL<span style="color: #990000">,</span>NULL<span style="color: #FF0000">}</span><span style="color: #990000">,</span><span style="color: #993399">0</span><span style="color: #FF0000">}</span><span style="color: #990000">;</span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">static</span></span> <span style="font-weight: bold"><span style="color: #0000FF">const</span></span> <span style="color: #009900">char</span> dpref<span style="color: #990000">[]=</span><span style="color: #FF0000">"drvPrng"</span><span style="color: #990000">;</span></tt></pre></div></div>
+<div class="paragraph"><p>Here we define a list which will hold all created device instances and
+the prefix for Driver Support names (as seen in the dbd).</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #009900">void</span>
+<span style="font-weight: bold"><span style="color: #000000">createPrng</span></span><span style="color: #990000">(</span><span style="color: #009900">int</span> id<span style="color: #990000">,</span><span style="color: #009900">int</span> seed<span style="color: #990000">,</span><span style="font-weight: bold"><span style="color: #0000FF">const</span></span> <span style="color: #009900">char</span><span style="color: #990000">*</span> dist<span style="color: #990000">)</span>
+<span style="color: #FF0000">{</span>
+  <span style="color: #009900">unsigned</span> <span style="color: #009900">int</span> s<span style="color: #990000">=(</span><span style="color: #009900">unsigned</span> <span style="color: #009900">int</span><span style="color: #990000">)</span>seed<span style="color: #990000">;</span>
+  <span style="color: #009900">char</span><span style="color: #990000">*</span> dname<span style="color: #990000">=</span>NULL<span style="color: #990000">;</span>
+  <span style="color: #008080">size_t</span> dlen<span style="color: #990000">;</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">instancePrng</span><span style="color: #990000">*</span> inst<span style="color: #990000">=</span><span style="font-weight: bold"><span style="color: #000000">malloc</span></span><span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">sizeof</span></span><span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">instancePrng</span><span style="color: #990000">));</span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">if</span></span><span style="color: #990000">(!</span>inst<span style="color: #990000">)</span><span style="color: #FF0000">{</span>
+    <span style="font-weight: bold"><span style="color: #000000">epicsPrintf</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"Out of Memory</span><span style="color: #CC33CC">\n</span><span style="color: #FF0000">"</span><span style="color: #990000">);</span>
+    <span style="font-weight: bold"><span style="color: #0000FF">goto</span></span> error<span style="color: #990000">;</span>
+  <span style="color: #FF0000">}</span>
+
+  <span style="font-style: italic"><span style="color: #9A1900">/* sizeof(dpreg)==strlen(dpref)+1 */</span></span>
+  dlen<span style="color: #990000">=</span><span style="font-weight: bold"><span style="color: #0000FF">sizeof</span></span><span style="color: #990000">(</span>dpref<span style="color: #990000">)+</span><span style="font-weight: bold"><span style="color: #000000">strlen</span></span><span style="color: #990000">(</span>dist<span style="color: #990000">);</span>
+
+  dname<span style="color: #990000">=</span><span style="font-weight: bold"><span style="color: #000000">malloc</span></span><span style="color: #990000">(</span>dlen<span style="color: #990000">);</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">if</span></span><span style="color: #990000">(!</span>dname<span style="color: #990000">)</span><span style="color: #FF0000">{</span>
+    <span style="font-weight: bold"><span style="color: #000000">epicsPrintf</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"Out of Memory</span><span style="color: #CC33CC">\n</span><span style="color: #FF0000">"</span><span style="color: #990000">);</span>
+    <span style="font-weight: bold"><span style="color: #0000FF">goto</span></span> error<span style="color: #990000">;</span>
+  <span style="color: #FF0000">}</span>
+
+  <span style="font-weight: bold"><span style="color: #000000">strcpy</span></span><span style="color: #990000">(</span>dname<span style="color: #990000">,</span>dpref<span style="color: #990000">);</span>
+  <span style="font-weight: bold"><span style="color: #000000">strcat</span></span><span style="color: #990000">(</span>dname<span style="color: #990000">,</span>dist<span style="color: #990000">);</span></tt></pre></div></div>
+<div class="paragraph"><p>Some boiler plate for allocation and construction of the Driver Support name string.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>  inst<span style="color: #990000">-&gt;</span>table<span style="color: #990000">=(</span><span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">drvPrngDist</span><span style="color: #990000">*)</span><span style="font-weight: bold"><span style="color: #000000">registryDriverSupportFind</span></span><span style="color: #990000">(</span>dname<span style="color: #990000">);</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">if</span></span><span style="color: #990000">(!</span>inst<span style="color: #990000">-&gt;</span>table<span style="color: #990000">)</span><span style="color: #FF0000">{</span>
+    <span style="font-weight: bold"><span style="color: #000000">epicsPrintf</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"Unknown Distribution type</span><span style="color: #CC33CC">\n</span><span style="color: #FF0000">"</span><span style="color: #990000">);</span>
+    <span style="font-weight: bold"><span style="color: #0000FF">goto</span></span> error<span style="color: #990000">;</span>
+  <span style="color: #FF0000">}</span></tt></pre></div></div>
+<div class="paragraph"><p>When a Driver Support is registered with a running IOC its name is placed in a list
+which can be queried with the <em>registryDriverSupportFind</em> function.
+In this way the <em>dist</em> argument is used to select which Driver Support is to be used.</p></div>
+<div class="paragraph"><p>Since the two Driver Supports are called <em>drvPrngUniform</em> and <em>drvPrngGaussian</em> the
+two valid values for the <em>dist</em> argument are &#8216;Uniform&#8217; and &#8216;Gaussian&#8217;.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>  inst<span style="color: #990000">-&gt;</span>token<span style="color: #990000">=</span>inst<span style="color: #990000">-&gt;</span>table<span style="color: #990000">-&gt;</span><span style="font-weight: bold"><span style="color: #000000">create_prng</span></span><span style="color: #990000">(</span>s<span style="color: #990000">);</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">if</span></span><span style="color: #990000">(!</span>inst<span style="color: #990000">-&gt;</span>token<span style="color: #990000">)</span><span style="color: #FF0000">{</span>
+    <span style="font-weight: bold"><span style="color: #000000">epicsPrintf</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"Failed to create PRNG.</span><span style="color: #CC33CC">\n</span><span style="color: #FF0000">"</span><span style="color: #990000">);</span>
+    <span style="font-weight: bold"><span style="color: #0000FF">goto</span></span> error<span style="color: #990000">;</span>
+  <span style="color: #FF0000">}</span></tt></pre></div></div>
+<div class="paragraph"><p>The Driver Support create function is used to create a new instance token.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>  inst<span style="color: #990000">-&gt;</span>id<span style="color: #990000">=</span>id<span style="color: #990000">;</span>
+  <span style="font-weight: bold"><span style="color: #000000">ellAdd</span></span><span style="color: #990000">(&amp;</span>devices<span style="color: #990000">,&amp;</span>inst<span style="color: #990000">-&gt;</span>node<span style="color: #990000">);</span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">return</span></span><span style="color: #990000">;</span>
+
+<span style="font-weight: bold"><span style="color: #008080">error:</span></span>
+  <span style="font-weight: bold"><span style="color: #000000">free</span></span><span style="color: #990000">(</span>dname<span style="color: #990000">);</span>
+  <span style="font-weight: bold"><span style="color: #000000">free</span></span><span style="color: #990000">(</span>inst<span style="color: #990000">);</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">return</span></span><span style="color: #990000">;</span>
+<span style="color: #FF0000">}</span></tt></pre></div></div>
+<div class="paragraph"><p>All that remains is to add the instance to the <em>devices</em> list so the lookup
+function can find it.</p></div>
+<div class="paragraph"><p>The lookup function is short and fairly simple.
+It iterates through the list of instances until it finds a match.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">instancePrng</span><span style="color: #990000">*</span> <span style="font-weight: bold"><span style="color: #000000">lookupPrng</span></span><span style="color: #990000">(</span><span style="color: #009900">short</span> N<span style="color: #990000">)</span>
+<span style="color: #FF0000">{</span>
+  ELLNODE<span style="color: #990000">*</span> node<span style="color: #990000">;</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">instancePrng</span><span style="color: #990000">*</span> ent<span style="color: #990000">;</span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">for</span></span><span style="color: #990000">(</span>node<span style="color: #990000">=</span><span style="font-weight: bold"><span style="color: #000000">ellFirst</span></span><span style="color: #990000">(&amp;</span>devices<span style="color: #990000">);</span> node<span style="color: #990000">;</span> node<span style="color: #990000">=</span><span style="font-weight: bold"><span style="color: #000000">ellNext</span></span><span style="color: #990000">(</span>node<span style="color: #990000">))</span><span style="color: #FF0000">{</span>
+    ent<span style="color: #990000">=(</span><span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">instancePrng</span><span style="color: #990000">*)</span>node<span style="color: #990000">;</span> <span style="font-style: italic"><span style="color: #9A1900">/* Use CONTAINER() in 3.14.11 */</span></span>
+    <span style="font-weight: bold"><span style="color: #0000FF">if</span></span><span style="color: #990000">(</span>ent<span style="color: #990000">-&gt;</span>id<span style="color: #990000">==</span>N<span style="color: #990000">)</span>
+      <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> ent<span style="color: #990000">;</span>
+  <span style="color: #FF0000">}</span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> NULL<span style="color: #990000">;</span>
+<span style="color: #FF0000">}</span></tt></pre></div></div>
+</div>
+<div class="sect2">
+<h3 id="_device_support">11.4. Device Support</h3>
+<div class="paragraph"><p>Now we turn to the Device Support functions for the AI record type (<em>prngApp/src/devprngdist.c</em>).
+In this case the <em>init_record</em> and <em>read_ai</em> functions become thin wrappers for the
+Driver Support functions.
+Normally this would be a sign that the task is too simple to benifit from Driver Support
+and suggests that we instead create two different Device Supports.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">static</span></span> <span style="color: #009900">long</span> <span style="font-weight: bold"><span style="color: #000000">init_record</span></span><span style="color: #990000">(</span><span style="color: #008080">aiRecord</span> <span style="color: #990000">*</span>pao<span style="color: #990000">)</span>
+<span style="color: #FF0000">{</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">instancePrng</span><span style="color: #990000">*</span> priv<span style="color: #990000">;</span>
+
+  priv<span style="color: #990000">=</span><span style="font-weight: bold"><span style="color: #000000">lookupPrng</span></span><span style="color: #990000">(</span>pao<span style="color: #990000">-&gt;</span>inp<span style="color: #990000">.</span>value<span style="color: #990000">.</span>vmeio<span style="color: #990000">.</span>card<span style="color: #990000">);</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">if</span></span><span style="color: #990000">(!</span>priv<span style="color: #990000">)</span><span style="color: #FF0000">{</span>
+    <span style="font-weight: bold"><span style="color: #000000">recGblRecordError</span></span><span style="color: #990000">(</span>S_dev_noDevice<span style="color: #990000">,</span> <span style="color: #990000">(</span><span style="color: #009900">void</span><span style="color: #990000">*)</span>pao<span style="color: #990000">,</span>
+      <span style="color: #FF0000">"Not a valid device id code"</span><span style="color: #990000">);</span>
+    <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> S_dev_noDevice<span style="color: #990000">;</span>
+  <span style="color: #FF0000">}</span>
+
+  pao<span style="color: #990000">-&gt;</span>dpvt<span style="color: #990000">=</span>priv<span style="color: #990000">;</span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> <span style="color: #993399">0</span><span style="color: #990000">;</span>
+<span style="color: #FF0000">}</span></tt></pre></div></div>
+<div class="paragraph"><p>Here we use the <em>lookupPrng</em> function with (part of) the hardware link.
+Only the card value is used because nothing more is needed.</p></div>
+<div class="paragraph"><p>If found the instance is stored in the Device Support Private field for future use.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">static</span></span> <span style="color: #009900">long</span> <span style="font-weight: bold"><span style="color: #000000">read_ai</span></span><span style="color: #990000">(</span><span style="color: #008080">aiRecord</span> <span style="color: #990000">*</span>pao<span style="color: #990000">)</span>
+<span style="color: #FF0000">{</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">instancePrng</span><span style="color: #990000">*</span> priv<span style="color: #990000">=</span>pao<span style="color: #990000">-&gt;</span>dpvt<span style="color: #990000">;</span>
+
+  pao<span style="color: #990000">-&gt;</span>rval<span style="color: #990000">=</span>priv<span style="color: #990000">-&gt;</span>table<span style="color: #990000">-&gt;</span><span style="font-weight: bold"><span style="color: #000000">read_prng</span></span><span style="color: #990000">(</span>priv<span style="color: #990000">-&gt;</span>token<span style="color: #990000">);</span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> <span style="color: #993399">0</span><span style="color: #990000">;</span>
+<span style="color: #FF0000">}</span></tt></pre></div></div>
+<div class="paragraph"><p>To read a random number we use the read function in the function table stored with the instance
+and pass it the instance <em>token</em> which was created with the create function also in this table.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_driver_support_uniform">11.5. Driver Support (Uniform)</h3>
+<div class="paragraph"><p>We will define two seperate drivers.
+The first will generate random numbers in a uniform distribution (<em>prngApp/src/drvprngunif.c</em>).</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">uniform</span> <span style="color: #FF0000">{</span>
+  <span style="color: #009900">unsigned</span> <span style="color: #009900">int</span> state<span style="color: #990000">;</span>
+<span style="color: #FF0000">}</span><span style="color: #990000">;</span></tt></pre></div></div>
+<div class="paragraph"><p>First we define a structure which stores the state for the generator.
+This is effectively the private data of the <em>drvPrngDist</em> class.
+A pointer to this structure will act as the instance &#8216;token&#8217;.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">static</span></span>
+<span style="color: #009900">void</span><span style="color: #990000">*</span> <span style="font-weight: bold"><span style="color: #000000">create</span></span><span style="color: #990000">(</span><span style="color: #009900">unsigned</span> <span style="color: #009900">int</span> seed<span style="color: #990000">)</span>
+<span style="color: #FF0000">{</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">uniform</span><span style="color: #990000">*</span> priv<span style="color: #990000">=</span><span style="font-weight: bold"><span style="color: #000000">malloc</span></span><span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">sizeof</span></span><span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">uniform</span><span style="color: #990000">));</span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">if</span></span><span style="color: #990000">(!</span>priv<span style="color: #990000">)</span>
+    <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> NULL<span style="color: #990000">;</span>
+
+  priv<span style="color: #990000">-&gt;</span>state<span style="color: #990000">=</span>seed<span style="color: #990000">;</span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> priv<span style="color: #990000">;</span>
+<span style="color: #FF0000">}</span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">static</span></span>
+<span style="color: #009900">int</span> <span style="font-weight: bold"><span style="color: #000000">read</span></span><span style="color: #990000">(</span><span style="color: #009900">void</span><span style="color: #990000">*</span> tok<span style="color: #990000">)</span>
+<span style="color: #FF0000">{</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">uniform</span><span style="color: #990000">*</span> priv<span style="color: #990000">=</span>tok<span style="color: #990000">;</span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> <span style="font-weight: bold"><span style="color: #000000">rand_r</span></span><span style="color: #990000">(&amp;</span>priv<span style="color: #990000">-&gt;</span>state<span style="color: #990000">);</span>
+<span style="color: #FF0000">}</span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">static</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">drvPrngDist</span> drvPrngUniform <span style="color: #990000">=</span> <span style="color: #FF0000">{</span>
+  <span style="color: #FF0000">{</span> <span style="color: #993399">4</span><span style="color: #990000">,</span>
+    NULL<span style="color: #990000">,</span>
+    NULL<span style="color: #990000">,</span>
+  <span style="color: #FF0000">}</span><span style="color: #990000">,</span>
+  create<span style="color: #990000">,</span>
+  read<span style="color: #990000">,</span>
+<span style="color: #FF0000">}</span><span style="color: #990000">;</span>
+<span style="font-weight: bold"><span style="color: #000000">epicsExportAddress</span></span><span style="color: #990000">(</span>drvet<span style="color: #990000">,</span>drvPrngUniform<span style="color: #990000">);</span></tt></pre></div></div>
+<div class="paragraph"><p>The actual definition of this Driver Support is straight forward.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_driver_support_gaussian">11.6. Driver Support (Gaussian)</h3>
+<div class="paragraph"><p>While the difference between the Gaussian and Uniform generators is small they are
+placed in separate files to demonstrate that the two Driver Supports can be completely
+isolated from each other.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">gaussian</span> <span style="color: #FF0000">{</span>
+  <span style="color: #009900">unsigned</span> <span style="color: #009900">int</span> state<span style="color: #990000">;</span>
+<span style="color: #FF0000">}</span><span style="color: #990000">;</span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">static</span></span>
+<span style="color: #009900">void</span><span style="color: #990000">*</span> <span style="font-weight: bold"><span style="color: #000000">create</span></span><span style="color: #990000">(</span><span style="color: #009900">unsigned</span> <span style="color: #009900">int</span> seed<span style="color: #990000">)</span>
+<span style="color: #FF0000">{</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">gaussian</span><span style="color: #990000">*</span> priv<span style="color: #990000">=</span><span style="font-weight: bold"><span style="color: #000000">malloc</span></span><span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">sizeof</span></span><span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">gaussian</span><span style="color: #990000">));</span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">if</span></span><span style="color: #990000">(!</span>priv<span style="color: #990000">)</span>
+    <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> NULL<span style="color: #990000">;</span>
+
+  priv<span style="color: #990000">-&gt;</span>state<span style="color: #990000">=</span>seed<span style="color: #990000">;</span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> priv<span style="color: #990000">;</span>
+<span style="color: #FF0000">}</span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">static</span></span>
+<span style="color: #009900">int</span> <span style="font-weight: bold"><span style="color: #000000">read</span></span><span style="color: #990000">(</span><span style="color: #009900">void</span><span style="color: #990000">*</span> tok<span style="color: #990000">)</span>
+<span style="color: #FF0000">{</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">gaussian</span><span style="color: #990000">*</span> priv<span style="color: #990000">=</span>tok<span style="color: #990000">;</span>
+  <span style="color: #009900">int</span> ret<span style="color: #990000">=</span><span style="color: #993399">0</span><span style="color: #990000">,</span> i<span style="color: #990000">=</span><span style="color: #993399">8</span><span style="color: #990000">;</span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">while</span></span><span style="color: #990000">(</span>i<span style="color: #990000">--)</span>
+    ret<span style="color: #990000">+=</span><span style="font-weight: bold"><span style="color: #000000">rand_r</span></span><span style="color: #990000">(&amp;</span>priv<span style="color: #990000">-&gt;</span>state<span style="color: #990000">)/</span><span style="color: #993399">8</span><span style="color: #990000">;</span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> ret<span style="color: #990000">;</span>
+<span style="color: #FF0000">}</span></tt></pre></div></div>
+<div class="paragraph"><p>To approximate a Gaussian distribution, several uniform random numbers are summed
+in accordance with the Central Limit Theorem.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">static</span></span>
+<span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">drvPrngDist</span> drvPrngGaussian <span style="color: #990000">=</span> <span style="color: #FF0000">{</span>
+  <span style="color: #FF0000">{</span> <span style="color: #993399">4</span><span style="color: #990000">,</span>
+    NULL<span style="color: #990000">,</span>
+    NULL<span style="color: #990000">,</span>
+  <span style="color: #FF0000">}</span><span style="color: #990000">,</span>
+  create<span style="color: #990000">,</span>
+  read<span style="color: #990000">,</span>
+<span style="color: #FF0000">}</span><span style="color: #990000">;</span>
+<span style="font-weight: bold"><span style="color: #000000">epicsExportAddress</span></span><span style="color: #990000">(</span>drvet<span style="color: #990000">,</span>drvPrngGaussian<span style="color: #990000">);</span></tt></pre></div></div>
+</div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr /></div>
+<div id="footer">
+<div id="footer-text">
+Version 1<br />
+Last updated
+ 2016-12-01 00:02:11 CET
+</div>
+</div>
+</body>
+</html>
