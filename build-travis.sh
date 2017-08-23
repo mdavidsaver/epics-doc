@@ -6,40 +6,24 @@ die() {
   exit 1
 }
 
-ORIGDIR="$PWD"
+[ "$BASE" ] || die "No BASE defined"
 
-[ "$PROF" ] || die "No PROF defined"
+cat <<EOF > code-listings/configure/RELEASE.local
+EPICS_BASE=$HOME/.cache/$BASE/base
+EOF
 
 CACHEKEY=ver1
 
-if [ ! -f "$HOME/.cache/$PROF/$CACHEKEY" ]
+if [ ! -f "$HOME/.cache/$BASE/$CACHEKEY" ]
 then
-  rm -rf "$HOME/.cache/$PROF"
-  install -d "$HOME/.cache/$PROF"
-  cd "$HOME/.cache/$PROF"
+  rm -rf "$HOME/.cache/$BASE"
+  install -d "$HOME/.cache/$BASE"
 
-  case "$PROF" in
-    3.15)
-      wget -O base.tar.gz https://github.com/epics-base/epics-base/archive/R3.15.3.tar.gz
-    ;;
-    3.14)
-      wget -O base.tar.gz https://github.com/epics-base/epics-base/archive/R3.14.12.5.tar.gz
-    ;;
-    *) die "Unsupported profile $PROF";;
-  esac
+  git clone --branch $BASE https://github.com/${REPO:=epics-base}/epics-base.git "$HOME/.cache/$BASE/base"
 
-  install -d base
+  make -j2 -C "$HOME/.cache/$BASE/base"
 
-  cd base
-  tar --strip-components=1 -xzf ../base.tar.gz
-  make -j2
-  cd ..
+  chmod -R a-w "$HOME/.cache/$BASE/base"
 
-  chmod -R a-w base
-
-  touch "$HOME/.cache/$PROF/$CACHEKEY"
+  touch "$HOME/.cache/$BASE/$CACHEKEY"
 fi
-
-cd "$ORIGDIR"
-
-make -C code-listings EPICS_BASE=$HOME/.cache/$PROF/base MOTOR=
