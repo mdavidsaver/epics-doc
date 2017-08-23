@@ -737,8 +737,8 @@ asciidoc.install(2);
 <h1>Basic EPICS Device Support</h1>
 <span id="author">Michael Davidsaver</span><br />
 <span id="email"><code>&lt;<a href="mailto:mdavidsaver@gmail.com">mdavidsaver@gmail.com</a>&gt;</code></span><br />
-<span id="revnumber">version 3,</span>
-<span id="revdate">November 2015</span>
+<span id="revnumber">version 4,</span>
+<span id="revdate">August 2017</span>
 <div id="toc">
   <div id="toctitle">Table of Contents</div>
   <noscript><p><b>JavaScript must be enabled in your browser to display the table of contents.</b></p></noscript>
@@ -756,15 +756,18 @@ The <em>Record Reference Manual</em><a href="#RecRef">[RecRef]</a> provides a li
 descriptions and lists of device support functions.
 To determine the exact form of a record&#8217;s device support functions the source
 found in <em>$EPICS_BASE/src/rec</em> is invaluable.</p></div>
-<div class="paragraph"><p>The latest version of this page, and code listings, can be found at:
+<div class="paragraph"><p>The latest version of this page can be found at:
 <a href="http://mdavidsaver.github.io/epics-doc/epics-devsup.html">http://mdavidsaver.github.io/epics-doc/epics-devsup.html</a></p></div>
+<div class="paragraph"><p>Complete example code may be found in the <em>code-listings</em> directory at:
+<a href="https://github.com/mdavidsaver/epics-doc">https://github.com/mdavidsaver/epics-doc</a></p></div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_prepare_ioc_environment">2. Prepare IOC environment</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>It is assumed that EPICS Base is already built, that EPICS_BASE is set,
-and that the EPICS executables are in the system search PATH.</p></div>
+and that the EPICS executables are in the system search PATH.
+If not, then first see <a href="http://mdavidsaver.github.io/epics-doc/epics-starting.html">Getting Started</a>.</p></div>
 <div class="paragraph"><p>All paths given in this example are assumed to be relative to the <em>devsumexample</em>
 directory.</p></div>
 <div class="listingblock">
@@ -823,22 +826,7 @@ and specifies, among other things, the basic record types (see <em>$EPICS_BASE/d
 However, it will not be capable of doing anything more than the <em>softIoc</em> executable.
 In fact, they are functionally identical.</p></div>
 <div class="sect2">
-<h3 id="_device_definition">3.1. Device Definition</h3>
-<div class="paragraph"><p>Our first task is to make an addition to the IOC database for our prng device.
-Create the file <em>prngApp/src/prngdev.dbd</em>:</p></div>
-<div class="listingblock">
-<div class="content">
-<pre><code>device(ai,CONSTANT,devAiPrng,"Random")</code></pre>
-</div></div>
-<div class="paragraph"><p>This defines the device <em>devAiPrng</em> as support for an AI record with a CONSTANT input link
-named "Random".
-The name <em>devAiPrng</em> must be unique in the IOC.
-The combination of record type and name string must also be unique.
-It is convention that device support names should take the form <em>devXxYyyy</em>
-where <em>Xx</em> is the record type and <em>Yyyy</em> identifies the hardware to be supported.</p></div>
-</div>
-<div class="sect2">
-<h3 id="_writing_support">3.2. Writing Support</h3>
+<h3 id="_writing_support">3.1. Writing Support</h3>
 <div class="paragraph"><p>Now create the file <em>prngApp/src/devprng.c</em> with the following sections.</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 3.1.8
@@ -846,21 +834,89 @@ by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;stdlib.h&gt;</span>
-<span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;epicsExport.h&gt;</span>
 <span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;dbAccess.h&gt;</span>
 <span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;devSup.h&gt;</span>
 <span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;recGbl.h&gt;</span>
+<span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;alarm.h&gt;</span>
 
 <span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;aiRecord.h&gt;</span>
 
-<span style="font-weight: bold"><span style="color: #0000FF">static</span></span> <span style="color: #009900">long</span> <span style="font-weight: bold"><span style="color: #000000">init_record</span></span><span style="color: #990000">(</span><span style="color: #008080">aiRecord</span> <span style="color: #990000">*</span>pao<span style="color: #990000">);</span>
-<span style="font-weight: bold"><span style="color: #0000FF">static</span></span> <span style="color: #009900">long</span> <span style="font-weight: bold"><span style="color: #000000">read_ai</span></span><span style="color: #990000">(</span><span style="color: #008080">aiRecord</span> <span style="color: #990000">*</span>pao<span style="color: #990000">);</span>
+<span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;epicsExport.h&gt;</span>
 
 <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">prngState</span> <span style="color: #FF0000">{</span>
   <span style="color: #009900">unsigned</span> <span style="color: #009900">int</span> seed<span style="color: #990000">;</span>
 <span style="color: #FF0000">}</span><span style="color: #990000">;</span></tt></pre></div></div>
 <div class="paragraph"><p>Our device support code will be contained in the <em>init_record</em> and <em>read_ai</em> functions.
 Custom state information will be held in an instance of the <em>prngState</em> structure.</p></div>
+<div class="paragraph"><p>It should be noted that AI record support requires <em>read_ai</em> to be specified, but
+<em>init_record</em> is optional.</p></div>
+<div class="sect3">
+<h4 id="_init_record">3.1.1. init_record</h4>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">static</span></span> <span style="color: #009900">long</span> <span style="font-weight: bold"><span style="color: #000000">init_record</span></span><span style="color: #990000">(</span><span style="color: #008080">aiRecord</span> <span style="color: #990000">*</span>prec<span style="color: #990000">)</span>
+<span style="color: #FF0000">{</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">prngState</span><span style="color: #990000">*</span> priv<span style="color: #990000">;</span>
+  <span style="color: #009900">unsigned</span> <span style="color: #009900">long</span> start<span style="color: #990000">;</span>
+
+  priv<span style="color: #990000">=</span><span style="font-weight: bold"><span style="color: #000000">malloc</span></span><span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">sizeof</span></span><span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">prngState</span><span style="color: #990000">));</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">if</span></span><span style="color: #990000">(!</span>priv<span style="color: #990000">)</span><span style="color: #FF0000">{</span>
+    <span style="font-weight: bold"><span style="color: #000000">recGblRecordError</span></span><span style="color: #990000">(</span>S_db_noMemory<span style="color: #990000">,</span> <span style="color: #990000">(</span><span style="color: #009900">void</span><span style="color: #990000">*)</span>prec<span style="color: #990000">,</span>
+      <span style="color: #FF0000">"devAoTimebase failed to allocate private struct"</span><span style="color: #990000">);</span>
+    <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> S_db_noMemory<span style="color: #990000">;</span>
+  <span style="color: #FF0000">}</span>
+
+  <span style="font-weight: bold"><span style="color: #000000">recGblInitConstantLink</span></span><span style="color: #990000">(&amp;</span>prec<span style="color: #990000">-&gt;</span>inp<span style="color: #990000">,</span>DBF_ULONG<span style="color: #990000">,&amp;</span>start<span style="color: #990000">);</span>
+
+  priv<span style="color: #990000">-&gt;</span>seed<span style="color: #990000">=</span>start<span style="color: #990000">;</span>
+  prec<span style="color: #990000">-&gt;</span>dpvt<span style="color: #990000">=</span>priv<span style="color: #990000">;</span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> <span style="color: #993399">0</span><span style="color: #990000">;</span>
+<span style="color: #FF0000">}</span></tt></pre></div></div>
+<div class="paragraph"><p>This <em>init_record</em> function is called once for each record in the IOC
+database which uses DTYP <em>Random</em> (ie <em>devAiPrng</em> device support).
+The association between DTYP and our code is described below.</p></div>
+<div class="paragraph"><p>Our <em>init_record</em> allocates space for the structure used to keep internal state,
+then parses the Constant input link string to get the initial seed value.</p></div>
+<div class="paragraph"><p>The input link can only by a CONSTANT link so there is no need to verify this.</p></div>
+</div>
+<div class="sect3">
+<h4 id="_read_ai">3.1.2. read_ai</h4>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">static</span></span> <span style="color: #009900">long</span> <span style="font-weight: bold"><span style="color: #000000">read_ai</span></span><span style="color: #990000">(</span><span style="color: #008080">aiRecord</span> <span style="color: #990000">*</span>prec<span style="color: #990000">)</span>
+<span style="color: #FF0000">{</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">prngState</span><span style="color: #990000">*</span> priv<span style="color: #990000">=</span>prec<span style="color: #990000">-&gt;</span>dpvt<span style="color: #990000">;</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">if</span></span><span style="color: #990000">(!</span>priv<span style="color: #990000">)</span> <span style="color: #FF0000">{</span>
+    <span style="color: #990000">(</span><span style="color: #009900">void</span><span style="color: #990000">)</span><span style="font-weight: bold"><span style="color: #000000">recGblSetSevr</span></span><span style="color: #990000">(</span>prec<span style="color: #990000">,</span> COMM_ALARM<span style="color: #990000">,</span> INVALID_ALARM<span style="color: #990000">);</span>
+    <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> <span style="color: #993399">0</span><span style="color: #990000">;</span>
+  <span style="color: #FF0000">}</span>
+
+  prec<span style="color: #990000">-&gt;</span>rval<span style="color: #990000">=</span><span style="font-weight: bold"><span style="color: #000000">rand_r</span></span><span style="color: #990000">(&amp;</span>priv<span style="color: #990000">-&gt;</span>seed<span style="color: #990000">);</span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> <span style="color: #993399">0</span><span style="color: #990000">;</span>
+<span style="color: #FF0000">}</span></tt></pre></div></div>
+<div class="paragraph"><p>Whenever a record using this device support is processed <em>read_ai</em> is invoked.
+It simply invokes the thread-safe version of the <em>rand</em> function
+to supply a raw (integer) value.</p></div>
+<div class="paragraph"><p>It is important to note that <em>read_ai</em> function will be invoked even if <em>init_record</em>
+returns an error.
+This means that DPVT may be NULL.
+As this is a symptom of an earlier error, it is not advisable to print a message.
+However, signaling an INVALID alarm condition will indicate to any users
+that VAL does not reflect an actual measurement.</p></div>
+</div>
+<div class="sect3">
+<h4 id="_exporting">3.1.3. Exporting</h4>
+<div class="paragraph"><p>Now associate the name <em>devAiPrng</em> with our device support functions.
+This mechanism is a way of providing a set of functions which the record support
+will use in to perform certain functions.</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 3.1.8
 by Lorenzo Bettini
@@ -884,72 +940,27 @@ http://www.gnu.org/software/src-highlite -->
   NULL
 <span style="color: #FF0000">}</span><span style="color: #990000">;</span>
 <span style="font-weight: bold"><span style="color: #000000">epicsExportAddress</span></span><span style="color: #990000">(</span>dset<span style="color: #990000">,</span>devAiPrng<span style="color: #990000">);</span></tt></pre></div></div>
-<div class="paragraph"><p>Now associate the name <em>devAiPrng</em> with our device support functions.
-This mechanism is a way of providing a set of functions which the record support
-will use in to perform certain functions.</p></div>
-<div class="paragraph"><p>It should be noted that AI record support requires <em>read_ai</em> to be specified, but
-<em>init_record</em> is optional.</p></div>
-<div class="paragraph"><p>From the perspective of object oriented programming the record support can be
-regarded as a base class.
-This device support inherits from the AI record support and provides definitions for
-two virtual methods.
-The AI record requires that <em>read_ai</em> be provided while <em>init</em> is optional.
-In this way <em>read_ai</em> functions as a pure virtual method.</p></div>
 <div class="paragraph"><p>The number of functions record support will look for and the meaning of these functions
 is determined by record support.
 For information on a specific record types see the <em>Record Reference Manual</em><a href="#RecRef">[RecRef]</a>
 and the source (ie <em>$EPICS_BASE/src/rec/aiRecord.c</em>).</p></div>
-<div class="sect3">
-<h4 id="_init_record">3.2.1. init_record</h4>
-<div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 3.1.8
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">static</span></span> <span style="color: #009900">long</span> <span style="font-weight: bold"><span style="color: #000000">init_record</span></span><span style="color: #990000">(</span><span style="color: #008080">aiRecord</span> <span style="color: #990000">*</span>pao<span style="color: #990000">)</span>
-<span style="color: #FF0000">{</span>
-  <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">prngState</span><span style="color: #990000">*</span> priv<span style="color: #990000">;</span>
-  <span style="color: #009900">unsigned</span> <span style="color: #009900">long</span> start<span style="color: #990000">;</span>
-
-  priv<span style="color: #990000">=</span><span style="font-weight: bold"><span style="color: #000000">malloc</span></span><span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">sizeof</span></span><span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">prngState</span><span style="color: #990000">));</span>
-  <span style="font-weight: bold"><span style="color: #0000FF">if</span></span><span style="color: #990000">(!</span>priv<span style="color: #990000">)</span><span style="color: #FF0000">{</span>
-    <span style="font-weight: bold"><span style="color: #000000">recGblRecordError</span></span><span style="color: #990000">(</span>S_db_noMemory<span style="color: #990000">,</span> <span style="color: #990000">(</span><span style="color: #009900">void</span><span style="color: #990000">*)</span>pao<span style="color: #990000">,</span>
-      <span style="color: #FF0000">"devAoTimebase failed to allocate private struct"</span><span style="color: #990000">);</span>
-    <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> S_db_noMemory<span style="color: #990000">;</span>
-  <span style="color: #FF0000">}</span>
-
-  <span style="font-weight: bold"><span style="color: #000000">recGblInitConstantLink</span></span><span style="color: #990000">(&amp;</span>pao<span style="color: #990000">-&gt;</span>inp<span style="color: #990000">,</span>DBF_ULONG<span style="color: #990000">,&amp;</span>start<span style="color: #990000">);</span>
-
-  priv<span style="color: #990000">-&gt;</span>seed<span style="color: #990000">=</span>start<span style="color: #990000">;</span>
-  pao<span style="color: #990000">-&gt;</span>dpvt<span style="color: #990000">=</span>priv<span style="color: #990000">;</span>
-
-  <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> <span style="color: #993399">0</span><span style="color: #990000">;</span>
-<span style="color: #FF0000">}</span></tt></pre></div></div>
-<div class="paragraph"><p>This <em>init_record</em> function is called once for each record in the IOC
-database which uses DTYP <em>Random</em> (ie <em>devAiPrng</em> device support).
-It allocates space for the structure used to keep internal state,
-then parses the Constant input link string to get the initial seed value.</p></div>
-<div class="paragraph"><p>The input link can only by a CONSTANT link so there is no need to verify this.</p></div>
 </div>
-<div class="sect3">
-<h4 id="_read_ai">3.2.2. read_ai</h4>
-<div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 3.1.8
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">static</span></span> <span style="color: #009900">long</span> <span style="font-weight: bold"><span style="color: #000000">read_ai</span></span><span style="color: #990000">(</span><span style="color: #008080">aiRecord</span> <span style="color: #990000">*</span>pao<span style="color: #990000">)</span>
-<span style="color: #FF0000">{</span>
-  <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">prngState</span><span style="color: #990000">*</span> priv<span style="color: #990000">=</span>pao<span style="color: #990000">-&gt;</span>dpvt<span style="color: #990000">;</span>
-
-  pao<span style="color: #990000">-&gt;</span>rval<span style="color: #990000">=</span><span style="font-weight: bold"><span style="color: #000000">rand_r</span></span><span style="color: #990000">(&amp;</span>priv<span style="color: #990000">-&gt;</span>seed<span style="color: #990000">);</span>
-
-  <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> <span style="color: #993399">0</span><span style="color: #990000">;</span>
-<span style="color: #FF0000">}</span></tt></pre></div></div>
-<div class="paragraph"><p>Whenever a record using <em>devAiPrng</em> is processed <em>read_ai</em> is invoked.
-It simply invokes the thread-safe version of the <em>rand</em> function
-to supply a raw (integer) value.</p></div>
 </div>
+<div class="sect2">
+<h3 id="_device_definition">3.2. Device Definition</h3>
+<div class="paragraph"><p>Our final task is to make an addition to the IOC database for our prng device.
+Create the file <em>prngApp/src/prngdev.dbd</em>:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>device(ai,CONSTANT,devAiPrng,"Random")</code></pre>
+</div></div>
+<div class="paragraph"><p>This defines the device <em>devAiPrng</em> as support for an AI record with a CONSTANT input link
+named "Random".
+The name <em>devAiPrng</em> must be unique in the IOC.
+The combination of record type and name string must also be unique.
+It is convention that device support names should take the form <em>devXxYyyy</em>
+where <em>Xx</em> is the record type and <em>Yyyy</em> identifies the driver providing the code.
+It is also wise to include the driver name in the DTYP string to avoid name conflicts.</p></div>
 </div>
 <div class="sect2">
 <h3 id="_building">3.3. Building</h3>
@@ -1059,43 +1070,23 @@ by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;stdlib.h&gt;</span>
-<span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;epicsExport.h&gt;</span>
 <span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;dbAccess.h&gt;</span>
 <span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;devSup.h&gt;</span>
 <span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;recSup.h&gt;</span>
 <span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;recGbl.h&gt;</span>
+<span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;alarm.h&gt;</span>
 <span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;callback.h&gt;</span>
 
 <span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;aiRecord.h&gt;</span>
 
-<span style="font-weight: bold"><span style="color: #0000FF">static</span></span> <span style="color: #009900">long</span> <span style="font-weight: bold"><span style="color: #000000">init_record</span></span><span style="color: #990000">(</span><span style="color: #008080">aiRecord</span> <span style="color: #990000">*</span>pao<span style="color: #990000">);</span>
-<span style="font-weight: bold"><span style="color: #0000FF">static</span></span> <span style="color: #009900">long</span> <span style="font-weight: bold"><span style="color: #000000">read_ai</span></span><span style="color: #990000">(</span><span style="color: #008080">aiRecord</span> <span style="color: #990000">*</span>pao<span style="color: #990000">);</span>
+<span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;epicsExport.h&gt;</span>
 
 <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">prngState</span> <span style="color: #FF0000">{</span>
   <span style="color: #009900">unsigned</span> <span style="color: #009900">int</span> seed<span style="color: #990000">;</span>
   <span style="color: #008080">CALLBACK</span> cb<span style="color: #990000">;</span> <span style="font-style: italic"><span style="color: #9A1900">/* New */</span></span>
 <span style="color: #FF0000">}</span><span style="color: #990000">;</span>
 
-<span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #FF0000">{</span>
-  <span style="color: #009900">long</span> num<span style="color: #990000">;</span>
-  <span style="color: #008080">DEVSUPFUN</span>  report<span style="color: #990000">;</span>
-  <span style="color: #008080">DEVSUPFUN</span>  init<span style="color: #990000">;</span>
-  <span style="color: #008080">DEVSUPFUN</span>  init_record<span style="color: #990000">;</span>
-  <span style="color: #008080">DEVSUPFUN</span>  get_ioint_info<span style="color: #990000">;</span>
-  <span style="color: #008080">DEVSUPFUN</span>  read_ai<span style="color: #990000">;</span>
-  <span style="color: #008080">DEVSUPFUN</span>  special_linconv<span style="color: #990000">;</span>
-<span style="color: #FF0000">}</span> devAiPrngAsync <span style="color: #990000">=</span> <span style="color: #FF0000">{</span>
-  <span style="color: #993399">6</span><span style="color: #990000">,</span> <span style="font-style: italic"><span style="color: #9A1900">/* space for 6 functions */</span></span>
-  NULL<span style="color: #990000">,</span>
-  NULL<span style="color: #990000">,</span>
-  init_record<span style="color: #990000">,</span>
-  NULL<span style="color: #990000">,</span>
-  read_ai<span style="color: #990000">,</span>
-  NULL
-<span style="color: #FF0000">}</span><span style="color: #990000">;</span>
-<span style="font-weight: bold"><span style="color: #000000">epicsExportAddress</span></span><span style="color: #990000">(</span>dset<span style="color: #990000">,</span>devAiPrngAsync<span style="color: #990000">);</span> <span style="font-style: italic"><span style="color: #9A1900">/* change name */</span></span>
-
-<span style="color: #009900">void</span> <span style="font-weight: bold"><span style="color: #000000">prng_cb</span></span><span style="color: #990000">(</span>CALLBACK<span style="color: #990000">*</span> cb<span style="color: #990000">);</span></tt></pre></div></div>
+<span style="font-weight: bold"><span style="color: #0000FF">static</span></span> <span style="color: #009900">void</span> <span style="font-weight: bold"><span style="color: #000000">prng_cb</span></span><span style="color: #990000">(</span>CALLBACK<span style="color: #990000">*</span> cb<span style="color: #990000">);</span></tt></pre></div></div>
 <div class="paragraph"><p>Note the addition to the <em>prngState</em> struct of a CALLBACK.</p></div>
 <div class="sect3">
 <h4 id="_init_record_2">4.1.1. init_record</h4>
@@ -1104,14 +1095,14 @@ http://www.gnu.org/software/src-highlite -->
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">static</span></span> <span style="color: #009900">long</span> <span style="font-weight: bold"><span style="color: #000000">init_record</span></span><span style="color: #990000">(</span><span style="color: #008080">aiRecord</span> <span style="color: #990000">*</span>pao<span style="color: #990000">)</span>
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">static</span></span> <span style="color: #009900">long</span> <span style="font-weight: bold"><span style="color: #000000">init_record</span></span><span style="color: #990000">(</span><span style="color: #008080">aiRecord</span> <span style="color: #990000">*</span>prec<span style="color: #990000">)</span>
 <span style="color: #FF0000">{</span>
   <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">prngState</span><span style="color: #990000">*</span> priv<span style="color: #990000">;</span>
   <span style="color: #009900">unsigned</span> <span style="color: #009900">long</span> start<span style="color: #990000">;</span>
 
   priv<span style="color: #990000">=</span><span style="font-weight: bold"><span style="color: #000000">malloc</span></span><span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">sizeof</span></span><span style="color: #990000">(</span><span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">prngState</span><span style="color: #990000">));</span>
   <span style="font-weight: bold"><span style="color: #0000FF">if</span></span><span style="color: #990000">(!</span>priv<span style="color: #990000">)</span><span style="color: #FF0000">{</span>
-    <span style="font-weight: bold"><span style="color: #000000">recGblRecordError</span></span><span style="color: #990000">(</span>S_db_noMemory<span style="color: #990000">,</span> <span style="color: #990000">(</span><span style="color: #009900">void</span><span style="color: #990000">*)</span>pao<span style="color: #990000">,</span>
+    <span style="font-weight: bold"><span style="color: #000000">recGblRecordError</span></span><span style="color: #990000">(</span>S_db_noMemory<span style="color: #990000">,</span> <span style="color: #990000">(</span><span style="color: #009900">void</span><span style="color: #990000">*)</span>prec<span style="color: #990000">,</span>
       <span style="color: #FF0000">"devAoTimebase failed to allocate private struct"</span><span style="color: #990000">);</span>
     <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> S_db_noMemory<span style="color: #990000">;</span>
   <span style="color: #FF0000">}</span>
@@ -1119,13 +1110,13 @@ http://www.gnu.org/software/src-highlite -->
   <span style="font-style: italic"><span style="color: #9A1900">/* New */</span></span>
   <span style="font-weight: bold"><span style="color: #000000">callbackSetCallback</span></span><span style="color: #990000">(</span>prng_cb<span style="color: #990000">,&amp;</span>priv<span style="color: #990000">-&gt;</span>cb<span style="color: #990000">);</span>
   <span style="font-weight: bold"><span style="color: #000000">callbackSetPriority</span></span><span style="color: #990000">(</span>priorityLow<span style="color: #990000">,&amp;</span>priv<span style="color: #990000">-&gt;</span>cb<span style="color: #990000">);</span>
-  <span style="font-weight: bold"><span style="color: #000000">callbackSetUser</span></span><span style="color: #990000">(</span>pao<span style="color: #990000">,&amp;</span>priv<span style="color: #990000">-&gt;</span>cb<span style="color: #990000">);</span>
+  <span style="font-weight: bold"><span style="color: #000000">callbackSetUser</span></span><span style="color: #990000">(</span>prec<span style="color: #990000">,&amp;</span>priv<span style="color: #990000">-&gt;</span>cb<span style="color: #990000">);</span>
   priv<span style="color: #990000">-&gt;</span>cb<span style="color: #990000">.</span>timer<span style="color: #990000">=</span>NULL<span style="color: #990000">;</span>
 
-  <span style="font-weight: bold"><span style="color: #000000">recGblInitConstantLink</span></span><span style="color: #990000">(&amp;</span>pao<span style="color: #990000">-&gt;</span>inp<span style="color: #990000">,</span>DBF_ULONG<span style="color: #990000">,&amp;</span>start<span style="color: #990000">);</span>
+  <span style="font-weight: bold"><span style="color: #000000">recGblInitConstantLink</span></span><span style="color: #990000">(&amp;</span>prec<span style="color: #990000">-&gt;</span>inp<span style="color: #990000">,</span>DBF_ULONG<span style="color: #990000">,&amp;</span>start<span style="color: #990000">);</span>
 
   priv<span style="color: #990000">-&gt;</span>seed<span style="color: #990000">=</span>start<span style="color: #990000">;</span>
-  pao<span style="color: #990000">-&gt;</span>dpvt<span style="color: #990000">=</span>priv<span style="color: #990000">;</span>
+  prec<span style="color: #990000">-&gt;</span>dpvt<span style="color: #990000">=</span>priv<span style="color: #990000">;</span>
 
   <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> <span style="color: #993399">0</span><span style="color: #990000">;</span>
 <span style="color: #FF0000">}</span></tt></pre></div></div>
@@ -1138,19 +1129,23 @@ http://www.gnu.org/software/src-highlite -->
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">static</span></span> <span style="color: #009900">long</span> <span style="font-weight: bold"><span style="color: #000000">read_ai</span></span><span style="color: #990000">(</span><span style="color: #008080">aiRecord</span> <span style="color: #990000">*</span>pao<span style="color: #990000">)</span>
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">static</span></span> <span style="color: #009900">long</span> <span style="font-weight: bold"><span style="color: #000000">read_ai</span></span><span style="color: #990000">(</span><span style="color: #008080">aiRecord</span> <span style="color: #990000">*</span>prec<span style="color: #990000">)</span>
 <span style="color: #FF0000">{</span>
-  <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">prngState</span><span style="color: #990000">*</span> priv<span style="color: #990000">=</span>pao<span style="color: #990000">-&gt;</span>dpvt<span style="color: #990000">;</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">prngState</span><span style="color: #990000">*</span> priv<span style="color: #990000">=</span>prec<span style="color: #990000">-&gt;</span>dpvt<span style="color: #990000">;</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">if</span></span><span style="color: #990000">(!</span>priv<span style="color: #990000">)</span> <span style="color: #FF0000">{</span>
+    <span style="color: #990000">(</span><span style="color: #009900">void</span><span style="color: #990000">)</span><span style="font-weight: bold"><span style="color: #000000">recGblSetSevr</span></span><span style="color: #990000">(</span>prec<span style="color: #990000">,</span> COMM_ALARM<span style="color: #990000">,</span> INVALID_ALARM<span style="color: #990000">);</span>
+    <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> <span style="color: #993399">0</span><span style="color: #990000">;</span>
+  <span style="color: #FF0000">}</span>
 
-  <span style="font-weight: bold"><span style="color: #0000FF">if</span></span><span style="color: #990000">(</span> <span style="color: #990000">!</span> pao<span style="color: #990000">-&gt;</span>pact <span style="color: #990000">)</span><span style="color: #FF0000">{</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">if</span></span><span style="color: #990000">(</span> <span style="color: #990000">!</span> prec<span style="color: #990000">-&gt;</span>pact <span style="color: #990000">)</span><span style="color: #FF0000">{</span>
     <span style="font-style: italic"><span style="color: #9A1900">/* start async operation */</span></span>
-    pao<span style="color: #990000">-&gt;</span>pact<span style="color: #990000">=</span>TRUE<span style="color: #990000">;</span>
-    <span style="font-weight: bold"><span style="color: #000000">callbackSetUser</span></span><span style="color: #990000">(</span>pao<span style="color: #990000">,&amp;</span>priv<span style="color: #990000">-&gt;</span>cb<span style="color: #990000">);</span>
+    prec<span style="color: #990000">-&gt;</span>pact<span style="color: #990000">=</span>TRUE<span style="color: #990000">;</span>
+    <span style="font-weight: bold"><span style="color: #000000">callbackSetUser</span></span><span style="color: #990000">(</span>prec<span style="color: #990000">,&amp;</span>priv<span style="color: #990000">-&gt;</span>cb<span style="color: #990000">);</span>
     <span style="font-weight: bold"><span style="color: #000000">callbackRequestDelayed</span></span><span style="color: #990000">(&amp;</span>priv<span style="color: #990000">-&gt;</span>cb<span style="color: #990000">,</span><span style="color: #993399">0.1</span><span style="color: #990000">);</span>
     <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> <span style="color: #993399">0</span><span style="color: #990000">;</span>
   <span style="color: #FF0000">}</span><span style="font-weight: bold"><span style="color: #0000FF">else</span></span><span style="color: #FF0000">{</span>
     <span style="font-style: italic"><span style="color: #9A1900">/* complete operation */</span></span>
-    pao<span style="color: #990000">-&gt;</span>pact<span style="color: #990000">=</span>FALSE<span style="color: #990000">;</span>
+    prec<span style="color: #990000">-&gt;</span>pact<span style="color: #990000">=</span>FALSE<span style="color: #990000">;</span>
     <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> <span style="color: #993399">0</span><span style="color: #990000">;</span>
   <span style="color: #FF0000">}</span>
 <span style="color: #FF0000">}</span></tt></pre></div></div>
@@ -1170,15 +1165,15 @@ which will complete the operation and allow <em>PACT</em> to be cleared.</p></di
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="color: #009900">void</span> <span style="font-weight: bold"><span style="color: #000000">prng_cb</span></span><span style="color: #990000">(</span>CALLBACK<span style="color: #990000">*</span> cb<span style="color: #990000">)</span>
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">static</span></span> <span style="color: #009900">void</span> <span style="font-weight: bold"><span style="color: #000000">prng_cb</span></span><span style="color: #990000">(</span>CALLBACK<span style="color: #990000">*</span> cb<span style="color: #990000">)</span>
 <span style="color: #FF0000">{</span>
   aiRecord<span style="color: #990000">*</span> prec<span style="color: #990000">;</span>
   <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">prngState</span><span style="color: #990000">*</span> priv<span style="color: #990000">;</span>
-  <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">rset</span><span style="color: #990000">*</span> prset<span style="color: #990000">;</span>
+  rset<span style="color: #990000">*</span> prset<span style="color: #990000">;</span>
   <span style="color: #008080">epicsInt32</span> raw<span style="color: #990000">;</span>
 
   <span style="font-weight: bold"><span style="color: #000000">callbackGetUser</span></span><span style="color: #990000">(</span>prec<span style="color: #990000">,</span>cb<span style="color: #990000">);</span>
-  prset<span style="color: #990000">=(</span><span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">rset</span><span style="color: #990000">*)</span>prec<span style="color: #990000">-&gt;</span>rset<span style="color: #990000">;</span>
+  prset<span style="color: #990000">=(</span>rset<span style="color: #990000">*)</span>prec<span style="color: #990000">-&gt;</span>rset<span style="color: #990000">;</span>
   priv<span style="color: #990000">=</span>prec<span style="color: #990000">-&gt;</span>dpvt<span style="color: #990000">;</span>
 
   raw<span style="color: #990000">=</span><span style="font-weight: bold"><span style="color: #000000">rand_r</span></span><span style="color: #990000">(&amp;</span>priv<span style="color: #990000">-&gt;</span>seed<span style="color: #990000">);</span>
@@ -1195,6 +1190,33 @@ It this way <em>read_ai</em> is called while <em>PACT</em> is set.</p></div>
 no additional locking is required. More complicated scenarios involving multiple
 PVs might require, for example, a mutex to guard <em>priv&#8594;seed</em>.</p></div>
 <div class="paragraph"><p>Remember to add <em>devprngasync.c</em> to <em>prngApp/src/Makefile</em>.</p></div>
+</div>
+<div class="sect3">
+<h4 id="_exporting_2">4.1.4. Exporting</h4>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.8
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>
+<span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #FF0000">{</span>
+  <span style="color: #009900">long</span> num<span style="color: #990000">;</span>
+  <span style="color: #008080">DEVSUPFUN</span>  report<span style="color: #990000">;</span>
+  <span style="color: #008080">DEVSUPFUN</span>  init<span style="color: #990000">;</span>
+  <span style="color: #008080">DEVSUPFUN</span>  init_record<span style="color: #990000">;</span>
+  <span style="color: #008080">DEVSUPFUN</span>  get_ioint_info<span style="color: #990000">;</span>
+  <span style="color: #008080">DEVSUPFUN</span>  read_ai<span style="color: #990000">;</span>
+  <span style="color: #008080">DEVSUPFUN</span>  special_linconv<span style="color: #990000">;</span>
+<span style="color: #FF0000">}</span> devAiPrngAsync <span style="color: #990000">=</span> <span style="color: #FF0000">{</span>
+  <span style="color: #993399">6</span><span style="color: #990000">,</span> <span style="font-style: italic"><span style="color: #9A1900">/* space for 6 functions */</span></span>
+  NULL<span style="color: #990000">,</span>
+  NULL<span style="color: #990000">,</span>
+  init_record<span style="color: #990000">,</span>
+  NULL<span style="color: #990000">,</span>
+  read_ai<span style="color: #990000">,</span>
+  NULL
+<span style="color: #FF0000">}</span><span style="color: #990000">;</span>
+<span style="font-weight: bold"><span style="color: #000000">epicsExportAddress</span></span><span style="color: #990000">(</span>dset<span style="color: #990000">,</span>devAiPrngAsync<span style="color: #990000">);</span> <span style="font-style: italic"><span style="color: #9A1900">/* change name */</span></span></tt></pre></div></div>
 </div>
 </div>
 <div class="sect2">
@@ -1241,6 +1263,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;dbAccess.h&gt;</span>
 <span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;devSup.h&gt;</span>
 <span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;recGbl.h&gt;</span>
+<span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;alarm.h&gt;</span>
 <span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;dbScan.h&gt;</span>
 <span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;dbDefs.h&gt;</span>
 <span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">&lt;ellLib.h&gt;</span>
@@ -1400,7 +1423,9 @@ http://www.gnu.org/software/src-highlite -->
 <span style="color: #FF0000">{</span>
   <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">prngState</span><span style="color: #990000">*</span> priv<span style="color: #990000">=</span>prec<span style="color: #990000">-&gt;</span>dpvt<span style="color: #990000">;</span>
 
-  <span style="color: #990000">*</span>io <span style="color: #990000">=</span> priv<span style="color: #990000">-&gt;</span>scan<span style="color: #990000">;</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">if</span></span><span style="color: #990000">(</span>priv<span style="color: #990000">)</span> <span style="color: #FF0000">{</span>
+    <span style="color: #990000">*</span>io <span style="color: #990000">=</span> priv<span style="color: #990000">-&gt;</span>scan<span style="color: #990000">;</span>
+  <span style="color: #FF0000">}</span>
   <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> <span style="color: #993399">0</span><span style="color: #990000">;</span>
 <span style="color: #FF0000">}</span></tt></pre></div></div>
 <div class="paragraph"><p>So far we have seen how to initialize a scan list with <em>scanIoInit()</em>, and how to request a scan with <em>scanIoRequest()</em>.
@@ -1427,6 +1452,10 @@ http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-weight: bold"><span style="color: #0000FF">static</span></span> <span style="color: #009900">long</span> <span style="font-weight: bold"><span style="color: #000000">read_ai</span></span><span style="color: #990000">(</span><span style="color: #008080">aiRecord</span> <span style="color: #990000">*</span>prec<span style="color: #990000">)</span>
 <span style="color: #FF0000">{</span>
   <span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">prngState</span><span style="color: #990000">*</span> priv<span style="color: #990000">=</span>prec<span style="color: #990000">-&gt;</span>dpvt<span style="color: #990000">;</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">if</span></span><span style="color: #990000">(!</span>priv<span style="color: #990000">)</span> <span style="color: #FF0000">{</span>
+    <span style="color: #990000">(</span><span style="color: #009900">void</span><span style="color: #990000">)</span><span style="font-weight: bold"><span style="color: #000000">recGblSetSevr</span></span><span style="color: #990000">(</span>prec<span style="color: #990000">,</span> COMM_ALARM<span style="color: #990000">,</span> INVALID_ALARM<span style="color: #990000">);</span>
+    <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> <span style="color: #993399">0</span><span style="color: #990000">;</span>
+  <span style="color: #FF0000">}</span>
 
   <span style="font-weight: bold"><span style="color: #000000">epicsMutexMustLock</span></span><span style="color: #990000">(</span>priv<span style="color: #990000">-&gt;</span>lock<span style="color: #990000">);</span>
   prec<span style="color: #990000">-&gt;</span>rval <span style="color: #990000">=</span> priv<span style="color: #990000">-&gt;</span>lastnum<span style="color: #990000">;</span>
@@ -1568,9 +1597,9 @@ conversion and specify the value in engineering units directly.</p></div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Version 3<br />
+Version 4<br />
 Last updated
- 2017-08-01 13:15:42 CEST
+ 2017-08-23 10:26:05 CDT
 </div>
 </div>
 </body>
