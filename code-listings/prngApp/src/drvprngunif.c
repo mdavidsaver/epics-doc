@@ -1,9 +1,10 @@
 
 #include <stdlib.h>
 #include <drvSup.h>
-#include <epicsExport.h>
 
 #include "drvprngdist.h"
+
+#include <epicsExport.h>
 
 struct uniform {
   unsigned int state;

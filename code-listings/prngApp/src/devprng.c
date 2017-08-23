@@ -1,17 +1,44 @@
 #include <stdlib.h>
-#include <epicsExport.h>
 #include <dbAccess.h>
 #include <devSup.h>
 #include <recGbl.h>
 
 #include <aiRecord.h>
 
-static long init_record(aiRecord *pao);
-static long read_ai(aiRecord *pao);
+#include <epicsExport.h>
 
 struct prngState {
   unsigned int seed;
 };
+
+static long init_record(aiRecord *prec)
+{
+  struct prngState* priv;
+  unsigned long start;
+
+  priv=malloc(sizeof(struct prngState));
+  if(!priv){
+    recGblRecordError(S_db_noMemory, (void*)prec,
+      "devAoTimebase failed to allocate private struct");
+    return S_db_noMemory;
+  }
+
+  recGblInitConstantLink(&prec->inp,DBF_ULONG,&start);
+
+  priv->seed=start;
+  prec->dpvt=priv;
+
+  return 0;
+}
+
+static long read_ai(aiRecord *prec)
+{
+  struct prngState* priv=prec->dpvt;
+
+  prec->rval=rand_r(&priv->seed);
+
+  return 0;
+}
 
 struct {
   long num;
@@ -31,34 +58,3 @@ struct {
   NULL
 };
 epicsExportAddress(dset,devAiPrng);
-
-static long init_record(aiRecord *pao)
-{
-  struct prngState* priv;
-  unsigned long start;
-
-  priv=malloc(sizeof(struct prngState));
-  if(!priv){
-    recGblRecordError(S_db_noMemory, (void*)pao,
-      "devAoTimebase failed to allocate private struct");
-    return S_db_noMemory;
-  }
-
-  recGblInitConstantLink(&pao->inp,DBF_ULONG,&start);
-
-  priv->seed=start;
-  pao->dpvt=priv;
-
-  return 0;
-}
-
-static long read_ai(aiRecord *pao)
-{
-  struct prngState* priv=pao->dpvt;
-
-  pao->rval=rand_r(&priv->seed);
-
-  return 0;
-}
-
-

@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <epicsExport.h>
 #include <dbAccess.h>
 #include <devSup.h>
 #include <recGbl.h>
@@ -16,6 +15,8 @@
 #include <epicsVersion.h>
 
 #include <aiRecord.h>
+
+#include <epicsExport.h>
 
 #ifdef EPICS_VERSION_INT
 #if EPICS_VERSION_INT>=VERSION_INT(3,16,0,0)

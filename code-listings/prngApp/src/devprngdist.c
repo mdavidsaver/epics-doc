@@ -1,5 +1,4 @@
 #include <stdlib.h>
-#include <epicsExport.h>
 #include <dbAccess.h>
 #include <devSup.h>
 #include <drvSup.h>
@@ -11,27 +10,7 @@
 
 #include "drvprngdist.h"
 
-static long init_record(aiRecord *pao);
-static long read_ai(aiRecord *pao);
-
-struct {
-  long num;
-  DEVSUPFUN  report;
-  DEVSUPFUN  init;
-  DEVSUPFUN  init_record;
-  DEVSUPFUN  get_ioint_info;
-  DEVSUPFUN  read_ai;
-  DEVSUPFUN  special_linconv;
-} devAiPrngDist = {
-  6, /* space for 6 functions */
-  NULL,
-  NULL,
-  init_record,
-  NULL,
-  read_ai,
-  NULL
-};
-epicsExportAddress(dset,devAiPrngDist);
+#include <epicsExport.h>
 
 static long init_record(aiRecord *pao)
 {
@@ -57,3 +36,22 @@ static long read_ai(aiRecord *pao)
 
   return 0;
 }
+
+struct {
+  long num;
+  DEVSUPFUN  report;
+  DEVSUPFUN  init;
+  DEVSUPFUN  init_record;
+  DEVSUPFUN  get_ioint_info;
+  DEVSUPFUN  read_ai;
+  DEVSUPFUN  special_linconv;
+} devAiPrngDist = {
+  6, /* space for 6 functions */
+  NULL,
+  NULL,
+  init_record,
+  NULL,
+  read_ai,
+  NULL
+};
+epicsExportAddress(dset,devAiPrngDist);

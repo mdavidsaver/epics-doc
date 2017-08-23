@@ -1,13 +1,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <epicsExport.h>
 #include <errlog.h>
 #include <iocsh.h>
 #include <registryDriverSupport.h>
 #include <ellLib.h>
 
 #include "drvprngdist.h"
+
+#include <epicsExport.h>
 
 static ELLLIST devices={{NULL,NULL},0};
 

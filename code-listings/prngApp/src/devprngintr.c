@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include <epicsExport.h>
+
 #include <dbAccess.h>
 #include <devSup.h>
 #include <recGbl.h>
@@ -14,6 +14,8 @@
 #include <epicsVersion.h>
 
 #include <aiRecord.h>
+
+#include <epicsExport.h>
 
 static ELLLIST allprngs = ELLLIST_INIT;
 
