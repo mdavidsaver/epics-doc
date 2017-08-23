@@ -3,6 +3,7 @@
 #include <devSup.h>
 #include <drvSup.h>
 #include <recGbl.h>
+#include <alarm.h>
 
 #include <aiRecord.h>
 
@@ -12,27 +13,31 @@
 
 #include <epicsExport.h>
 
-static long init_record(aiRecord *pao)
+static long init_record(aiRecord *prec)
 {
   struct instancePrng* priv;
 
-  priv=lookupPrng(pao->inp.value.vmeio.card);
+  priv=lookupPrng(prec->inp.value.vmeio.card);
   if(!priv){
-    recGblRecordError(S_dev_noDevice, (void*)pao,
+    recGblRecordError(S_dev_noDevice, (void*)prec,
       "Not a valid device id code");
     return S_dev_noDevice;
   }
 
-  pao->dpvt=priv;
+  prec->dpvt=priv;
 
   return 0;
 }
 
-static long read_ai(aiRecord *pao)
+static long read_ai(aiRecord *prec)
 {
-  struct instancePrng* priv=pao->dpvt;
+  struct instancePrng* priv=prec->dpvt;
+  if(!priv) {
+    (void)recGblSetSevr(prec, COMM_ALARM, INVALID_ALARM);
+    return 0;
+  }
 
-  pao->rval=priv->table->read_prng(priv->token);
+  prec->rval=priv->table->read_prng(priv->token);
 
   return 0;
 }

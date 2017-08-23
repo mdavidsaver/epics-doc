@@ -3,6 +3,7 @@
 #include <dbAccess.h>
 #include <devSup.h>
 #include <recGbl.h>
+#include <alarm.h>
 #include <dbScan.h>
 #include <dbDefs.h>
 #include <ellLib.h>
@@ -101,14 +102,20 @@ static void worker(void* raw)
 static long get_ioint_info(int dir,dbCommon* prec,IOSCANPVT* io)
 {
   struct prngState* priv=prec->dpvt;
-  
-  *io = priv->scan;
+
+  if(priv) {
+    *io = priv->scan;
+  }
   return 0;
 }
 
 static long read_ai(aiRecord *prec)
 {
   struct prngState* priv=prec->dpvt;
+  if(!priv) {
+    (void)recGblSetSevr(prec, COMM_ALARM, INVALID_ALARM);
+    return 0;
+  }
 
   epicsMutexMustLock(priv->lock);
   prec->rval = priv->lastnum;

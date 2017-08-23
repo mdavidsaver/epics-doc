@@ -2,6 +2,7 @@
 #include <dbAccess.h>
 #include <devSup.h>
 #include <recGbl.h>
+#include <alarm.h>
 
 #include <aiRecord.h>
 
@@ -34,6 +35,10 @@ static long init_record(aiRecord *prec)
 static long read_ai(aiRecord *prec)
 {
   struct prngState* priv=prec->dpvt;
+  if(!priv) {
+    (void)recGblSetSevr(prec, COMM_ALARM, INVALID_ALARM);
+    return 0;
+  }
 
   prec->rval=rand_r(&priv->seed);
 

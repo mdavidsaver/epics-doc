@@ -28,7 +28,7 @@ int read(void* tok)
 {
   struct gaussian* priv=tok;
   int ret=0, i=8;
-  
+
   while(i--)
     ret+=rand_r(&priv->state)/8;
 

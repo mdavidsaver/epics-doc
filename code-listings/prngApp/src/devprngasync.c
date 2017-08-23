@@ -3,6 +3,7 @@
 #include <devSup.h>
 #include <recSup.h>
 #include <recGbl.h>
+#include <alarm.h>
 #include <callback.h>
 
 #include <aiRecord.h>
@@ -14,7 +15,7 @@ struct prngState {
   CALLBACK cb; /* New */
 };
 
-void prng_cb(CALLBACK* cb);
+static void prng_cb(CALLBACK* cb);
 
 static long init_record(aiRecord *prec)
 {
@@ -45,6 +46,10 @@ static long init_record(aiRecord *prec)
 static long read_ai(aiRecord *prec)
 {
   struct prngState* priv=prec->dpvt;
+  if(!priv) {
+    (void)recGblSetSevr(prec, COMM_ALARM, INVALID_ALARM);
+    return 0;
+  }
 
   if( ! prec->pact ){
     /* start async operation */
@@ -59,7 +64,7 @@ static long read_ai(aiRecord *prec)
   }
 }
 
-void prng_cb(CALLBACK* cb)
+static void prng_cb(CALLBACK* cb)
 {
   aiRecord* prec;
   struct prngState* priv;

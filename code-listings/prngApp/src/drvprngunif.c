@@ -27,7 +27,7 @@ static
 int read(void* tok)
 {
   struct uniform* priv=tok;
-  
+
   return rand_r(&priv->state);
 }
 
