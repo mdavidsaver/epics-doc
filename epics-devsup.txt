@@ -8,8 +8,8 @@ Basic EPICS Device Support
 ==========================
 :Author:    Michael Davidsaver
 :Email:     mdavidsaver@gmail.com
-:Date:      November 2015
-:Revision:  3
+:Date:      August 2017
+:Revision:  4
 :Key words: epics, ioc, device support
 :Revision history:
 
@@ -25,14 +25,18 @@ descriptions and lists of device support functions.
 To determine the exact form of a record's device support functions the source
 found in '$EPICS_BASE/src/rec' is invaluable.
 
-The latest version of this page, and code listings, can be found at:
+The latest version of this page can be found at:
 http://mdavidsaver.github.io/epics-doc/epics-devsup.html[http://mdavidsaver.github.io/epics-doc/epics-devsup.html]
+
+Complete example code may be found in the 'code-listings' directory at:
+https://github.com/mdavidsaver/epics-doc[https://github.com/mdavidsaver/epics-doc]
 
 Prepare IOC environment
 -----------------------
 
 It is assumed that EPICS Base is already built, that EPICS_BASE is set,
 and that the EPICS executables are in the system search PATH.
+If not, then first see http://mdavidsaver.github.io/epics-doc/epics-starting.html[Getting Started].
 
 All paths given in this example are assumed to be relative to the 'devsumexample'
 directory.
@@ -98,23 +102,6 @@ At this point, the 'prng' IOC can now be compiled, and the resulting executable 
 However, it will not be capable of doing anything more than the 'softIoc' executable.
 In fact, they are functionally identical.
 
-Device Definition
-~~~~~~~~~~~~~~~~~
-
-Our first task is to make an addition to the IOC database for our prng device.
-Create the file 'prngApp/src/prngdev.dbd':
-
---------------------------------------
-device(ai,CONSTANT,devAiPrng,"Random")
---------------------------------------
-
-This defines the device 'devAiPrng' as support for an AI record with a CONSTANT input link
-named "Random".
-The name 'devAiPrng' must be unique in the IOC.
-The combination of record type and name string must also be unique.
-It is convention that device support names should take the form 'devXxYyyy'
-where 'Xx' is the record type and 'Yyyy' identifies the hardware to be supported.
-
 Writing Support
 ~~~~~~~~~~~~~~~
 
@@ -123,15 +110,14 @@ Now create the file 'prngApp/src/devprng.c' with the following sections.
 [source,c]
 ------------------------
 #include <stdlib.h>
-#include <epicsExport.h>
 #include <dbAccess.h>
 #include <devSup.h>
 #include <recGbl.h>
+#include <alarm.h>
 
 #include <aiRecord.h>
 
-static long init_record(aiRecord *pao);
-static long read_ai(aiRecord *pao);
+#include <epicsExport.h>
 
 struct prngState {
   unsigned int seed;
@@ -140,6 +126,81 @@ struct prngState {
 
 Our device support code will be contained in the 'init_record' and 'read_ai' functions.
 Custom state information will be held in an instance of the 'prngState' structure.
+
+It should be noted that AI record support requires 'read_ai' to be specified, but
+'init_record' is optional.
+
+init_record
+^^^^^^^^^^^
+
+[source,c]
+--------------------------------------------------------
+static long init_record(aiRecord *prec)
+{
+  struct prngState* priv;
+  unsigned long start;
+
+  priv=malloc(sizeof(struct prngState));
+  if(!priv){
+    recGblRecordError(S_db_noMemory, (void*)prec,
+      "devAoTimebase failed to allocate private struct");
+    return S_db_noMemory;
+  }
+
+  recGblInitConstantLink(&prec->inp,DBF_ULONG,&start);
+
+  priv->seed=start;
+  prec->dpvt=priv;
+
+  return 0;
+}
+--------------------------------------------------------
+
+This 'init_record' function is called once for each record in the IOC
+database which uses DTYP 'Random' (ie 'devAiPrng' device support).
+The association between DTYP and our code is described below.
+
+Our 'init_record' allocates space for the structure used to keep internal state,
+then parses the Constant input link string to get the initial seed value.
+
+The input link can only by a CONSTANT link so there is no need to verify this.
+
+read_ai
+^^^^^^^
+
+[source,c]
+-----------------------------------
+static long read_ai(aiRecord *prec)
+{
+  struct prngState* priv=prec->dpvt;
+  if(!priv) {
+    (void)recGblSetSevr(prec, COMM_ALARM, INVALID_ALARM);
+    return 0;
+  }
+
+  prec->rval=rand_r(&priv->seed);
+
+  return 0;
+}
+-----------------------------------
+
+Whenever a record using this device support is processed 'read_ai' is invoked.
+It simply invokes the thread-safe version of the 'rand' function
+to supply a raw (integer) value.
+
+It is important to note that 'read_ai' function will be invoked even if 'init_record'
+returns an error.
+This means that DPVT may be NULL.
+As this is a symptom of an earlier error, it is not advisable to print a message.
+However, signaling an INVALID alarm condition will indicate to any users
+that VAL does not reflect an actual measurement.
+
+Exporting
+^^^^^^^^^
+
+Now associate the name 'devAiPrng' with our device support functions.
+This mechanism is a way of providing a set of functions which the record support
+will use in to perform certain functions.
 
 [source,c]
 ---------------------------------------
@@ -163,76 +224,28 @@ struct {
 epicsExportAddress(dset,devAiPrng);
 ---------------------------------------
 
-Now associate the name 'devAiPrng' with our device support functions.
-This mechanism is a way of providing a set of functions which the record support
-will use in to perform certain functions.
-
-It should be noted that AI record support requires 'read_ai' to be specified, but
-'init_record' is optional.
-
-From the perspective of object oriented programming the record support can be
-regarded as a base class.
-This device support inherits from the AI record support and provides definitions for
-two virtual methods.
-The AI record requires that 'read_ai' be provided while 'init' is optional.
-In this way 'read_ai' functions as a pure virtual method.
-
 The number of functions record support will look for and the meaning of these functions
 is determined by record support.
 For information on a specific record types see the 'Record Reference Manual'<<RecRef>>
 and the source (ie '$EPICS_BASE/src/rec/aiRecord.c').
 
-init_record
-^^^^^^^^^^^
+Device Definition
+~~~~~~~~~~~~~~~~~
 
-[source,c]
---------------------------------------------------------
-static long init_record(aiRecord *pao)
-{
-  struct prngState* priv;
-  unsigned long start;
+Our final task is to make an addition to the IOC database for our prng device.
+Create the file 'prngApp/src/prngdev.dbd':
 
-  priv=malloc(sizeof(struct prngState));
-  if(!priv){
-    recGblRecordError(S_db_noMemory, (void*)pao,
-      "devAoTimebase failed to allocate private struct");
-    return S_db_noMemory;
-  }
+--------------------------------------
+device(ai,CONSTANT,devAiPrng,"Random")
+--------------------------------------
 
-  recGblInitConstantLink(&pao->inp,DBF_ULONG,&start);
-
-  priv->seed=start;
-  pao->dpvt=priv;
-
-  return 0;
-}
---------------------------------------------------------
-
-This 'init_record' function is called once for each record in the IOC
-database which uses DTYP 'Random' (ie 'devAiPrng' device support).
-It allocates space for the structure used to keep internal state,
-then parses the Constant input link string to get the initial seed value.
-
-The input link can only by a CONSTANT link so there is no need to verify this.
-
-read_ai
-^^^^^^^
-
-[source,c]
------------------------------------
-static long read_ai(aiRecord *pao)
-{
-  struct prngState* priv=pao->dpvt;
-
-  pao->rval=rand_r(&priv->seed);
-
-  return 0;
-}
------------------------------------
-
-Whenever a record using 'devAiPrng' is processed 'read_ai' is invoked.
-It simply invokes the thread-safe version of the 'rand' function
-to supply a raw (integer) value.
+This defines the device 'devAiPrng' as support for an AI record with a CONSTANT input link
+named "Random".
+The name 'devAiPrng' must be unique in the IOC.
+The combination of record type and name string must also be unique.
+It is convention that device support names should take the form 'devXxYyyy'
+where 'Xx' is the record type and 'Yyyy' identifies the driver providing the code.
+It is also wise to include the driver name in the DTYP string to avoid name conflicts.
 
 Building
 ~~~~~~~~
@@ -352,43 +365,23 @@ Now create the file 'prngApp/src/devprngasync.c' and add the following sections.
 [source,c]
 ------------------------
 #include <stdlib.h>
-#include <epicsExport.h>
 #include <dbAccess.h>
 #include <devSup.h>
 #include <recSup.h>
 #include <recGbl.h>
+#include <alarm.h>
 #include <callback.h>
 
 #include <aiRecord.h>
 
-static long init_record(aiRecord *pao);
-static long read_ai(aiRecord *pao);
+#include <epicsExport.h>
 
 struct prngState {
   unsigned int seed;
   CALLBACK cb; /* New */
 };
 
-struct {
-  long num;
-  DEVSUPFUN  report;
-  DEVSUPFUN  init;
-  DEVSUPFUN  init_record;
-  DEVSUPFUN  get_ioint_info;
-  DEVSUPFUN  read_ai;
-  DEVSUPFUN  special_linconv;
-} devAiPrngAsync = {
-  6, /* space for 6 functions */
-  NULL,
-  NULL,
-  init_record,
-  NULL,
-  read_ai,
-  NULL
-};
-epicsExportAddress(dset,devAiPrngAsync); /* change name */
-
-void prng_cb(CALLBACK* cb);
+static void prng_cb(CALLBACK* cb);
 ---------------------------------------
 
 Note the addition to the 'prngState' struct of a CALLBACK.
@@ -398,14 +391,14 @@ init_record
 
 [source,c]
 --------------------------------------------------------
-static long init_record(aiRecord *pao)
+static long init_record(aiRecord *prec)
 {
   struct prngState* priv;
   unsigned long start;
 
   priv=malloc(sizeof(struct prngState));
   if(!priv){
-    recGblRecordError(S_db_noMemory, (void*)pao,
+    recGblRecordError(S_db_noMemory, (void*)prec,
       "devAoTimebase failed to allocate private struct");
     return S_db_noMemory;
   }
@@ -413,13 +406,13 @@ static long init_record(aiRecord *pao)
   /* New */
   callbackSetCallback(prng_cb,&priv->cb);
   callbackSetPriority(priorityLow,&priv->cb);
-  callbackSetUser(pao,&priv->cb);
+  callbackSetUser(prec,&priv->cb);
   priv->cb.timer=NULL;
 
-  recGblInitConstantLink(&pao->inp,DBF_ULONG,&start);
+  recGblInitConstantLink(&prec->inp,DBF_ULONG,&start);
 
   priv->seed=start;
-  pao->dpvt=priv;
+  prec->dpvt=priv;
 
   return 0;
 }
@@ -432,19 +425,23 @@ read_ai
 
 [source,c]
 -----------------------------------
-static long read_ai(aiRecord *pao)
+static long read_ai(aiRecord *prec)
 {
-  struct prngState* priv=pao->dpvt;
+  struct prngState* priv=prec->dpvt;
+  if(!priv) {
+    (void)recGblSetSevr(prec, COMM_ALARM, INVALID_ALARM);
+    return 0;
+  }
 
-  if( ! pao->pact ){
+  if( ! prec->pact ){
     /* start async operation */
-    pao->pact=TRUE;
-    callbackSetUser(pao,&priv->cb);
+    prec->pact=TRUE;
+    callbackSetUser(prec,&priv->cb);
     callbackRequestDelayed(&priv->cb,0.1);
     return 0;
   }else{
     /* complete operation */
-    pao->pact=FALSE;
+    prec->pact=FALSE;
     return 0;
   }
 }
@@ -465,15 +462,15 @@ callback
 
 [source,c]
 ----------------------------
-void prng_cb(CALLBACK* cb)
+static void prng_cb(CALLBACK* cb)
 {
   aiRecord* prec;
   struct prngState* priv;
-  struct rset* prset;
+  rset* prset;
   epicsInt32 raw;
 
   callbackGetUser(prec,cb);
-  prset=(struct rset*)prec->rset;
+  prset=(rset*)prec->rset;
   priv=prec->dpvt;
 
   raw=rand_r(&priv->seed);
@@ -494,6 +491,32 @@ no additional locking is required. More complicated scenarios involving multiple
 PVs might require, for example, a mutex to guard 'priv->seed'.
 
 Remember to add 'devprngasync.c' to 'prngApp/src/Makefile'.
+
+Exporting
+^^^^^^^^^
+
+[source,c]
+----------------------------------------------------------
+
+struct {
+  long num;
+  DEVSUPFUN  report;
+  DEVSUPFUN  init;
+  DEVSUPFUN  init_record;
+  DEVSUPFUN  get_ioint_info;
+  DEVSUPFUN  read_ai;
+  DEVSUPFUN  special_linconv;
+} devAiPrngAsync = {
+  6, /* space for 6 functions */
+  NULL,
+  NULL,
+  init_record,
+  NULL,
+  read_ai,
+  NULL
+};
+epicsExportAddress(dset,devAiPrngAsync); /* change name */
+----------------------------------------------------------
 
 Running
 ~~~~~~~
@@ -541,6 +564,7 @@ Now create 'prngApp/src/devprngintr.c' with the following sections.
 #include <dbAccess.h>
 #include <devSup.h>
 #include <recGbl.h>
+#include <alarm.h>
 #include <dbScan.h>
 #include <dbDefs.h>
 #include <ellLib.h>
@@ -706,8 +730,10 @@ get_iointr_info
 static long get_ioint_info(int dir,dbCommon* prec,IOSCANPVT* io)
 {
   struct prngState* priv=prec->dpvt;
-  
-  *io = priv->scan;
+
+  if(priv) {
+    *io = priv->scan;
+  }
   return 0;
 }
 ----------------------------------------------------------------
@@ -737,6 +763,10 @@ read_ai
 static long read_ai(aiRecord *prec)
 {
   struct prngState* priv=prec->dpvt;
+  if(!priv) {
+    (void)recGblSetSevr(prec, COMM_ALARM, INVALID_ALARM);
+    return 0;
+  }
 
   epicsMutexMustLock(priv->lock);
   prec->rval = priv->lastnum;
