@@ -24,5 +24,10 @@
 # define INSTALL_LOCATION here
 #INSTALL_LOCATION=<fullpathname>
 
-USR_CFLAGS += -Werror
-USR_CXXFLAGS += -Werror
+# we're very strict in these examples
+USR_CFLAGS += -Wall -Wextra -Wno-unused-parameter -Werror
+USR_CXXFLAGS += -Wall -Wextra -Wno-unused-parameter -Werror
+
+USR_CPPFLAGS += -DUSE_TYPED_RSET
+
+-include $(TOP)/configure/CONFIG_SITE.local

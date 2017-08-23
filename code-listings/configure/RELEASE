@@ -1,30 +1,16 @@
-#RELEASE Location of external products
-#
-# IF YOU MAKE ANY CHANGES to this file you MUST at least run
-# "gnumake" in this directory afterwards; you usually need
-# to run "gnumake rebuild" in the application's top level
-# directory each time this file is changed.
-#
-# NOTE: The build does not check dependencies against files
-# that are outside this application, thus you should run
-# "gnumake distclean install" in the top directory each time
-# EPICS_BASE, SNCSEQ, or any other external module defined
-# in the RELEASE file is rebuilt.
-#
-# Host/target specific settings can be specified in files named
-#  RELEASE.$(EPICS_HOST_ARCH).Common
-#  RELEASE.Common.$(T_A)
-#  RELEASE.$(EPICS_HOST_ARCH).$(T_A)
-
 TEMPLATE_TOP=$(EPICS_BASE)/templates/makeBaseApp/top
 
-#If using the sequencer, point SNCSEQ at its top directory:
-#SNCSEQ=$(EPICS_BASE)/../modules/soft/seq
+# RELEASE file(s) should contain only definitions
+# of EPICS module locations.
+# The order of definitions determines the search order
+# for headers, libraries, and associated files.
+# EPICS_BASE appears last so other apps can override stuff:
 
-# EPICS_BASE usually appears last so other apps can override stuff:
-EPICS_BASE=/usr/lib/epics
+# These examples require only EPICS Base.
+# Create configure/RELEASE.local and add a definition
+# of "EPICS_BASE" like the following.
+#EPICS_BASE=/usr/lib/epics
 
-#Capfast users may need the following definitions
-#CAPFAST_TEMPLATES=
-#SCH2EDIF_PATH=
 
+# Create this file and place module locations
+-include $(TOP)/configure/RELEASE.local
